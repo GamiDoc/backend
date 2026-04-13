@@ -1,6 +1,6 @@
 site_name: GamiDoc Backend Guide
 site_url: https://gamidoc.github.io/backend
-repo_name: backend
+repo_name: GamiDoc/backend
 repo_url: https://github.com/gamidoc/backend
 
 docs_dir: docs

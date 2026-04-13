@@ -155,8 +155,7 @@ def receiver_type(raw: str) -> str:
     parts = raw.split()
     if len(parts) < 2:
         return ""
-    typ = parts[1].lstrip("*")
-    return typ
+    return parts[1].lstrip("*")
 
 
 def extract_decls(file_path: Path) -> list[Decl]:
@@ -254,8 +253,7 @@ def extract_decls(file_path: Path) -> list[Decl]:
 def package_decls(pkg: PackageMeta) -> list[Decl]:
     decls: list[Decl] = []
     for filename in pkg.files:
-        file_path = pkg.dir_path / filename
-        decls.extend(extract_decls(file_path))
+        decls.extend(extract_decls(pkg.dir_path / filename))
     decls.sort(key=lambda item: (item.kind, item.display_name.lower(), item.file_rel, item.line))
     return decls
 
@@ -271,28 +269,25 @@ def source_url(path: str, line: int | None = None) -> str:
     return base
 
 
+def icon_link(url: str, label: str) -> str:
+    return f'[{label}]({url}){{ .md-button .md-button--small }}'
+
+
 def render_package(pkg: PackageMeta) -> str:
     decls = package_decls(pkg)
     title = pkg.rel_path
     lines: list[str] = []
 
-    lines.append(f"# {title}")
+    lines.append(f"# {title} [{chr(8599)}]({source_url(pkg.rel_path)})")
     lines.append("")
     lines.append(f"**Package:** `{pkg.import_path}`")
-    lines.append("")
-    lines.append(f"[View package directory]({source_url(pkg.rel_path)})")
     lines.append("")
 
     if pkg.doc:
         lines.append(pkg.doc)
         lines.append("")
-    else:
-        lines.append("No package-level documentation found.")
-        lines.append("")
 
     if pkg.files:
-        lines.append("## Source files")
-        lines.append("")
         for filename in pkg.files:
             rel = (pkg.dir_path / filename).relative_to(ROOT).as_posix()
             lines.append(f"- [{filename}]({source_url(rel)})")
@@ -314,7 +309,7 @@ def render_package(pkg: PackageMeta) -> str:
         lines.append(f"## {heading}")
         lines.append("")
         for item in items:
-            lines.append(f"### `{item.display_name}`")
+            lines.append(f"### `{item.display_name}` [{chr(8599)}]({source_url(item.file_rel, item.line)})")
             lines.append("")
             lines.append("```go")
             lines.append(item.signature)
@@ -323,16 +318,9 @@ def render_package(pkg: PackageMeta) -> str:
             if item.doc:
                 lines.append(item.doc)
                 lines.append("")
-            else:
-                lines.append("No documentation found.")
-                lines.append("")
-            lines.append(f"[View source]({source_url(item.file_rel, item.line)})")
-            lines.append("")
 
-    if not decls:
-        lines.append("## Exported API")
-        lines.append("")
-        lines.append("No exported declarations found.")
+    if not decls and not pkg.doc and not pkg.files:
+        lines.append("This package currently has no exported reference content.")
         lines.append("")
 
     return "\n".join(lines)
@@ -353,8 +341,8 @@ def build_reference_index(packages: list[PackageMeta]) -> str:
 
 def new_nav_node() -> dict:
     return {
-        "__index__": None,
-        "__children__": {},
+        "page": None,
+        "children": {},
     }
 
 
@@ -362,31 +350,27 @@ def tree_insert(tree: dict, rel_path: str) -> None:
     parts = rel_path.split("/")
     node = tree
     for part in parts:
-        children = node["__children__"]
+        children = node["children"]
         if part not in children:
             children[part] = new_nav_node()
         node = children[part]
-    node["__index__"] = rel_path
+    node["page"] = f"{rel_path}.md"
 
 
-def render_nav_node(node: dict, indent: int = 0) -> list[str]:
-    lines: list[str] = []
+def render_nav_node(name: str, node: dict, indent: int) -> list[str]:
     pad = "  " * indent
+    children = node["children"]
+    page = node["page"]
 
-    for key in sorted(node["__children__"]):
-        child = node["__children__"][key]
-        child_index = child["__index__"]
-        child_children = child["__children__"]
+    if not children:
+        return [f"{pad}- {name}: {page}"]
 
-        if child_children:
-            lines.append(f"{pad}- {key}:")
-            if child_index is not None:
-                lines.append(f"{pad}  - Overview: {child_index}.md")
-            lines.extend(render_nav_node(child, indent + 1))
-        else:
-            if child_index is None:
-                continue
-            lines.append(f"{pad}- {key}: {child_index}.md")
+    lines: list[str] = [f"{pad}- {name}:"]
+    if page is not None:
+        lines.append(f"{pad}  - Overview: {page}")
+
+    for child_name in sorted(children):
+        lines.extend(render_nav_node(child_name, children[child_name], indent + 1))
 
     return lines
 
@@ -394,12 +378,21 @@ def render_nav_node(node: dict, indent: int = 0) -> list[str]:
 def build_reference_nav(packages: list[PackageMeta]) -> str:
     tree = new_nav_node()
     for pkg in packages:
+        if pkg.rel_path == "root":
+            continue
         tree_insert(tree, pkg.rel_path)
 
     lines: list[str] = []
     lines.append("nav:")
     lines.append("  - Overview: index.md")
-    lines.extend(render_nav_node(tree, indent=1))
+
+    root_pkg = next((pkg for pkg in packages if pkg.rel_path == "root"), None)
+    if root_pkg is not None:
+        lines.append(f"  - root: {root_pkg.rel_path}.md")
+
+    for top_name in sorted(tree["children"]):
+        lines.extend(render_nav_node(top_name, tree["children"][top_name], 1))
+
     lines.append("")
     return "\n".join(lines)
 
