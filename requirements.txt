@@ -1,3 +1,4 @@
+mkdocs-awesome-nav
 mkdocs-awesome-pages-plugin
 mkdocs-exclude
 mkdocs-git-authors-plugin

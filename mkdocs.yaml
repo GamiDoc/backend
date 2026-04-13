@@ -84,7 +84,7 @@ markdown_extensions:
       permalink: true
 
 plugins:
-  - awesome-pages
+  - awesome-nav
   - search
   - git-authors:
       show_contribution: true
@@ -92,8 +92,3 @@ plugins:
   - git-revision-date-localized:
       fallback_to_build_date: true
       enable_creation_date: true
-
-nav:
-  - Home: index.md
-  - Reference:
-      - Overview: reference/index.md
