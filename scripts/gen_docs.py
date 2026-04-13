@@ -365,12 +365,10 @@ def render_nav_node(name: str, node: dict, indent: int) -> list[str]:
     if not children:
         return [f"{pad}- {name}: {page}"]
 
-    lines: list[str] = []
+    lines: list[str] = [f"{pad}- {name}:"]
 
     if page is not None:
-        lines.append(f"{pad}- {name}: {page}")
-    else:
-        lines.append(f"{pad}- {name}:")
+        lines.append(f"{pad}  - {page}")
 
     for child_name in sorted(children):
         lines.extend(render_nav_node(child_name, children[child_name], indent + 1))
@@ -387,11 +385,13 @@ def build_reference_nav(packages: list[PackageMeta]) -> str:
 
     lines: list[str] = []
     lines.append("nav:")
-    lines.append("  - Overview: index.md")
+    lines.append("  - Overview:")
+    lines.append("    - index.md")
 
     root_pkg = next((pkg for pkg in packages if pkg.rel_path == "root"), None)
     if root_pkg is not None:
-        lines.append(f"  - root: {root_pkg.rel_path}.md")
+        lines.append("  - root:")
+        lines.append(f"    - {root_pkg.rel_path}.md")
 
     for top_name in sorted(tree["children"]):
         lines.extend(render_nav_node(top_name, tree["children"][top_name], 1))
