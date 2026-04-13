@@ -385,8 +385,7 @@ def build_reference_nav(packages: list[PackageMeta]) -> str:
 
     lines: list[str] = []
     lines.append("nav:")
-    lines.append("  - Overview:")
-    lines.append("    - index.md")
+    lines.append("  - index.md")
 
     root_pkg = next((pkg for pkg in packages if pkg.rel_path == "root"), None)
     if root_pkg is not None:
