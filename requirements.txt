@@ -1,0 +1,6 @@
+mkdocs-awesome-pages-plugin
+mkdocs-exclude
+mkdocs-git-authors-plugin
+mkdocs-git-revision-date-localized-plugin
+mkdocs-include-markdown-plugin
+pymdown-extensions

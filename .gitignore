@@ -1,4 +1,5 @@
 .localdata
 .env.dev
 
-api
+/api
+/docs/reference/*

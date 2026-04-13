@@ -43,3 +43,13 @@ ci:
     just fmt-check && \
     just lint-check && \
     just test
+
+docs-gen:
+    python3 scripts/gen_docs.py
+
+docs-clean:
+    rm -f docs/reference/*.md
+
+docs-refresh:
+    just docs-clean && \
+    just docs-gen
