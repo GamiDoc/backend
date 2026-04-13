@@ -280,7 +280,7 @@ def render_package(pkg: PackageMeta) -> str:
 
     lines.append(f"# {title} [{chr(8599)}]({source_url(pkg.rel_path)})")
     lines.append("")
-    lines.append(f"**Package:** `{pkg.import_path}`")
+    lines.append(f"`{pkg.import_path}`")
     lines.append("")
 
     if pkg.doc:
@@ -415,7 +415,7 @@ def main() -> None:
         encoding="utf-8",
     )
 
-    (DOCS_REF_DIR / ".nav.yaml").write_text(
+    (DOCS_REF_DIR / ".nav.yml").write_text(
         build_reference_nav(packages),
         encoding="utf-8",
     )
