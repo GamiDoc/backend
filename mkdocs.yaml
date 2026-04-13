@@ -22,8 +22,8 @@ theme:
   font:
     text: Roboto
     code: Roboto Mono
-  # logo: icon.svg
-  # favicon: icon.svg
+  logo: assets/icon.png
+  favicon: assets/icon.png
   features:
     - content.code.copy
     - content.footnote.tooltips
