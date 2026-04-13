@@ -278,7 +278,7 @@ def render_package(pkg: PackageMeta) -> str:
     title = pkg.rel_path
     lines: list[str] = []
 
-    lines.append(f"# {title} [{chr(8599)}]({source_url(pkg.rel_path)})")
+    lines.append(f"# {title}")
     lines.append("")
     lines.append(f"`{pkg.import_path}`")
     lines.append("")
@@ -309,7 +309,7 @@ def render_package(pkg: PackageMeta) -> str:
         lines.append(f"## {heading}")
         lines.append("")
         for item in items:
-            lines.append(f"### `{item.display_name}` [{chr(8599)}]({source_url(item.file_rel, item.line)})")
+            lines.append(f"### `{item.display_name}`")
             lines.append("")
             lines.append("```go")
             lines.append(item.signature)
