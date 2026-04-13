@@ -19,6 +19,9 @@ RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/
       build-essential \
       pkg-config \
       libssl-dev \
+      python3 \
+      python3-venv \
+      python3-dev \
       postgresql-client \
       redis-tools \
     && rm -rf /var/lib/apt/lists/*
