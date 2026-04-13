@@ -365,9 +365,12 @@ def render_nav_node(name: str, node: dict, indent: int) -> list[str]:
     if not children:
         return [f"{pad}- {name}: {page}"]
 
-    lines: list[str] = [f"{pad}- {name}:"]
+    lines: list[str] = []
+
     if page is not None:
-        lines.append(f"{pad}  - Overview: {page}")
+        lines.append(f"{pad}- {name}: {page}")
+    else:
+        lines.append(f"{pad}- {name}:")
 
     for child_name in sorted(children):
         lines.extend(render_nav_node(child_name, children[child_name], indent + 1))
@@ -395,7 +398,6 @@ def build_reference_nav(packages: list[PackageMeta]) -> str:
 
     lines.append("")
     return "\n".join(lines)
-
 
 def main() -> None:
     module_path = read_module_path()
