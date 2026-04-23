@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/yifen9/gamidoc-backend/internal/project"
+	"github.com/gamidoc/backend/internal/project"
 )
 
 func TestCreateProjectRoute(t *testing.T) {

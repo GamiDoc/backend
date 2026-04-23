@@ -8,16 +8,16 @@ import (
 	"os"
 	"time"
 
-	"github.com/yifen9/gamidoc-backend/internal/auth"
-	"github.com/yifen9/gamidoc-backend/internal/mailer"
-	"github.com/yifen9/gamidoc-backend/internal/pdf"
-	"github.com/yifen9/gamidoc-backend/internal/project"
-	"github.com/yifen9/gamidoc-backend/internal/recommendation"
-	"github.com/yifen9/gamidoc-backend/internal/session"
-	"github.com/yifen9/gamidoc-backend/internal/storage/objectstore"
-	"github.com/yifen9/gamidoc-backend/internal/token"
-	"github.com/yifen9/gamidoc-backend/internal/user"
-	"github.com/yifen9/gamidoc-backend/internal/wizard"
+	"github.com/gamidoc/backend/internal/auth"
+	"github.com/gamidoc/backend/internal/mailer"
+	"github.com/gamidoc/backend/internal/pdf"
+	"github.com/gamidoc/backend/internal/project"
+	"github.com/gamidoc/backend/internal/recommendation"
+	"github.com/gamidoc/backend/internal/session"
+	"github.com/gamidoc/backend/internal/storage/objectstore"
+	"github.com/gamidoc/backend/internal/token"
+	"github.com/gamidoc/backend/internal/user"
+	"github.com/gamidoc/backend/internal/wizard"
 )
 
 type fakePostgres struct {

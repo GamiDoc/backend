@@ -1,4 +1,4 @@
-module github.com/yifen9/gamidoc-backend
+module github.com/gamidoc/backend
 
 go 1.26.1
 

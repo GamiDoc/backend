@@ -7,9 +7,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/gamidoc/backend/config"
+	"github.com/gamidoc/backend/internal/app"
 	"github.com/spf13/cobra"
-	"github.com/yifen9/gamidoc-backend/config"
-	"github.com/yifen9/gamidoc-backend/internal/app"
 )
 
 func newServeCommand() *cobra.Command {

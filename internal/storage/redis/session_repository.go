@@ -6,9 +6,9 @@ import (
 	"errors"
 	"time"
 
+	"github.com/gamidoc/backend/internal/session"
+	"github.com/gamidoc/backend/internal/wizard"
 	goredis "github.com/redis/go-redis/v9"
-	"github.com/yifen9/gamidoc-backend/internal/session"
-	"github.com/yifen9/gamidoc-backend/internal/wizard"
 )
 
 type SessionRepository struct {

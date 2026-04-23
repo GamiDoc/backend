@@ -8,11 +8,11 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/gamidoc/backend/config"
+	"github.com/gamidoc/backend/internal/bootstrap"
+	"github.com/gamidoc/backend/internal/storage/postgres"
+	rediscache "github.com/gamidoc/backend/internal/storage/redis"
 	"github.com/spf13/cobra"
-	"github.com/yifen9/gamidoc-backend/config"
-	"github.com/yifen9/gamidoc-backend/internal/bootstrap"
-	"github.com/yifen9/gamidoc-backend/internal/storage/postgres"
-	rediscache "github.com/yifen9/gamidoc-backend/internal/storage/redis"
 )
 
 func newDoctorCommand() *cobra.Command {

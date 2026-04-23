@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/yifen9/gamidoc-backend/internal/wizard"
+	"github.com/gamidoc/backend/internal/wizard"
 )
 
 func TestLoadRulesFromFile(t *testing.T) {

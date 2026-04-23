@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/yifen9/gamidoc-backend/config"
-	"github.com/yifen9/gamidoc-backend/internal/mailer"
-	"github.com/yifen9/gamidoc-backend/internal/storage/objectstore"
+	"github.com/gamidoc/backend/config"
+	"github.com/gamidoc/backend/internal/mailer"
+	"github.com/gamidoc/backend/internal/storage/objectstore"
 )
 
 func NewObjectStore(cfg config.Config) (objectstore.ObjectStore, error) {

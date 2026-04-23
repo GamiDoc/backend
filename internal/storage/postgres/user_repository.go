@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/yifen9/gamidoc-backend/internal/user"
+	"github.com/gamidoc/backend/internal/user"
 )
 
 var ErrUserNotFound = errors.New("user not found")

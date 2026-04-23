@@ -3,7 +3,7 @@ package session
 import (
 	"time"
 
-	"github.com/yifen9/gamidoc-backend/internal/wizard"
+	"github.com/gamidoc/backend/internal/wizard"
 )
 
 type Session struct {

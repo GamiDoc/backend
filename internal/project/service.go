@@ -6,9 +6,9 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/gamidoc/backend/internal/recommendation"
+	"github.com/gamidoc/backend/internal/wizard"
 	"github.com/google/uuid"
-	"github.com/yifen9/gamidoc-backend/internal/recommendation"
-	"github.com/yifen9/gamidoc-backend/internal/wizard"
 )
 
 var ErrInvalidProjectName = errors.New("invalid project name")

@@ -3,10 +3,10 @@ package pdf
 import (
 	"time"
 
-	"github.com/yifen9/gamidoc-backend/internal/project"
-	"github.com/yifen9/gamidoc-backend/internal/recommendation"
-	"github.com/yifen9/gamidoc-backend/internal/session"
-	"github.com/yifen9/gamidoc-backend/internal/wizard"
+	"github.com/gamidoc/backend/internal/project"
+	"github.com/gamidoc/backend/internal/recommendation"
+	"github.com/gamidoc/backend/internal/session"
+	"github.com/gamidoc/backend/internal/wizard"
 )
 
 type Builder struct{}

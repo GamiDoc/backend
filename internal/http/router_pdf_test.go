@@ -9,12 +9,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/yifen9/gamidoc-backend/internal/mailer"
-	"github.com/yifen9/gamidoc-backend/internal/pdf"
-	"github.com/yifen9/gamidoc-backend/internal/project"
-	"github.com/yifen9/gamidoc-backend/internal/session"
-	"github.com/yifen9/gamidoc-backend/internal/storage/objectstore"
-	"github.com/yifen9/gamidoc-backend/internal/wizard"
+	"github.com/gamidoc/backend/internal/mailer"
+	"github.com/gamidoc/backend/internal/pdf"
+	"github.com/gamidoc/backend/internal/project"
+	"github.com/gamidoc/backend/internal/session"
+	"github.com/gamidoc/backend/internal/storage/objectstore"
+	"github.com/gamidoc/backend/internal/wizard"
 )
 
 func TestProjectPDFRoute(t *testing.T) {

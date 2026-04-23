@@ -3,8 +3,8 @@ package cli
 import (
 	"fmt"
 
+	"github.com/gamidoc/backend/internal/version"
 	"github.com/spf13/cobra"
-	"github.com/yifen9/gamidoc-backend/internal/version"
 )
 
 func newVersionCommand() *cobra.Command {

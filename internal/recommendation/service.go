@@ -3,7 +3,7 @@ package recommendation
 import (
 	"errors"
 
-	"github.com/yifen9/gamidoc-backend/internal/wizard"
+	"github.com/gamidoc/backend/internal/wizard"
 )
 
 var ErrInvalidRecommendationStep = errors.New("invalid recommendation step")

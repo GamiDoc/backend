@@ -5,11 +5,11 @@ import (
 	"errors"
 	"net/http"
 
+	appmiddleware "github.com/gamidoc/backend/internal/http/middleware"
+	"github.com/gamidoc/backend/internal/http/response"
+	"github.com/gamidoc/backend/internal/storage/postgres"
+	"github.com/gamidoc/backend/internal/token"
 	"github.com/go-chi/chi/v5"
-	appmiddleware "github.com/yifen9/gamidoc-backend/internal/http/middleware"
-	"github.com/yifen9/gamidoc-backend/internal/http/response"
-	"github.com/yifen9/gamidoc-backend/internal/storage/postgres"
-	"github.com/yifen9/gamidoc-backend/internal/token"
 )
 
 type Handler struct {

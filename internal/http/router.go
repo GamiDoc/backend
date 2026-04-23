@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
+	appmiddleware "github.com/gamidoc/backend/internal/http/middleware"
+	"github.com/gamidoc/backend/internal/http/response"
+	"github.com/gamidoc/backend/internal/pdf"
+	"github.com/gamidoc/backend/internal/project"
+	"github.com/gamidoc/backend/internal/session"
+	"github.com/gamidoc/backend/internal/token"
 	"github.com/go-chi/chi/v5"
-	appmiddleware "github.com/yifen9/gamidoc-backend/internal/http/middleware"
-	"github.com/yifen9/gamidoc-backend/internal/http/response"
-	"github.com/yifen9/gamidoc-backend/internal/pdf"
-	"github.com/yifen9/gamidoc-backend/internal/project"
-	"github.com/yifen9/gamidoc-backend/internal/session"
-	"github.com/yifen9/gamidoc-backend/internal/token"
 )
 
 type postgresReadyChecker interface {

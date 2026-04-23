@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"strconv"
 
+	appmiddleware "github.com/gamidoc/backend/internal/http/middleware"
+	"github.com/gamidoc/backend/internal/http/response"
+	"github.com/gamidoc/backend/internal/recommendation"
+	"github.com/gamidoc/backend/internal/wizard"
 	"github.com/go-chi/chi/v5"
-	appmiddleware "github.com/yifen9/gamidoc-backend/internal/http/middleware"
-	"github.com/yifen9/gamidoc-backend/internal/http/response"
-	"github.com/yifen9/gamidoc-backend/internal/recommendation"
-	"github.com/yifen9/gamidoc-backend/internal/wizard"
 )
 
 type Handler struct {

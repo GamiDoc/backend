@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/yifen9/gamidoc-backend/internal/project"
-	"github.com/yifen9/gamidoc-backend/internal/wizard"
+	"github.com/gamidoc/backend/internal/project"
+	"github.com/gamidoc/backend/internal/wizard"
 )
 
 type ProjectRepository struct {

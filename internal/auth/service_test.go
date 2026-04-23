@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/yifen9/gamidoc-backend/internal/token"
-	"github.com/yifen9/gamidoc-backend/internal/user"
+	"github.com/gamidoc/backend/internal/token"
+	"github.com/gamidoc/backend/internal/user"
 )
 
 type fakeUserRepository struct {

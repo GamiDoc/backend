@@ -6,10 +6,10 @@ import (
 	"os"
 	"text/tabwriter"
 
+	"github.com/gamidoc/backend/config"
+	"github.com/gamidoc/backend/internal/migrate"
+	"github.com/gamidoc/backend/internal/storage/postgres"
 	"github.com/spf13/cobra"
-	"github.com/yifen9/gamidoc-backend/config"
-	"github.com/yifen9/gamidoc-backend/internal/migrate"
-	"github.com/yifen9/gamidoc-backend/internal/storage/postgres"
 )
 
 func newMigrateCommand() *cobra.Command {

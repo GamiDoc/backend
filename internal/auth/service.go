@@ -6,9 +6,9 @@ import (
 	"net/mail"
 	"strings"
 
+	"github.com/gamidoc/backend/internal/token"
+	"github.com/gamidoc/backend/internal/user"
 	"github.com/google/uuid"
-	"github.com/yifen9/gamidoc-backend/internal/token"
-	"github.com/yifen9/gamidoc-backend/internal/user"
 	"golang.org/x/crypto/bcrypt"
 )
 

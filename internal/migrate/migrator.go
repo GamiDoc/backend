@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/yifen9/gamidoc-backend/internal/storage/postgres"
+	"github.com/gamidoc/backend/internal/storage/postgres"
 )
 
 type StatusEntry struct {

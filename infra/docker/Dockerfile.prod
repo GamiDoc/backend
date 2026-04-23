@@ -13,7 +13,7 @@ RUN go mod download
 COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
-    -ldflags "-X github.com/yifen9/gamidoc-backend/internal/version.Version=${APP_VERSION} -X github.com/yifen9/gamidoc-backend/internal/version.Commit=${GIT_COMMIT} -X github.com/yifen9/gamidoc-backend/internal/version.BuildTime=${BUILD_TIME}" \
+    -ldflags "-X github.com/gamidoc/backend/internal/version.Version=${APP_VERSION} -X github.com/gamidoc/backend/internal/version.Commit=${GIT_COMMIT} -X github.com/gamidoc/backend/internal/version.BuildTime=${BUILD_TIME}" \
     -o /out/gamidoc-backend ./cmd/gamidoc-backend
 
 FROM debian:bookworm-slim

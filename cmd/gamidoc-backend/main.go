@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/yifen9/gamidoc-backend/internal/cli"
+	"github.com/gamidoc/backend/internal/cli"
 )
 
 func main() {

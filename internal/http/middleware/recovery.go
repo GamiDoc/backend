@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/yifen9/gamidoc-backend/internal/http/response"
+	"github.com/gamidoc/backend/internal/http/response"
 )
 
 func Recovery(logger *slog.Logger) func(http.Handler) http.Handler {

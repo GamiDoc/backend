@@ -1,0 +1,37 @@
+services:
+  gamidoc-backend-prod:
+    image: ghcr.io/gamidoc/backend-prod:latest
+    container_name: gamidoc-backend-prod
+    restart: unless-stopped
+    depends_on:
+      - gamidoc-backend-prod-pg
+      - gamidoc-backend-prod-redis
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.prod
+    volumes:
+      - gamidoc-backend-prod-pdfs:/app/.localdata/pdfs
+    command: ["serve"]
+
+  gamidoc-backend-prod-pg:
+    image: postgres:18-bookworm
+    container_name: gamidoc-backend-prod-pg
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    volumes:
+      - gamidoc-backend-prod-pg-data:/var/lib/postgresql/data
+
+  gamidoc-backend-prod-redis:
+    image: redis:8-bookworm
+    container_name: gamidoc-backend-prod-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - gamidoc-backend-prod-redis-data:/data
+
+volumes:
+  gamidoc-backend-prod-pdfs:
+  gamidoc-backend-prod-pg-data:
+  gamidoc-backend-prod-redis-data:

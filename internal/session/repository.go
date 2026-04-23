@@ -3,7 +3,7 @@ package session
 import (
 	"context"
 
-	"github.com/yifen9/gamidoc-backend/internal/wizard"
+	"github.com/gamidoc/backend/internal/wizard"
 )
 
 type Repository interface {

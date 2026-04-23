@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/yifen9/gamidoc-backend/internal/http/response"
-	"github.com/yifen9/gamidoc-backend/internal/token"
+	"github.com/gamidoc/backend/internal/http/response"
+	"github.com/gamidoc/backend/internal/token"
 )
 
 type authUserIDKey struct{}

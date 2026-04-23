@@ -1,6 +1,6 @@
 services:
   gamidoc-backend-dev-main:
-    image: ghcr.io/yifen9/gamidoc-backend-dev
+    image: ghcr.io/gamidoc/backend-dev
     env_file:
       - ../.env.dev
     container_name: gamidoc-backend-dev-main
