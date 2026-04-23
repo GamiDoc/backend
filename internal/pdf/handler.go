@@ -1,12 +1,16 @@
 package pdf
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
 	appmiddleware "github.com/yifen9/gamidoc-backend/internal/http/middleware"
 	"github.com/yifen9/gamidoc-backend/internal/http/response"
+	"github.com/yifen9/gamidoc-backend/internal/project"
+	"github.com/yifen9/gamidoc-backend/internal/session"
+	"github.com/yifen9/gamidoc-backend/internal/wizard"
 )
 
 type Handler struct {
@@ -32,7 +36,16 @@ func (h *Handler) ProjectGenerate(w http.ResponseWriter, r *http.Request) {
 
 	result, err := h.service.GenerateProjectPDF(r.Context(), userID, projectID)
 	if err != nil {
-		response.WriteError(w, http.StatusInternalServerError, "PDF_GENERATION_FAILED", "PDF generation failed", nil)
+		switch {
+		case errors.Is(err, project.ErrProjectNotFound):
+			response.WriteError(w, http.StatusNotFound, "PROJECT_NOT_FOUND", "Project not found", nil)
+		case errors.Is(err, project.ErrForbiddenProject):
+			response.WriteError(w, http.StatusForbidden, "FORBIDDEN", "Project does not belong to user", nil)
+		case errors.Is(err, wizard.ErrIncompleteWizard):
+			response.WriteError(w, http.StatusBadRequest, "WIZARD_INCOMPLETE", "Wizard is incomplete", nil)
+		default:
+			response.WriteError(w, http.StatusInternalServerError, "PDF_GENERATION_FAILED", "PDF generation failed", nil)
+		}
 		return
 	}
 
@@ -50,7 +63,14 @@ func (h *Handler) SessionGenerate(w http.ResponseWriter, r *http.Request) {
 
 	result, err := h.service.GenerateSessionPDF(r.Context(), sessionID)
 	if err != nil {
-		response.WriteError(w, http.StatusInternalServerError, "PDF_GENERATION_FAILED", "PDF generation failed", nil)
+		switch {
+		case errors.Is(err, session.ErrSessionNotFound):
+			response.WriteError(w, http.StatusNotFound, "SESSION_NOT_FOUND", "Session not found or expired", nil)
+		case errors.Is(err, wizard.ErrIncompleteWizard):
+			response.WriteError(w, http.StatusBadRequest, "WIZARD_INCOMPLETE", "Wizard is incomplete", nil)
+		default:
+			response.WriteError(w, http.StatusInternalServerError, "PDF_GENERATION_FAILED", "PDF generation failed", nil)
+		}
 		return
 	}
 

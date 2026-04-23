@@ -20,24 +20,50 @@ func (s *Service) SaveStep(current Status, stepNumber int, stepData json.RawMess
 		return Status{}, ErrInvalidStepNumber
 	}
 
-	if len(stepData) == 0 || !json.Valid(stepData) {
-		return Status{}, ErrInvalidStepData
+	if err := ValidateStep(stepNumber, stepData); err != nil {
+		return Status{}, err
 	}
 
 	if current.Steps == nil {
 		current.Steps = map[string]json.RawMessage{}
 	}
 
-	current.Steps[strconv.Itoa(stepNumber)] = stepData
+	if err := s.validatePrerequisites(current, stepNumber); err != nil {
+		return Status{}, err
+	}
+
+	current.Steps[stepKey(stepNumber)] = stepData
+
+	for step := stepNumber + 1; step <= 4; step++ {
+		delete(current.Steps, stepKey(step))
+	}
+
 	current.CurrentStep = s.computeCurrentStep(current)
 	current.IsComplete = s.computeIsComplete(current)
 
 	return current, nil
 }
 
+func (s *Service) validatePrerequisites(status Status, stepNumber int) error {
+	for step := 1; step < stepNumber; step++ {
+		raw, ok := status.Steps[stepKey(step)]
+		if !ok {
+			return ErrStepPrerequisiteNotMet
+		}
+		if err := ValidateStep(step, raw); err != nil {
+			return ErrStepPrerequisiteNotMet
+		}
+	}
+	return nil
+}
+
 func (s *Service) computeCurrentStep(status Status) int {
 	for step := 1; step <= 4; step++ {
-		if _, ok := status.Steps[strconv.Itoa(step)]; !ok {
+		raw, ok := status.Steps[stepKey(step)]
+		if !ok {
+			return step
+		}
+		if err := ValidateStep(step, raw); err != nil {
 			return step
 		}
 	}
@@ -45,10 +71,9 @@ func (s *Service) computeCurrentStep(status Status) int {
 }
 
 func (s *Service) computeIsComplete(status Status) bool {
-	for step := 1; step <= 4; step++ {
-		if _, ok := status.Steps[strconv.Itoa(step)]; !ok {
-			return false
-		}
-	}
-	return true
+	return ValidateComplete(status) == nil
+}
+
+func stepKey(step int) string {
+	return strconv.Itoa(step)
 }

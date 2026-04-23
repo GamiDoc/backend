@@ -1,12 +1,12 @@
 package pdf
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/yifen9/gamidoc-backend/internal/project"
 	"github.com/yifen9/gamidoc-backend/internal/recommendation"
 	"github.com/yifen9/gamidoc-backend/internal/session"
+	"github.com/yifen9/gamidoc-backend/internal/wizard"
 )
 
 type Builder struct{}
@@ -15,51 +15,46 @@ func NewBuilder() *Builder {
 	return &Builder{}
 }
 
-type step1Data struct {
-	EvaluationGoals []string `json:"evaluationGoals"`
-}
-
-type step2Data struct {
-	SelectedMethods []string `json:"selectedMethods"`
-}
-
 func (b *Builder) BuildFromProject(item project.Project, recs []recommendation.Recommendation) (PlanData, error) {
-	return b.build(item.Name, item.CreatedAt, item.Wizard.Steps, recs)
+	return b.build(item.Name, item.CreatedAt, item.Wizard, recs)
 }
 
 func (b *Builder) BuildFromSession(item session.Session, recs []recommendation.Recommendation) (PlanData, error) {
-	return b.build("Anonymous Evaluation Plan", item.CreatedAt, item.Wizard.Steps, recs)
+	return b.build("Anonymous Evaluation Plan", item.CreatedAt, item.Wizard, recs)
 }
 
-func (b *Builder) build(title string, createdAt time.Time, steps map[string]json.RawMessage, recs []recommendation.Recommendation) (PlanData, error) {
-	var step1 step1Data
-	var step2 step2Data
+func (b *Builder) build(title string, createdAt time.Time, status wizard.Status, recs []recommendation.Recommendation) (PlanData, error) {
+	var evaluationGoals []string
+	var selectedMethods []string
+	var selectedInstruments []string
+	var nextSteps []string
 
-	if raw, ok := steps["1"]; ok {
-		_ = json.Unmarshal(raw, &step1)
+	if step1, ok := wizard.DecodeStep1(status); ok {
+		evaluationGoals = step1.EvaluationGoals
 	}
 
-	if raw, ok := steps["2"]; ok {
-		_ = json.Unmarshal(raw, &step2)
+	if step2, ok := wizard.DecodeStep2(status); ok {
+		selectedMethods = step2.SelectedMethods
 	}
 
-	var recommendedInstruments []string
-	for _, rec := range recs {
-		recommendedInstruments = append(recommendedInstruments, rec.Name)
+	if step3, ok := wizard.DecodeStep3(status); ok {
+		selectedInstruments = step3.SelectedInstruments
+	} else {
+		for _, rec := range recs {
+			selectedInstruments = append(selectedInstruments, rec.Name)
+		}
 	}
 
-	nextSteps := []string{
-		"Review the selected methods and instruments.",
-		"Prepare the evaluation materials and participant setup.",
-		"Run the evaluation and consolidate findings.",
+	if step4, ok := wizard.DecodeStep4(status); ok {
+		nextSteps = step4.NextSteps
 	}
 
 	return PlanData{
 		Title:                  title,
 		Date:                   createdAt,
-		EvaluationGoals:        step1.EvaluationGoals,
-		SelectedMethods:        step2.SelectedMethods,
-		RecommendedInstruments: recommendedInstruments,
+		EvaluationGoals:        evaluationGoals,
+		SelectedMethods:        selectedMethods,
+		RecommendedInstruments: selectedInstruments,
 		NextSteps:              nextSteps,
 	}, nil
 }

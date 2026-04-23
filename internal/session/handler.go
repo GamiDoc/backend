@@ -134,6 +134,8 @@ func (h *Handler) saveStep(w http.ResponseWriter, r *http.Request) {
 			response.WriteError(w, http.StatusBadRequest, "INVALID_STEP_NUMBER", "Invalid step number", nil)
 		case errors.Is(err, wizard.ErrInvalidStepData):
 			response.WriteError(w, http.StatusBadRequest, "INVALID_STEP_DATA", "Invalid step data", nil)
+		case errors.Is(err, wizard.ErrStepPrerequisiteNotMet):
+			response.WriteError(w, http.StatusBadRequest, "STEP_PREREQUISITE_NOT_MET", "Previous steps must be completed first", nil)
 		default:
 			response.WriteError(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "Internal server error", nil)
 		}

@@ -79,7 +79,7 @@ func (r *SessionRepository) UpdateWizard(ctx context.Context, id string, status 
 	}
 
 	key := r.key(id)
-	if err := r.client.Raw().Set(ctx, key, payload, r.ttl).Err(); err != nil {
+	if err := r.client.Raw().SetArgs(ctx, key, payload, goredis.SetArgs{KeepTTL: true}).Err(); err != nil {
 		return session.Session{}, err
 	}
 
@@ -100,7 +100,7 @@ func (r *SessionRepository) UpdatePDFURL(ctx context.Context, id string, pdfURL 
 	}
 
 	key := r.key(id)
-	if err := r.client.Raw().Set(ctx, key, payload, r.ttl).Err(); err != nil {
+	if err := r.client.Raw().SetArgs(ctx, key, payload, goredis.SetArgs{KeepTTL: true}).Err(); err != nil {
 		return session.Session{}, err
 	}
 

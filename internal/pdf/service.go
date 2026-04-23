@@ -10,6 +10,7 @@ import (
 	"github.com/yifen9/gamidoc-backend/internal/recommendation"
 	"github.com/yifen9/gamidoc-backend/internal/session"
 	"github.com/yifen9/gamidoc-backend/internal/storage/r2"
+	"github.com/yifen9/gamidoc-backend/internal/wizard"
 )
 
 type ProjectRepository interface {
@@ -70,6 +71,14 @@ func (s *Service) GenerateProjectPDF(ctx context.Context, userID string, project
 		return Generated{}, err
 	}
 
+	if item.UserID != userID {
+		return Generated{}, project.ErrForbiddenProject
+	}
+
+	if err := wizard.ValidateComplete(item.Wizard); err != nil {
+		return Generated{}, err
+	}
+
 	recsResult, err := s.projectRecommendations.Recommend(ctx, userID, projectID, 3)
 	if err != nil {
 		return Generated{}, err
@@ -104,6 +113,10 @@ func (s *Service) GenerateProjectPDF(ctx context.Context, userID string, project
 func (s *Service) GenerateSessionPDF(ctx context.Context, sessionID string) (Generated, error) {
 	item, err := s.sessions.FindByID(ctx, sessionID)
 	if err != nil {
+		return Generated{}, err
+	}
+
+	if err := wizard.ValidateComplete(item.Wizard); err != nil {
 		return Generated{}, err
 	}
 
