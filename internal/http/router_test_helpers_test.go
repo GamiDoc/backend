@@ -229,16 +229,33 @@ func testRecommendationService() *recommendation.Service {
 			ForStep:                 2,
 			RequiredEvaluationGoals: []string{"Usability & Playability"},
 			Recommendations: []recommendation.Recommendation{
-				{ID: "think-aloud", Name: "Think-aloud testing"},
-				{ID: "surveys", Name: "Surveys & Questionnaires"},
+				{ID: "think-aloud", Name: "Think-aloud testing", Priority: "Recommended"},
+				{ID: "surveys", Name: "Surveys & Questionnaires", Priority: "Recommended"},
+			},
+		},
+		{
+			ForStep:                   2,
+			RequiredEvaluationGoals:   []string{"Usability & Playability"},
+			RequiredProjectTypes:      []string{"Concept test"},
+			RequiredParticipants:      []string{"Limited set of participants"},
+			RequiredDevelopmentStages: []string{"Concept idea"},
+			Recommendations: []recommendation.Recommendation{
+				{ID: "expert-review", Name: "Expert review", Priority: "Engagement"},
 			},
 		},
 		{
 			ForStep:         3,
 			RequiredMethods: []string{"surveys"},
 			Recommendations: []recommendation.Recommendation{
-				{ID: "useq-like", Name: "USEQ-Like"},
-				{ID: "sus", Name: "SUS"},
+				{ID: "useq-like", Name: "USEQ-Like", Priority: "Recommended"},
+				{ID: "sus", Name: "SUS", Priority: "Engagement"},
+			},
+		},
+		{
+			ForStep:         3,
+			RequiredMethods: []string{"think-aloud"},
+			Recommendations: []recommendation.Recommendation{
+				{ID: "observation-grid", Name: "Observation Grid", Priority: "Recommended"},
 			},
 		},
 	})

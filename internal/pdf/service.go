@@ -79,12 +79,17 @@ func (s *Service) GenerateProjectPDF(ctx context.Context, userID string, project
 		return Generated{}, err
 	}
 
-	recsResult, err := s.projectRecommendations.Recommend(ctx, userID, projectID, 3)
+	methodResult, err := s.projectRecommendations.Recommend(ctx, userID, projectID, 2)
 	if err != nil {
 		return Generated{}, err
 	}
 
-	data, err := s.builder.BuildFromProject(item, recsResult.Recommendations)
+	instrumentResult, err := s.projectRecommendations.Recommend(ctx, userID, projectID, 3)
+	if err != nil {
+		return Generated{}, err
+	}
+
+	data, err := s.builder.BuildFromProject(item, methodResult.Recommendations, instrumentResult.Recommendations)
 	if err != nil {
 		return Generated{}, err
 	}
@@ -120,12 +125,17 @@ func (s *Service) GenerateSessionPDF(ctx context.Context, sessionID string) (Gen
 		return Generated{}, err
 	}
 
-	recsResult, err := s.sessionRecommendations.Recommend(ctx, sessionID, 3)
+	methodResult, err := s.sessionRecommendations.Recommend(ctx, sessionID, 2)
 	if err != nil {
 		return Generated{}, err
 	}
 
-	data, err := s.builder.BuildFromSession(item, recsResult.Recommendations)
+	instrumentResult, err := s.sessionRecommendations.Recommend(ctx, sessionID, 3)
+	if err != nil {
+		return Generated{}, err
+	}
+
+	data, err := s.builder.BuildFromSession(item, methodResult.Recommendations, instrumentResult.Recommendations)
 	if err != nil {
 		return Generated{}, err
 	}

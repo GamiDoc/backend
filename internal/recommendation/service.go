@@ -13,9 +13,12 @@ type Service struct {
 }
 
 type Input struct {
-	ForStep         int
-	EvaluationGoals []string
-	SelectedMethods []string
+	ForStep          int
+	EvaluationGoals  []string
+	ProjectType      string
+	Participants     string
+	DevelopmentStage string
+	SelectedMethods  []string
 }
 
 func NewService(engine *Engine) *Service {
@@ -35,6 +38,9 @@ func (s *Service) Recommend(status wizard.Status, forStep int) (Result, error) {
 
 	if step1, ok := wizard.DecodeStep1(status); ok {
 		input.EvaluationGoals = step1.EvaluationGoals
+		input.ProjectType = step1.ProjectType
+		input.Participants = step1.Participants
+		input.DevelopmentStage = step1.DevelopmentStage
 	}
 
 	if step2, ok := wizard.DecodeStep2(status); ok {

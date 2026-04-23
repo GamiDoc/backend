@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -80,7 +81,7 @@ func TestProjectPDFRoute(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	save1 := httptest.NewRequest(http.MethodPut, "/api/v1/projects/"+created.ID+"/wizard/step/1", strings.NewReader(`{"stepData":{"evaluationGoals":["Usability & Playability"]}}`))
+	save1 := httptest.NewRequest(http.MethodPut, "/api/v1/projects/"+created.ID+"/wizard/step/1", strings.NewReader(`{"stepData":{"evaluationGoals":["Usability & Playability"],"projectType":"Concept test","participants":"Limited set of participants","developmentStage":"Concept idea"}}`))
 	save1.Header.Set("Content-Type", "application/json")
 	save1.Header.Set("Authorization", "Bearer "+tokenValue)
 	save1Rec := httptest.NewRecorder()
@@ -98,7 +99,7 @@ func TestProjectPDFRoute(t *testing.T) {
 	save3Rec := httptest.NewRecorder()
 	router.ServeHTTP(save3Rec, save3)
 
-	save4 := httptest.NewRequest(http.MethodPut, "/api/v1/projects/"+created.ID+"/wizard/step/4", strings.NewReader(`{"stepData":{"nextSteps":["Prepare materials","Run evaluation"]}}`))
+	save4 := httptest.NewRequest(http.MethodPut, "/api/v1/projects/"+created.ID+"/wizard/step/4", strings.NewReader(`{"stepData":{"nextSteps":["Prepare materials","Run evaluation"],"notes":"Start with a pilot run."}}`))
 	save4.Header.Set("Content-Type", "application/json")
 	save4.Header.Set("Authorization", "Bearer "+tokenValue)
 	save4Rec := httptest.NewRecorder()
@@ -180,7 +181,7 @@ func TestProjectPDFIncompleteWizardRoute(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	save1 := httptest.NewRequest(http.MethodPut, "/api/v1/projects/"+created.ID+"/wizard/step/1", strings.NewReader(`{"stepData":{"evaluationGoals":["Usability & Playability"]}}`))
+	save1 := httptest.NewRequest(http.MethodPut, "/api/v1/projects/"+created.ID+"/wizard/step/1", strings.NewReader(`{"stepData":{"evaluationGoals":["Usability & Playability"],"projectType":"Concept test","participants":"Limited set of participants","developmentStage":"Concept idea"}}`))
 	save1.Header.Set("Content-Type", "application/json")
 	save1.Header.Set("Authorization", "Bearer "+tokenValue)
 	save1Rec := httptest.NewRecorder()
@@ -256,7 +257,7 @@ func TestSessionPDFRoute(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	save1 := httptest.NewRequest(http.MethodPut, "/api/v1/sessions/"+created.ID+"/wizard/step/1", strings.NewReader(`{"stepData":{"evaluationGoals":["Usability & Playability"]}}`))
+	save1 := httptest.NewRequest(http.MethodPut, "/api/v1/sessions/"+created.ID+"/wizard/step/1", strings.NewReader(`{"stepData":{"evaluationGoals":["Usability & Playability"],"projectType":"Concept test","participants":"Limited set of participants","developmentStage":"Concept idea"}}`))
 	save1.Header.Set("Content-Type", "application/json")
 	save1Rec := httptest.NewRecorder()
 	router.ServeHTTP(save1Rec, save1)
@@ -271,7 +272,7 @@ func TestSessionPDFRoute(t *testing.T) {
 	save3Rec := httptest.NewRecorder()
 	router.ServeHTTP(save3Rec, save3)
 
-	save4 := httptest.NewRequest(http.MethodPut, "/api/v1/sessions/"+created.ID+"/wizard/step/4", strings.NewReader(`{"stepData":{"nextSteps":["Prepare materials","Run evaluation"]}}`))
+	save4 := httptest.NewRequest(http.MethodPut, "/api/v1/sessions/"+created.ID+"/wizard/step/4", strings.NewReader(`{"stepData":{"nextSteps":["Prepare materials","Run evaluation"],"notes":"Start with a pilot run."}}`))
 	save4.Header.Set("Content-Type", "application/json")
 	save4Rec := httptest.NewRecorder()
 	router.ServeHTTP(save4Rec, save4)
@@ -345,7 +346,7 @@ func TestSessionPDFIncompleteWizardRoute(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	save1 := httptest.NewRequest(http.MethodPut, "/api/v1/sessions/"+created.ID+"/wizard/step/1", strings.NewReader(`{"stepData":{"evaluationGoals":["Usability & Playability"]}}`))
+	save1 := httptest.NewRequest(http.MethodPut, "/api/v1/sessions/"+created.ID+"/wizard/step/1", strings.NewReader(`{"stepData":{"evaluationGoals":["Usability & Playability"],"projectType":"Concept test","participants":"Limited set of participants","developmentStage":"Concept idea"}}`))
 	save1.Header.Set("Content-Type", "application/json")
 	save1Rec := httptest.NewRecorder()
 	router.ServeHTTP(save1Rec, save1)
@@ -420,7 +421,7 @@ func TestPDFDownloadRoute(t *testing.T) {
 
 	pdfHandler := pdf.NewHandler(pdfService)
 
-	_, err := store.Save(nil, "projects/test/file.pdf", []byte("hello"))
+	_, err := store.Save(context.Background(), "projects/test/file.pdf", []byte("hello"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -456,10 +457,10 @@ func TestProjectPDFForbiddenRoute(t *testing.T) {
 					CurrentStep: 4,
 					IsComplete:  true,
 					Steps: map[string]json.RawMessage{
-						"1": json.RawMessage(`{"evaluationGoals":["Usability & Playability"]}`),
+						"1": json.RawMessage(`{"evaluationGoals":["Usability & Playability"],"projectType":"Concept test","participants":"Limited set of participants","developmentStage":"Concept idea"}`),
 						"2": json.RawMessage(`{"selectedMethods":["surveys"]}`),
 						"3": json.RawMessage(`{"selectedInstruments":["USEQ-Like"]}`),
-						"4": json.RawMessage(`{"nextSteps":["Run evaluation"]}`),
+						"4": json.RawMessage(`{"nextSteps":["Run evaluation"],"notes":"Pilot first."}`),
 					},
 				},
 				CreatedAt: time.Now(),

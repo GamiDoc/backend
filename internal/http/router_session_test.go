@@ -50,7 +50,7 @@ func TestSaveSessionStepRoute(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	body := `{"stepData":{"evaluationGoals":["Usability & Playability"]}}`
+	body := `{"stepData":{"evaluationGoals":["Usability & Playability"],"projectType":"Concept test","participants":"Limited set of participants","developmentStage":"Concept idea"}}`
 	req := httptest.NewRequest(http.MethodPut, "/api/v1/sessions/"+created.ID+"/wizard/step/1", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	rec := httptest.NewRecorder()
@@ -59,6 +59,34 @@ func TestSaveSessionStepRoute(t *testing.T) {
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
+	}
+}
+
+func TestSessionStepRejectsIncompleteStep1Route(t *testing.T) {
+	handler := testSessionHandler()
+	createReq := httptest.NewRequest(http.MethodPost, "/api/v1/sessions/create", nil)
+	createRec := httptest.NewRecorder()
+
+	router := NewRouter(Dependencies{
+		Logger:         testLogger(),
+		SessionHandler: handler,
+	})
+
+	router.ServeHTTP(createRec, createReq)
+
+	var created session.Session
+	if err := json.Unmarshal(createRec.Body.Bytes(), &created); err != nil {
+		t.Fatal(err)
+	}
+
+	req := httptest.NewRequest(http.MethodPut, "/api/v1/sessions/"+created.ID+"/wizard/step/1", strings.NewReader(`{"stepData":{"evaluationGoals":["Usability & Playability"]}}`))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected status %d, got %d", http.StatusBadRequest, rec.Code)
 	}
 }
 
@@ -106,7 +134,7 @@ func TestRecommendSessionRoute(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	saveBody := `{"stepData":{"evaluationGoals":["Usability & Playability"]}}`
+	saveBody := `{"stepData":{"evaluationGoals":["Usability & Playability"],"projectType":"Concept test","participants":"Limited set of participants","developmentStage":"Concept idea"}}`
 	saveReq := httptest.NewRequest(http.MethodPut, "/api/v1/sessions/"+created.ID+"/wizard/step/1", strings.NewReader(saveBody))
 	saveReq.Header.Set("Content-Type", "application/json")
 	saveRec := httptest.NewRecorder()
@@ -142,7 +170,7 @@ func TestConvertSessionRoute(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	saveBody := `{"stepData":{"evaluationGoals":["Usability & Playability"]}}`
+	saveBody := `{"stepData":{"evaluationGoals":["Usability & Playability"],"projectType":"Concept test","participants":"Limited set of participants","developmentStage":"Concept idea"}}`
 	saveReq := httptest.NewRequest(http.MethodPut, "/api/v1/sessions/"+created.ID+"/wizard/step/1", strings.NewReader(saveBody))
 	saveReq.Header.Set("Content-Type", "application/json")
 	saveRec := httptest.NewRecorder()

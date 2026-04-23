@@ -24,6 +24,15 @@ func TestSaveStepRejectsInvalidData(t *testing.T) {
 	}
 }
 
+func TestSaveStepRejectsMissingStep1Fields(t *testing.T) {
+	service := NewService()
+
+	_, err := service.SaveStep(NewInitialStatus(), 1, json.RawMessage(`{"evaluationGoals":["Usability & Playability"],"projectType":"","participants":"Limited set of participants","developmentStage":"Concept idea"}`))
+	if !errors.Is(err, ErrInvalidStepData) {
+		t.Fatalf("expected ErrInvalidStepData, got %v", err)
+	}
+}
+
 func TestSaveStepRejectsSkippedPrerequisite(t *testing.T) {
 	service := NewService()
 
@@ -39,7 +48,7 @@ func TestSaveStepClearsFollowingSteps(t *testing.T) {
 	status := NewInitialStatus()
 
 	var err error
-	status, err = service.SaveStep(status, 1, json.RawMessage(`{"evaluationGoals":["Usability & Playability"]}`))
+	status, err = service.SaveStep(status, 1, json.RawMessage(`{"evaluationGoals":["Usability & Playability"],"projectType":"Concept test","participants":"Limited set of participants","developmentStage":"Concept idea"}`))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -54,7 +63,7 @@ func TestSaveStepClearsFollowingSteps(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	status, err = service.SaveStep(status, 4, json.RawMessage(`{"nextSteps":["Run evaluation"]}`))
+	status, err = service.SaveStep(status, 4, json.RawMessage(`{"nextSteps":["Run evaluation"],"notes":"Pilot first."}`))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,7 +96,7 @@ func TestSaveStepComputesCompletion(t *testing.T) {
 	status := NewInitialStatus()
 
 	var err error
-	status, err = service.SaveStep(status, 1, json.RawMessage(`{"evaluationGoals":["Usability & Playability"]}`))
+	status, err = service.SaveStep(status, 1, json.RawMessage(`{"evaluationGoals":["Usability & Playability"],"projectType":"Concept test","participants":"Limited set of participants","developmentStage":"Concept idea"}`))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -102,7 +111,7 @@ func TestSaveStepComputesCompletion(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	status, err = service.SaveStep(status, 4, json.RawMessage(`{"nextSteps":["Prepare materials","Run evaluation"]}`))
+	status, err = service.SaveStep(status, 4, json.RawMessage(`{"nextSteps":["Prepare materials","Run evaluation"],"notes":"Pilot first."}`))
 	if err != nil {
 		t.Fatal(err)
 	}

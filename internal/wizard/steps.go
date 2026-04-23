@@ -10,7 +10,10 @@ var ErrIncompleteWizard = errors.New("incomplete wizard")
 var ErrStepPrerequisiteNotMet = errors.New("step prerequisite not met")
 
 type Step1Data struct {
-	EvaluationGoals []string `json:"evaluationGoals"`
+	EvaluationGoals  []string `json:"evaluationGoals"`
+	ProjectType      string   `json:"projectType"`
+	Participants     string   `json:"participants"`
+	DevelopmentStage string   `json:"developmentStage"`
 }
 
 type Step2Data struct {
@@ -23,6 +26,7 @@ type Step3Data struct {
 
 type Step4Data struct {
 	NextSteps []string `json:"nextSteps"`
+	Notes     string   `json:"notes,omitempty"`
 }
 
 func ValidateStep(stepNumber int, stepData json.RawMessage) error {
@@ -37,6 +41,15 @@ func ValidateStep(stepNumber int, stepData json.RawMessage) error {
 			return ErrInvalidStepData
 		}
 		if !hasNonEmpty(data.EvaluationGoals) {
+			return ErrInvalidStepData
+		}
+		if strings.TrimSpace(data.ProjectType) == "" {
+			return ErrInvalidStepData
+		}
+		if strings.TrimSpace(data.Participants) == "" {
+			return ErrInvalidStepData
+		}
+		if strings.TrimSpace(data.DevelopmentStage) == "" {
 			return ErrInvalidStepData
 		}
 		return nil
@@ -94,7 +107,7 @@ func DecodeStep1(status Status) (Step1Data, bool) {
 	if err := json.Unmarshal(raw, &data); err != nil {
 		return Step1Data{}, false
 	}
-	if !hasNonEmpty(data.EvaluationGoals) {
+	if ValidateStep(1, raw) != nil {
 		return Step1Data{}, false
 	}
 	return data, true
@@ -109,7 +122,7 @@ func DecodeStep2(status Status) (Step2Data, bool) {
 	if err := json.Unmarshal(raw, &data); err != nil {
 		return Step2Data{}, false
 	}
-	if !hasNonEmpty(data.SelectedMethods) {
+	if ValidateStep(2, raw) != nil {
 		return Step2Data{}, false
 	}
 	return data, true
@@ -124,7 +137,7 @@ func DecodeStep3(status Status) (Step3Data, bool) {
 	if err := json.Unmarshal(raw, &data); err != nil {
 		return Step3Data{}, false
 	}
-	if !hasNonEmpty(data.SelectedInstruments) {
+	if ValidateStep(3, raw) != nil {
 		return Step3Data{}, false
 	}
 	return data, true
@@ -139,7 +152,7 @@ func DecodeStep4(status Status) (Step4Data, bool) {
 	if err := json.Unmarshal(raw, &data); err != nil {
 		return Step4Data{}, false
 	}
-	if !hasNonEmpty(data.NextSteps) {
+	if ValidateStep(4, raw) != nil {
 		return Step4Data{}, false
 	}
 	return data, true
