@@ -16,6 +16,15 @@ type InstrumentEntry struct {
 	Rationale   string
 }
 
+type EmailDelivery struct {
+	Requested bool    `json:"requested"`
+	To        string  `json:"to,omitempty"`
+	Provider  string  `json:"provider,omitempty"`
+	Sent      bool    `json:"sent"`
+	MessageID string  `json:"messageId,omitempty"`
+	Error     *string `json:"error,omitempty"`
+}
+
 type PlanData struct {
 	Title               string
 	Date                time.Time
@@ -30,6 +39,7 @@ type PlanData struct {
 }
 
 type Generated struct {
-	Key string
-	URL string
+	Key   string
+	URL   string
+	Email *EmailDelivery
 }

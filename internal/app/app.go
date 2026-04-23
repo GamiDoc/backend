@@ -10,6 +10,7 @@ import (
 	"github.com/yifen9/gamidoc-backend/config"
 	"github.com/yifen9/gamidoc-backend/internal/auth"
 	apphttp "github.com/yifen9/gamidoc-backend/internal/http"
+	"github.com/yifen9/gamidoc-backend/internal/mailer"
 	"github.com/yifen9/gamidoc-backend/internal/pdf"
 	"github.com/yifen9/gamidoc-backend/internal/project"
 	"github.com/yifen9/gamidoc-backend/internal/recommendation"
@@ -33,6 +34,10 @@ func New(cfg config.Config) (*App, error) {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
 	if err := cfg.ValidateObjectStorage(); err != nil {
+		return nil, err
+	}
+
+	if err := cfg.ValidateMailer(); err != nil {
 		return nil, err
 	}
 
@@ -71,12 +76,20 @@ func New(cfg config.Config) (*App, error) {
 		return nil, err
 	}
 
+	m, err := newMailer(cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	pdfBuilder := pdf.NewBuilder()
 	pdfGenerator := pdf.NewFPDFGenerator()
 	pdfService := pdf.NewService(
 		pdfBuilder,
 		pdfGenerator,
 		store,
+		m,
+		cfg.MailerFromEmail,
+		cfg.MailerFromName,
 		projectRepository,
 		sessionRepository,
 		projectService,
@@ -145,5 +158,20 @@ func newObjectStore(cfg config.Config) (objectstore.ObjectStore, error) {
 		})
 	default:
 		return nil, fmt.Errorf("unsupported object storage provider: %s", cfg.ObjectStorageProvider)
+	}
+}
+
+func newMailer(cfg config.Config) (mailer.Mailer, error) {
+	switch cfg.MailerProviderNormalized() {
+	case "noop":
+		return mailer.NewNoopMailer(), nil
+	case "resend":
+		return mailer.NewResendMailer(
+			cfg.ResendAPIKey,
+			cfg.ResendBaseURL,
+			nil,
+		), nil
+	default:
+		return nil, fmt.Errorf("unsupported mailer provider: %s", cfg.MailerProvider)
 	}
 }

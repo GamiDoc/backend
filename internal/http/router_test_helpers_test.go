@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/yifen9/gamidoc-backend/internal/auth"
+	"github.com/yifen9/gamidoc-backend/internal/mailer"
 	"github.com/yifen9/gamidoc-backend/internal/pdf"
 	"github.com/yifen9/gamidoc-backend/internal/project"
 	"github.com/yifen9/gamidoc-backend/internal/recommendation"
@@ -369,6 +370,9 @@ func testPDFHandler() *pdf.Handler {
 		builder,
 		generator,
 		store,
+		mailer.NewNoopMailer(),
+		"noreply@example.com",
+		"GamiDoc",
 		projectRepo,
 		sessionRepo,
 		projectService,

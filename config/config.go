@@ -37,6 +37,12 @@ type Config struct {
 	ObjectStorageS3SecretAccessKey string
 	ObjectStorageS3UsePathStyle    bool
 
+	MailerProvider  string
+	MailerFromEmail string
+	MailerFromName  string
+	ResendAPIKey    string
+	ResendBaseURL   string
+
 	RecommendationRulesPath string
 }
 
@@ -75,6 +81,11 @@ func Load() Config {
 		ObjectStorageS3AccessKeyID:     getEnv("OBJECT_STORAGE_S3_ACCESS_KEY_ID", ""),
 		ObjectStorageS3SecretAccessKey: getEnv("OBJECT_STORAGE_S3_SECRET_ACCESS_KEY", ""),
 		ObjectStorageS3UsePathStyle:    getEnvBool("OBJECT_STORAGE_S3_USE_PATH_STYLE", false),
+		MailerProvider:                 getEnv("MAILER_PROVIDER", "noop"),
+		MailerFromEmail:                getEnv("MAILER_FROM_EMAIL", ""),
+		MailerFromName:                 getEnv("MAILER_FROM_NAME", "GamiDoc"),
+		ResendAPIKey:                   getEnv("RESEND_API_KEY", ""),
+		ResendBaseURL:                  getEnv("RESEND_BASE_URL", "https://api.resend.com"),
 		RecommendationRulesPath:        getEnv("RECOMMENDATION_RULES_PATH", "rule/recommendations.json"),
 	}
 }
@@ -119,6 +130,18 @@ func (c Config) ObjectStorageProviderNormalized() string {
 	}
 }
 
+func (c Config) MailerProviderNormalized() string {
+	value := strings.ToLower(strings.TrimSpace(c.MailerProvider))
+	switch value {
+	case "", "noop":
+		return "noop"
+	case "resend":
+		return "resend"
+	default:
+		return value
+	}
+}
+
 func (c Config) ValidateObjectStorage() error {
 	if strings.TrimSpace(c.ObjectStoragePublicBaseURL) == "" {
 		return errors.New("object storage public base url is required")
@@ -149,6 +172,26 @@ func (c Config) ValidateObjectStorage() error {
 		return nil
 	default:
 		return fmt.Errorf("unsupported object storage provider: %s", c.ObjectStorageProvider)
+	}
+}
+
+func (c Config) ValidateMailer() error {
+	switch c.MailerProviderNormalized() {
+	case "noop":
+		return nil
+	case "resend":
+		if strings.TrimSpace(c.MailerFromEmail) == "" {
+			return errors.New("mailer from email is required")
+		}
+		if strings.TrimSpace(c.ResendAPIKey) == "" {
+			return errors.New("resend api key is required")
+		}
+		if strings.TrimSpace(c.ResendBaseURL) == "" {
+			return errors.New("resend base url is required")
+		}
+		return nil
+	default:
+		return fmt.Errorf("unsupported mailer provider: %s", c.MailerProvider)
 	}
 }
 

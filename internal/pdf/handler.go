@@ -1,7 +1,9 @@
 package pdf
 
 import (
+	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"strings"
 
@@ -34,7 +36,15 @@ func (h *Handler) ProjectGenerate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := h.service.GenerateProjectPDF(r.Context(), userID, projectID)
+	var input struct {
+		NotifyEmail string `json:"notifyEmail"`
+	}
+	if err := decodeOptionalJSON(r, &input); err != nil {
+		response.WriteError(w, http.StatusBadRequest, "INVALID_INPUT", "Invalid request body", nil)
+		return
+	}
+
+	result, err := h.service.GenerateProjectPDF(r.Context(), userID, projectID, input.NotifyEmail)
 	if err != nil {
 		switch {
 		case errors.Is(err, project.ErrProjectNotFound):
@@ -43,6 +53,8 @@ func (h *Handler) ProjectGenerate(w http.ResponseWriter, r *http.Request) {
 			response.WriteError(w, http.StatusForbidden, "FORBIDDEN", "Project does not belong to user", nil)
 		case errors.Is(err, wizard.ErrIncompleteWizard):
 			response.WriteError(w, http.StatusBadRequest, "WIZARD_INCOMPLETE", "Wizard is incomplete", nil)
+		case errors.Is(err, ErrInvalidNotifyEmail):
+			response.WriteError(w, http.StatusBadRequest, "INVALID_NOTIFY_EMAIL", "Invalid notify email", map[string]any{"field": "notifyEmail"})
 		default:
 			response.WriteError(w, http.StatusInternalServerError, "PDF_GENERATION_FAILED", "PDF generation failed", nil)
 		}
@@ -51,6 +63,7 @@ func (h *Handler) ProjectGenerate(w http.ResponseWriter, r *http.Request) {
 
 	response.WriteJSON(w, http.StatusOK, map[string]any{
 		"pdfUrl": result.URL,
+		"email":  result.Email,
 	})
 }
 
@@ -61,13 +74,23 @@ func (h *Handler) SessionGenerate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := h.service.GenerateSessionPDF(r.Context(), sessionID)
+	var input struct {
+		NotifyEmail string `json:"notifyEmail"`
+	}
+	if err := decodeOptionalJSON(r, &input); err != nil {
+		response.WriteError(w, http.StatusBadRequest, "INVALID_INPUT", "Invalid request body", nil)
+		return
+	}
+
+	result, err := h.service.GenerateSessionPDF(r.Context(), sessionID, input.NotifyEmail)
 	if err != nil {
 		switch {
 		case errors.Is(err, session.ErrSessionNotFound):
 			response.WriteError(w, http.StatusNotFound, "SESSION_NOT_FOUND", "Session not found or expired", nil)
 		case errors.Is(err, wizard.ErrIncompleteWizard):
 			response.WriteError(w, http.StatusBadRequest, "WIZARD_INCOMPLETE", "Wizard is incomplete", nil)
+		case errors.Is(err, ErrInvalidNotifyEmail):
+			response.WriteError(w, http.StatusBadRequest, "INVALID_NOTIFY_EMAIL", "Invalid notify email", map[string]any{"field": "notifyEmail"})
 		default:
 			response.WriteError(w, http.StatusInternalServerError, "PDF_GENERATION_FAILED", "PDF generation failed", nil)
 		}
@@ -76,6 +99,7 @@ func (h *Handler) SessionGenerate(w http.ResponseWriter, r *http.Request) {
 
 	response.WriteJSON(w, http.StatusOK, map[string]any{
 		"pdfUrl": result.URL,
+		"email":  result.Email,
 	})
 }
 
@@ -93,4 +117,21 @@ func (h *Handler) Download(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", `attachment; filename="evaluation-plan.pdf"`)
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(data)
+}
+
+func decodeOptionalJSON(r *http.Request, value any) error {
+	if r.Body == nil {
+		return nil
+	}
+
+	err := json.NewDecoder(r.Body).Decode(value)
+	if err == nil {
+		return nil
+	}
+
+	if errors.Is(err, io.EOF) {
+		return nil
+	}
+
+	return err
 }
