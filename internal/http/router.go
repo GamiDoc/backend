@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -32,6 +33,7 @@ type Dependencies struct {
 	ProjectHandler *project.Handler
 	SessionHandler *session.Handler
 	PDFHandler     *pdf.Handler
+	PDFBaseURL     string
 }
 
 type healthResponse struct {
@@ -90,7 +92,8 @@ func NewRouter(deps Dependencies) http.Handler {
 	})
 
 	if deps.PDFHandler != nil {
-		r.Get("/files/pdfs/*", deps.PDFHandler.Download)
+		basePath := normalizeBasePath(deps.PDFBaseURL)
+		r.Get(basePath+"/*", deps.PDFHandler.Download)
 	}
 
 	r.Route("/api/v1", func(r chi.Router) {
@@ -130,4 +133,18 @@ func NewRouter(deps Dependencies) http.Handler {
 	})
 
 	return r
+}
+
+func normalizeBasePath(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return "/files/pdfs"
+	}
+	if !strings.HasPrefix(value, "/") {
+		value = "/" + value
+	}
+	if len(value) > 1 {
+		value = strings.TrimRight(value, "/")
+	}
+	return value
 }

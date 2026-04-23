@@ -1,10 +1,9 @@
-package r2
+package objectstore
 
 import (
 	"context"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 type LocalStore struct {
@@ -15,12 +14,12 @@ type LocalStore struct {
 func NewLocalStore(rootDir string, baseURL string) *LocalStore {
 	return &LocalStore{
 		rootDir: rootDir,
-		baseURL: strings.TrimRight(baseURL, "/"),
+		baseURL: baseURL,
 	}
 }
 
 func (s *LocalStore) Save(ctx context.Context, key string, data []byte) (string, error) {
-	path := filepath.Join(s.rootDir, filepath.FromSlash(key))
+	path := filepath.Join(s.rootDir, filepath.FromSlash(trimLeftSlash(key)))
 
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return "", err
@@ -30,10 +29,10 @@ func (s *LocalStore) Save(ctx context.Context, key string, data []byte) (string,
 		return "", err
 	}
 
-	return s.baseURL + "/" + strings.TrimLeft(key, "/"), nil
+	return buildPublicURL(s.baseURL, key), nil
 }
 
 func (s *LocalStore) Read(ctx context.Context, key string) ([]byte, error) {
-	path := filepath.Join(s.rootDir, filepath.FromSlash(key))
+	path := filepath.Join(s.rootDir, filepath.FromSlash(trimLeftSlash(key)))
 	return os.ReadFile(path)
 }

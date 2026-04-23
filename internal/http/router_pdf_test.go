@@ -12,7 +12,7 @@ import (
 	"github.com/yifen9/gamidoc-backend/internal/pdf"
 	"github.com/yifen9/gamidoc-backend/internal/project"
 	"github.com/yifen9/gamidoc-backend/internal/session"
-	"github.com/yifen9/gamidoc-backend/internal/storage/r2"
+	"github.com/yifen9/gamidoc-backend/internal/storage/objectstore"
 	"github.com/yifen9/gamidoc-backend/internal/wizard"
 )
 
@@ -46,7 +46,7 @@ func TestProjectPDFRoute(t *testing.T) {
 		recommendationService,
 	)
 
-	store := r2.NewLocalStore(tTempDir(), "/files/pdfs")
+	store := objectstore.NewLocalStore(tTempDir(), "/files/pdfs")
 	builder := pdf.NewBuilder()
 	generator := pdf.NewFPDFGenerator()
 
@@ -146,7 +146,7 @@ func TestProjectPDFIncompleteWizardRoute(t *testing.T) {
 		recommendationService,
 	)
 
-	store := r2.NewLocalStore(tTempDir(), "/files/pdfs")
+	store := objectstore.NewLocalStore(tTempDir(), "/files/pdfs")
 	builder := pdf.NewBuilder()
 	generator := pdf.NewFPDFGenerator()
 
@@ -226,7 +226,7 @@ func TestSessionPDFRoute(t *testing.T) {
 
 	sessionHandler := session.NewHandler(sessionService, projectService)
 
-	store := r2.NewLocalStore(tTempDir(), "/files/pdfs")
+	store := objectstore.NewLocalStore(tTempDir(), "/files/pdfs")
 	builder := pdf.NewBuilder()
 	generator := pdf.NewFPDFGenerator()
 
@@ -315,7 +315,7 @@ func TestSessionPDFIncompleteWizardRoute(t *testing.T) {
 
 	sessionHandler := session.NewHandler(sessionService, projectService)
 
-	store := r2.NewLocalStore(tTempDir(), "/files/pdfs")
+	store := objectstore.NewLocalStore(tTempDir(), "/files/pdfs")
 	builder := pdf.NewBuilder()
 	generator := pdf.NewFPDFGenerator()
 
@@ -379,7 +379,7 @@ func TestPDFDownloadMissingRoute(t *testing.T) {
 
 func TestPDFDownloadRoute(t *testing.T) {
 	root := tTempDir()
-	store := r2.NewLocalStore(root, "/files/pdfs")
+	store := objectstore.NewLocalStore(root, "/files/pdfs")
 
 	projectRepo := &fakeProjectRepository{
 		items: []project.Project{},
@@ -493,7 +493,7 @@ func TestProjectPDFForbiddenRoute(t *testing.T) {
 		recommendationService,
 	)
 
-	store := r2.NewLocalStore(tTempDir(), "/files/pdfs")
+	store := objectstore.NewLocalStore(tTempDir(), "/files/pdfs")
 	builder := pdf.NewBuilder()
 	generator := pdf.NewFPDFGenerator()
 

@@ -1,6 +1,8 @@
 package app
 
 import (
+	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -12,8 +14,8 @@ import (
 	"github.com/yifen9/gamidoc-backend/internal/project"
 	"github.com/yifen9/gamidoc-backend/internal/recommendation"
 	"github.com/yifen9/gamidoc-backend/internal/session"
+	"github.com/yifen9/gamidoc-backend/internal/storage/objectstore"
 	"github.com/yifen9/gamidoc-backend/internal/storage/postgres"
-	"github.com/yifen9/gamidoc-backend/internal/storage/r2"
 	rediscache "github.com/yifen9/gamidoc-backend/internal/storage/redis"
 	"github.com/yifen9/gamidoc-backend/internal/token"
 	"github.com/yifen9/gamidoc-backend/internal/wizard"
@@ -29,6 +31,10 @@ type App struct {
 
 func New(cfg config.Config) (*App, error) {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
+	if err := cfg.ValidateObjectStorage(); err != nil {
+		return nil, err
+	}
 
 	pg, err := postgres.New(cfg.PostgresDSN())
 	if err != nil {
@@ -60,7 +66,11 @@ func New(cfg config.Config) (*App, error) {
 	sessionService := session.NewService(sessionRepository, cfg.SessionTTL, wizardService, recommendationService)
 	sessionHandler := session.NewHandler(sessionService, projectService)
 
-	store := r2.NewLocalStore(cfg.PDFStorageDir, cfg.PDFBaseURL)
+	store, err := newObjectStore(cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	pdfBuilder := pdf.NewBuilder()
 	pdfGenerator := pdf.NewFPDFGenerator()
 	pdfService := pdf.NewService(
@@ -90,6 +100,7 @@ func New(cfg config.Config) (*App, error) {
 		ProjectHandler: projectHandler,
 		SessionHandler: sessionHandler,
 		PDFHandler:     pdfHandler,
+		PDFBaseURL:     cfg.ObjectStoragePublicBaseURL,
 	})
 
 	return application, nil
@@ -113,4 +124,26 @@ func (a *App) Close() error {
 	}
 
 	return nil
+}
+
+func newObjectStore(cfg config.Config) (objectstore.ObjectStore, error) {
+	switch cfg.ObjectStorageProviderNormalized() {
+	case "local":
+		return objectstore.NewLocalStore(
+			cfg.ObjectStorageLocalRootDir,
+			cfg.ObjectStoragePublicBaseURL,
+		), nil
+	case "cloudflare-r2", "s3-compatible":
+		return objectstore.NewS3Store(context.Background(), objectstore.S3StoreConfig{
+			Bucket:          cfg.ObjectStorageS3Bucket,
+			Region:          cfg.ObjectStorageS3Region,
+			Endpoint:        cfg.ObjectStorageS3Endpoint,
+			AccessKeyID:     cfg.ObjectStorageS3AccessKeyID,
+			SecretAccessKey: cfg.ObjectStorageS3SecretAccessKey,
+			UsePathStyle:    cfg.ObjectStorageS3UsePathStyle,
+			BaseURL:         cfg.ObjectStoragePublicBaseURL,
+		})
+	default:
+		return nil, fmt.Errorf("unsupported object storage provider: %s", cfg.ObjectStorageProvider)
+	}
 }

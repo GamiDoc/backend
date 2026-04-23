@@ -13,7 +13,7 @@ import (
 	"github.com/yifen9/gamidoc-backend/internal/project"
 	"github.com/yifen9/gamidoc-backend/internal/recommendation"
 	"github.com/yifen9/gamidoc-backend/internal/session"
-	"github.com/yifen9/gamidoc-backend/internal/storage/r2"
+	"github.com/yifen9/gamidoc-backend/internal/storage/objectstore"
 	"github.com/yifen9/gamidoc-backend/internal/token"
 	"github.com/yifen9/gamidoc-backend/internal/user"
 	"github.com/yifen9/gamidoc-backend/internal/wizard"
@@ -361,7 +361,7 @@ func testPDFHandler() *pdf.Handler {
 		recommendationService,
 	)
 
-	store := r2.NewLocalStore(tTempDir(), "/files/pdfs")
+	store := objectstore.NewLocalStore(tTempDir(), "/files/pdfs")
 	builder := pdf.NewBuilder()
 	generator := pdf.NewFPDFGenerator()
 

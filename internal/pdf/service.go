@@ -9,7 +9,7 @@ import (
 	"github.com/yifen9/gamidoc-backend/internal/project"
 	"github.com/yifen9/gamidoc-backend/internal/recommendation"
 	"github.com/yifen9/gamidoc-backend/internal/session"
-	"github.com/yifen9/gamidoc-backend/internal/storage/r2"
+	"github.com/yifen9/gamidoc-backend/internal/storage/objectstore"
 	"github.com/yifen9/gamidoc-backend/internal/wizard"
 )
 
@@ -38,7 +38,7 @@ type SessionRecommendationService interface {
 type Service struct {
 	builder                *Builder
 	generator              Generator
-	store                  r2.ObjectStore
+	store                  objectstore.ObjectStore
 	projects               ProjectRepository
 	sessions               SessionRepository
 	projectRecommendations ProjectRecommendationService
@@ -48,7 +48,7 @@ type Service struct {
 func NewService(
 	builder *Builder,
 	generator Generator,
-	store r2.ObjectStore,
+	store objectstore.ObjectStore,
 	projects ProjectRepository,
 	sessions SessionRepository,
 	projectRecommendations ProjectRecommendationService,
