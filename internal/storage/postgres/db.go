@@ -38,6 +38,10 @@ func (d *DB) Ready(ctx context.Context) error {
 	return nil
 }
 
+func (d *DB) Raw() *sql.DB {
+	return d.sql
+}
+
 func (d *DB) Close() error {
 	return d.sql.Close()
 }

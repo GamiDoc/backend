@@ -25,18 +25,25 @@ test:
     go test ./...
 
 run:
-    go run ./cmd/api
+    go run ./cmd/gamidoc-backend serve
 
 build:
-    go build ./cmd/api
+    go build ./cmd/gamidoc-backend
+
+migrate-up:
+    go run ./cmd/gamidoc-backend migrate up
+
+migrate-status:
+    go run ./cmd/gamidoc-backend migrate status
+
+doctor:
+    go run ./cmd/gamidoc-backend doctor
+
+version:
+    go run ./cmd/gamidoc-backend version
 
 db-migrate:
-    set -a
-    source .env.dev
-    set +a
-    for file in migrations/*.sql; do \
-      psql "postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB?sslmode=disable" -v ON_ERROR_STOP=1 -f "$file"; \
-    done
+    just migrate-up
 
 ci:
     just mod-tidy && \

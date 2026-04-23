@@ -9,13 +9,12 @@ import (
 
 	"github.com/yifen9/gamidoc-backend/config"
 	"github.com/yifen9/gamidoc-backend/internal/auth"
+	"github.com/yifen9/gamidoc-backend/internal/bootstrap"
 	apphttp "github.com/yifen9/gamidoc-backend/internal/http"
-	"github.com/yifen9/gamidoc-backend/internal/mailer"
 	"github.com/yifen9/gamidoc-backend/internal/pdf"
 	"github.com/yifen9/gamidoc-backend/internal/project"
 	"github.com/yifen9/gamidoc-backend/internal/recommendation"
 	"github.com/yifen9/gamidoc-backend/internal/session"
-	"github.com/yifen9/gamidoc-backend/internal/storage/objectstore"
 	"github.com/yifen9/gamidoc-backend/internal/storage/postgres"
 	rediscache "github.com/yifen9/gamidoc-backend/internal/storage/redis"
 	"github.com/yifen9/gamidoc-backend/internal/token"
@@ -84,14 +83,14 @@ func New(cfg config.Config) (*App, error) {
 	sessionService := session.NewService(sessionRepository, cfg.SessionTTL, wizardService, recommendationService)
 	sessionHandler := session.NewHandler(sessionService, projectService)
 
-	store, err := newObjectStore(cfg)
+	store, err := bootstrap.NewObjectStore(cfg)
 	if err != nil {
 		_ = pg.Close()
 		_ = redisClient.Close()
 		return nil, err
 	}
 
-	m, err := newMailer(cfg)
+	m, err := bootstrap.NewMailer(cfg)
 	if err != nil {
 		_ = pg.Close()
 		_ = redisClient.Close()
@@ -142,6 +141,7 @@ func New(cfg config.Config) (*App, error) {
 		"http_addr", summary["http_addr"],
 		"http_max_body_bytes", summary["http_max_body_bytes"],
 		"cors_allowed_origins", summary["cors_allowed_origins"],
+		"migrations_dir", summary["migrations_dir"],
 		"object_storage_provider", summary["object_storage_provider"],
 		"mailer_provider", summary["mailer_provider"],
 		"recommendation_rules", summary["recommendation_rules"],
@@ -168,41 +168,4 @@ func (a *App) Close() error {
 	}
 
 	return nil
-}
-
-func newObjectStore(cfg config.Config) (objectstore.ObjectStore, error) {
-	switch cfg.ObjectStorageProviderNormalized() {
-	case "local":
-		return objectstore.NewLocalStore(
-			cfg.ObjectStorageLocalRootDir,
-			cfg.ObjectStoragePublicBaseURL,
-		), nil
-	case "cloudflare-r2", "s3-compatible":
-		return objectstore.NewS3Store(context.Background(), objectstore.S3StoreConfig{
-			Bucket:          cfg.ObjectStorageS3Bucket,
-			Region:          cfg.ObjectStorageS3Region,
-			Endpoint:        cfg.ObjectStorageS3Endpoint,
-			AccessKeyID:     cfg.ObjectStorageS3AccessKeyID,
-			SecretAccessKey: cfg.ObjectStorageS3SecretAccessKey,
-			UsePathStyle:    cfg.ObjectStorageS3UsePathStyle,
-			BaseURL:         cfg.ObjectStoragePublicBaseURL,
-		})
-	default:
-		return nil, fmt.Errorf("unsupported object storage provider: %s", cfg.ObjectStorageProvider)
-	}
-}
-
-func newMailer(cfg config.Config) (mailer.Mailer, error) {
-	switch cfg.MailerProviderNormalized() {
-	case "noop":
-		return mailer.NewNoopMailer(), nil
-	case "resend":
-		return mailer.NewResendMailer(
-			cfg.ResendAPIKey,
-			cfg.ResendBaseURL,
-			nil,
-		), nil
-	default:
-		return nil, fmt.Errorf("unsupported mailer provider: %s", cfg.MailerProvider)
-	}
 }

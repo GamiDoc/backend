@@ -17,6 +17,7 @@ func TestValidateRejectsEmptyHTTPAddr(t *testing.T) {
 		HTTPIdleTimeout:            1,
 		HTTPShutdownTimeout:        1,
 		HTTPMaxBodyBytes:           1,
+		MigrationsDir:              "migrations",
 		RecommendationRulesPath:    rulesPath,
 		ObjectStorageProvider:      "local",
 		ObjectStoragePublicBaseURL: "/files/pdfs",
@@ -41,6 +42,7 @@ func TestValidateRejectsProductionDefaultJWTSecret(t *testing.T) {
 		HTTPIdleTimeout:            1,
 		HTTPShutdownTimeout:        1,
 		HTTPMaxBodyBytes:           1,
+		MigrationsDir:              "migrations",
 		JWTSecret:                  "dev-secret",
 		RecommendationRulesPath:    rulesPath,
 		ObjectStorageProvider:      "local",
@@ -64,6 +66,7 @@ func TestValidateRejectsMissingRulesFile(t *testing.T) {
 		HTTPIdleTimeout:            1,
 		HTTPShutdownTimeout:        1,
 		HTTPMaxBodyBytes:           1,
+		MigrationsDir:              "migrations",
 		JWTSecret:                  "not-default",
 		RecommendationRulesPath:    filepath.Join(t.TempDir(), "missing.json"),
 		ObjectStorageProvider:      "local",
@@ -89,6 +92,7 @@ func TestValidatePassesWithValidConfig(t *testing.T) {
 		HTTPIdleTimeout:            1,
 		HTTPShutdownTimeout:        1,
 		HTTPMaxBodyBytes:           1024,
+		MigrationsDir:              "migrations",
 		JWTSecret:                  "secret",
 		RecommendationRulesPath:    rulesPath,
 		ObjectStorageProvider:      "local",
@@ -114,6 +118,7 @@ func TestLoadParsesCSVOrigins(t *testing.T) {
 	t.Setenv("HTTP_SHUTDOWN_TIMEOUT", "5s")
 	t.Setenv("HTTP_MAX_BODY_BYTES", "2048")
 	t.Setenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000, https://example.com")
+	t.Setenv("MIGRATIONS_DIR", "migrations")
 	t.Setenv("RECOMMENDATION_RULES_PATH", rulesPath)
 	t.Setenv("OBJECT_STORAGE_PROVIDER", "local")
 	t.Setenv("OBJECT_STORAGE_PUBLIC_BASE_URL", "/files/pdfs")
