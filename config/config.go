@@ -13,6 +13,15 @@ type Config struct {
 	AppEnv   string
 	HTTPAddr string
 
+	HTTPReadHeaderTimeout time.Duration
+	HTTPReadTimeout       time.Duration
+	HTTPWriteTimeout      time.Duration
+	HTTPIdleTimeout       time.Duration
+	HTTPShutdownTimeout   time.Duration
+	HTTPMaxBodyBytes      int64
+
+	CORSAllowedOrigins []string
+
 	PostgresHost     string
 	PostgresPort     string
 	PostgresDB       string
@@ -47,34 +56,38 @@ type Config struct {
 }
 
 func Load() Config {
-	expiresIn := getEnv("JWT_EXPIRES_IN", "24h")
-	parsedExpiresIn, err := time.ParseDuration(expiresIn)
-	if err != nil {
-		parsedExpiresIn = 24 * time.Hour
-	}
-
-	sessionTTL := getEnv("SESSION_TTL", "48h")
-	parsedSessionTTL, err := time.ParseDuration(sessionTTL)
-	if err != nil {
-		parsedSessionTTL = 48 * time.Hour
-	}
+	expiresIn := parseDurationWithFallback(getEnv("JWT_EXPIRES_IN", "24h"), 24*time.Hour)
+	sessionTTL := parseDurationWithFallback(getEnv("SESSION_TTL", "48h"), 48*time.Hour)
 
 	return Config{
-		AppEnv:                         getEnv("APP_ENV", "development"),
-		HTTPAddr:                       getEnv("HTTP_ADDR", ":8080"),
-		PostgresHost:                   getEnv("POSTGRES_HOST", "localhost"),
-		PostgresPort:                   getEnv("POSTGRES_PORT", "5432"),
-		PostgresDB:                     getEnv("POSTGRES_DB", "gamidoc"),
-		PostgresUser:                   getEnv("POSTGRES_USER", "gamidoc"),
-		PostgresPassword:               getEnv("POSTGRES_PASSWORD", "gamidoc"),
-		RedisHost:                      getEnv("REDIS_HOST", "localhost"),
-		RedisPort:                      getEnv("REDIS_PORT", "6379"),
-		JWTSecret:                      getEnv("JWT_SECRET", "dev-secret"),
-		JWTExpiresIn:                   parsedExpiresIn,
-		SessionTTL:                     parsedSessionTTL,
-		ObjectStorageProvider:          getEnv("OBJECT_STORAGE_PROVIDER", "local"),
-		ObjectStoragePublicBaseURL:     getEnv("OBJECT_STORAGE_PUBLIC_BASE_URL", getEnv("PDF_BASE_URL", "/files/pdfs")),
-		ObjectStorageLocalRootDir:      getEnv("OBJECT_STORAGE_LOCAL_ROOT_DIR", getEnv("PDF_STORAGE_DIR", ".localdata/pdfs")),
+		AppEnv:                getEnv("APP_ENV", "development"),
+		HTTPAddr:              getEnv("HTTP_ADDR", ":8080"),
+		HTTPReadHeaderTimeout: parseDurationWithFallback(getEnv("HTTP_READ_HEADER_TIMEOUT", "5s"), 5*time.Second),
+		HTTPReadTimeout:       parseDurationWithFallback(getEnv("HTTP_READ_TIMEOUT", "15s"), 15*time.Second),
+		HTTPWriteTimeout:      parseDurationWithFallback(getEnv("HTTP_WRITE_TIMEOUT", "30s"), 30*time.Second),
+		HTTPIdleTimeout:       parseDurationWithFallback(getEnv("HTTP_IDLE_TIMEOUT", "60s"), 60*time.Second),
+		HTTPShutdownTimeout:   parseDurationWithFallback(getEnv("HTTP_SHUTDOWN_TIMEOUT", "10s"), 10*time.Second),
+		HTTPMaxBodyBytes:      getEnvInt64("HTTP_MAX_BODY_BYTES", 1048576),
+		CORSAllowedOrigins:    getEnvCSV("CORS_ALLOWED_ORIGINS", []string{}),
+		PostgresHost:          getEnv("POSTGRES_HOST", "localhost"),
+		PostgresPort:          getEnv("POSTGRES_PORT", "5432"),
+		PostgresDB:            getEnv("POSTGRES_DB", "gamidoc"),
+		PostgresUser:          getEnv("POSTGRES_USER", "gamidoc"),
+		PostgresPassword:      getEnv("POSTGRES_PASSWORD", "gamidoc"),
+		RedisHost:             getEnv("REDIS_HOST", "localhost"),
+		RedisPort:             getEnv("REDIS_PORT", "6379"),
+		JWTSecret:             getEnv("JWT_SECRET", "dev-secret"),
+		JWTExpiresIn:          expiresIn,
+		SessionTTL:            sessionTTL,
+		ObjectStorageProvider: getEnv("OBJECT_STORAGE_PROVIDER", "local"),
+		ObjectStoragePublicBaseURL: getEnv(
+			"OBJECT_STORAGE_PUBLIC_BASE_URL",
+			getEnv("PDF_BASE_URL", "/files/pdfs"),
+		),
+		ObjectStorageLocalRootDir: getEnv(
+			"OBJECT_STORAGE_LOCAL_ROOT_DIR",
+			getEnv("PDF_STORAGE_DIR", ".localdata/pdfs"),
+		),
 		ObjectStorageS3Bucket:          getEnv("OBJECT_STORAGE_S3_BUCKET", ""),
 		ObjectStorageS3Region:          getEnv("OBJECT_STORAGE_S3_REGION", "auto"),
 		ObjectStorageS3Endpoint:        getEnv("OBJECT_STORAGE_S3_ENDPOINT", ""),
@@ -88,6 +101,57 @@ func Load() Config {
 		ResendBaseURL:                  getEnv("RESEND_BASE_URL", "https://api.resend.com"),
 		RecommendationRulesPath:        getEnv("RECOMMENDATION_RULES_PATH", "rule/recommendations.json"),
 	}
+}
+
+func (c Config) Validate() error {
+	if err := c.ValidateCore(); err != nil {
+		return err
+	}
+	if err := c.ValidateObjectStorage(); err != nil {
+		return err
+	}
+	if err := c.ValidateMailer(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c Config) ValidateCore() error {
+	if strings.TrimSpace(c.HTTPAddr) == "" {
+		return errors.New("http addr is required")
+	}
+	if c.HTTPReadHeaderTimeout <= 0 {
+		return errors.New("http read header timeout must be positive")
+	}
+	if c.HTTPReadTimeout <= 0 {
+		return errors.New("http read timeout must be positive")
+	}
+	if c.HTTPWriteTimeout <= 0 {
+		return errors.New("http write timeout must be positive")
+	}
+	if c.HTTPIdleTimeout <= 0 {
+		return errors.New("http idle timeout must be positive")
+	}
+	if c.HTTPShutdownTimeout <= 0 {
+		return errors.New("http shutdown timeout must be positive")
+	}
+	if c.HTTPMaxBodyBytes <= 0 {
+		return errors.New("http max body bytes must be positive")
+	}
+	if strings.TrimSpace(c.RecommendationRulesPath) == "" {
+		return errors.New("recommendation rules path is required")
+	}
+	info, err := os.Stat(c.RecommendationRulesPath)
+	if err != nil {
+		return fmt.Errorf("recommendation rules path is not readable: %w", err)
+	}
+	if info.IsDir() {
+		return errors.New("recommendation rules path must be a file")
+	}
+	if strings.EqualFold(strings.TrimSpace(c.AppEnv), "production") && c.JWTSecret == "dev-secret" {
+		return errors.New("jwt secret must not use the development default in production")
+	}
+	return nil
 }
 
 func (c Config) PostgresDSN() string {
@@ -195,6 +259,26 @@ func (c Config) ValidateMailer() error {
 	}
 }
 
+func (c Config) SafeSummary() map[string]any {
+	return map[string]any{
+		"app_env":                 c.AppEnv,
+		"http_addr":               c.HTTPAddr,
+		"http_max_body_bytes":     c.HTTPMaxBodyBytes,
+		"cors_allowed_origins":    c.CORSAllowedOrigins,
+		"object_storage_provider": c.ObjectStorageProviderNormalized(),
+		"mailer_provider":         c.MailerProviderNormalized(),
+		"recommendation_rules":    c.RecommendationRulesPath,
+	}
+}
+
+func parseDurationWithFallback(value string, fallback time.Duration) time.Duration {
+	parsed, err := time.ParseDuration(value)
+	if err != nil {
+		return fallback
+	}
+	return parsed
+}
+
 func getEnv(key string, fallback string) string {
 	value := os.Getenv(key)
 	if value == "" {
@@ -213,4 +297,38 @@ func getEnvBool(key string, fallback bool) bool {
 		return fallback
 	}
 	return parsed
+}
+
+func getEnvInt64(key string, fallback int64) int64 {
+	value := strings.TrimSpace(os.Getenv(key))
+	if value == "" {
+		return fallback
+	}
+	parsed, err := strconv.ParseInt(value, 10, 64)
+	if err != nil {
+		return fallback
+	}
+	return parsed
+}
+
+func getEnvCSV(key string, fallback []string) []string {
+	value := strings.TrimSpace(os.Getenv(key))
+	if value == "" {
+		return fallback
+	}
+
+	parts := strings.Split(value, ",")
+	result := make([]string, 0, len(parts))
+	for _, part := range parts {
+		item := strings.TrimSpace(part)
+		if item != "" {
+			result = append(result, item)
+		}
+	}
+
+	if len(result) == 0 {
+		return fallback
+	}
+
+	return result
 }

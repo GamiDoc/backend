@@ -25,15 +25,17 @@ type redisReadyChecker interface {
 }
 
 type Dependencies struct {
-	Logger         *slog.Logger
-	Postgres       postgresReadyChecker
-	Redis          redisReadyChecker
-	TokenManager   *token.Manager
-	AuthHandler    http.Handler
-	ProjectHandler *project.Handler
-	SessionHandler *session.Handler
-	PDFHandler     *pdf.Handler
-	PDFBaseURL     string
+	Logger             *slog.Logger
+	Postgres           postgresReadyChecker
+	Redis              redisReadyChecker
+	TokenManager       *token.Manager
+	AuthHandler        http.Handler
+	ProjectHandler     *project.Handler
+	SessionHandler     *session.Handler
+	PDFHandler         *pdf.Handler
+	PDFBaseURL         string
+	MaxBodyBytes       int64
+	CORSAllowedOrigins []string
 }
 
 type healthResponse struct {
@@ -56,6 +58,8 @@ func NewRouter(deps Dependencies) http.Handler {
 	r.Use(appmiddleware.RequestID)
 	r.Use(appmiddleware.Recovery(deps.Logger))
 	r.Use(appmiddleware.Logging(deps.Logger))
+	r.Use(appmiddleware.CORS(deps.CORSAllowedOrigins))
+	r.Use(appmiddleware.BodyLimit(deps.MaxBodyBytes))
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		response.WriteJSON(w, http.StatusOK, healthResponse{

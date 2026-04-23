@@ -33,11 +33,7 @@ type App struct {
 func New(cfg config.Config) (*App, error) {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
-	if err := cfg.ValidateObjectStorage(); err != nil {
-		return nil, err
-	}
-
-	if err := cfg.ValidateMailer(); err != nil {
+	if err := cfg.Validate(); err != nil {
 		return nil, err
 	}
 
@@ -47,12 +43,29 @@ func New(cfg config.Config) (*App, error) {
 	}
 
 	redisClient := rediscache.New(cfg.RedisAddr())
+
+	startupCtx, cancel := context.WithTimeout(context.Background(), cfg.HTTPReadTimeout)
+	defer cancel()
+
+	if err := pg.Ready(startupCtx); err != nil {
+		_ = pg.Close()
+		return nil, fmt.Errorf("postgres startup check failed: %w", err)
+	}
+
+	if err := redisClient.Ready(startupCtx); err != nil {
+		_ = pg.Close()
+		_ = redisClient.Close()
+		return nil, fmt.Errorf("redis startup check failed: %w", err)
+	}
+
 	tokenManager := token.NewManager(cfg.JWTSecret, cfg.JWTExpiresIn)
 
 	wizardService := wizard.NewService()
 
 	rules, err := recommendation.LoadRulesFromFile(cfg.RecommendationRulesPath)
 	if err != nil {
+		_ = pg.Close()
+		_ = redisClient.Close()
 		return nil, err
 	}
 	recommendationEngine := recommendation.NewEngine(rules)
@@ -73,11 +86,15 @@ func New(cfg config.Config) (*App, error) {
 
 	store, err := newObjectStore(cfg)
 	if err != nil {
+		_ = pg.Close()
+		_ = redisClient.Close()
 		return nil, err
 	}
 
 	m, err := newMailer(cfg)
 	if err != nil {
+		_ = pg.Close()
+		_ = redisClient.Close()
 		return nil, err
 	}
 
@@ -105,16 +122,30 @@ func New(cfg config.Config) (*App, error) {
 	}
 
 	application.router = apphttp.NewRouter(apphttp.Dependencies{
-		Logger:         application.logger,
-		Postgres:       application.pg,
-		Redis:          application.redis,
-		TokenManager:   tokenManager,
-		AuthHandler:    authHandler.Routes(),
-		ProjectHandler: projectHandler,
-		SessionHandler: sessionHandler,
-		PDFHandler:     pdfHandler,
-		PDFBaseURL:     cfg.ObjectStoragePublicBaseURL,
+		Logger:             application.logger,
+		Postgres:           application.pg,
+		Redis:              application.redis,
+		TokenManager:       tokenManager,
+		AuthHandler:        authHandler.Routes(),
+		ProjectHandler:     projectHandler,
+		SessionHandler:     sessionHandler,
+		PDFHandler:         pdfHandler,
+		PDFBaseURL:         cfg.ObjectStoragePublicBaseURL,
+		MaxBodyBytes:       cfg.HTTPMaxBodyBytes,
+		CORSAllowedOrigins: cfg.CORSAllowedOrigins,
 	})
+
+	summary := cfg.SafeSummary()
+	application.logger.Info(
+		"app_config",
+		"app_env", summary["app_env"],
+		"http_addr", summary["http_addr"],
+		"http_max_body_bytes", summary["http_max_body_bytes"],
+		"cors_allowed_origins", summary["cors_allowed_origins"],
+		"object_storage_provider", summary["object_storage_provider"],
+		"mailer_provider", summary["mailer_provider"],
+		"recommendation_rules", summary["recommendation_rules"],
+	)
 
 	return application, nil
 }
