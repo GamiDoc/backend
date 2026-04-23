@@ -35,7 +35,7 @@ jobs:
           build-args: |
             GO_VERSION=${{ env.GO_VERSION }}
           tags: |
-            ghcr.io/${{ github.repository_owner }}/gamidoc-backend-dev:latest
-            ghcr.io/${{ github.repository_owner }}/gamidoc-backend-dev:${{ github.sha }}
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/gamidoc-backend-dev:cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/gamidoc-backend-dev:cache,mode=max
+            ghcr.io/gamidoc/backend-dev:latest
+            ghcr.io/gamidoc/backend-dev:${{ github.sha }}
+          cache-from: type=registry,ref=ghcr.io/gamidoc/backend-dev:cache
+          cache-to: type=registry,ref=ghcr.io/gamidoc/backend-dev:cache,mode=max
