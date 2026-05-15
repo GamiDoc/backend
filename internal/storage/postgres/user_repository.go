@@ -8,8 +8,6 @@ import (
 	"github.com/gamidoc/backend/internal/user"
 )
 
-var ErrUserNotFound = errors.New("user not found")
-
 type UserRepository struct {
 	db *DB
 }
@@ -55,7 +53,7 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (user.Us
 	err := row.Scan(&found.ID, &found.Email, &found.PasswordHash, &found.CreatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return user.User{}, ErrUserNotFound
+			return user.User{}, user.ErrUserNotFound
 		}
 		return user.User{}, err
 	}
@@ -78,7 +76,7 @@ func (r *UserRepository) FindByID(ctx context.Context, id string) (user.User, er
 	err := row.Scan(&found.ID, &found.Email, &found.PasswordHash, &found.CreatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return user.User{}, ErrUserNotFound
+			return user.User{}, user.ErrUserNotFound
 		}
 		return user.User{}, err
 	}
