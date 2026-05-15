@@ -60,6 +60,9 @@ func (s *Service) Register(ctx context.Context, input RegisterInput) (AuthResult
 	if err == nil {
 		return AuthResult{}, ErrEmailAlreadyExists
 	}
+	if !errors.Is(err, user.ErrUserNotFound) {
+		return AuthResult{}, err
+	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -92,6 +95,9 @@ func (s *Service) Login(ctx context.Context, input LoginInput) (AuthResult, erro
 
 	foundUser, err := s.users.FindByEmail(ctx, email)
 	if err != nil {
+		if !errors.Is(err, user.ErrUserNotFound) {
+			return AuthResult{}, err
+		}
 		return AuthResult{}, ErrInvalidCredentials
 	}
 
