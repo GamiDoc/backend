@@ -2,7 +2,6 @@ package http
 
 import (
 	"context"
-	"errors"
 	"log/slog"
 	"net/http"
 	"os"
@@ -57,7 +56,7 @@ func (r *fakeUserRepository) Create(ctx context.Context, input user.User) (user.
 func (r *fakeUserRepository) FindByEmail(ctx context.Context, email string) (user.User, error) {
 	u, ok := r.usersByEmail[email]
 	if !ok {
-		return user.User{}, errors.New("not found")
+		return user.User{}, user.ErrUserNotFound
 	}
 	return u, nil
 }
@@ -65,7 +64,7 @@ func (r *fakeUserRepository) FindByEmail(ctx context.Context, email string) (use
 func (r *fakeUserRepository) FindByID(ctx context.Context, id string) (user.User, error) {
 	u, ok := r.usersByID[id]
 	if !ok {
-		return user.User{}, errors.New("not found")
+		return user.User{}, user.ErrUserNotFound
 	}
 	return u, nil
 }

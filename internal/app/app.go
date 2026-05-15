@@ -11,6 +11,7 @@ import (
 	"github.com/gamidoc/backend/internal/auth"
 	"github.com/gamidoc/backend/internal/bootstrap"
 	apphttp "github.com/gamidoc/backend/internal/http"
+	"github.com/gamidoc/backend/internal/migrate"
 	"github.com/gamidoc/backend/internal/pdf"
 	"github.com/gamidoc/backend/internal/project"
 	"github.com/gamidoc/backend/internal/recommendation"
@@ -49,6 +50,13 @@ func New(cfg config.Config) (*App, error) {
 	if err := pg.Ready(startupCtx); err != nil {
 		_ = pg.Close()
 		return nil, fmt.Errorf("postgres startup check failed: %w", err)
+	}
+
+	migrator := migrate.NewMigrator(pg, cfg.MigrationsDir)
+	if _, err := migrator.Up(startupCtx); err != nil {
+		_ = pg.Close()
+		_ = redisClient.Close()
+		return nil, fmt.Errorf("postgres migration failed: %w", err)
 	}
 
 	if err := redisClient.Ready(startupCtx); err != nil {

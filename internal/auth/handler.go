@@ -7,8 +7,8 @@ import (
 
 	appmiddleware "github.com/gamidoc/backend/internal/http/middleware"
 	"github.com/gamidoc/backend/internal/http/response"
-	"github.com/gamidoc/backend/internal/storage/postgres"
 	"github.com/gamidoc/backend/internal/token"
+	"github.com/gamidoc/backend/internal/user"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -69,7 +69,7 @@ func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 	result, err := h.service.Login(r.Context(), input)
 	if err != nil {
 		switch {
-		case errors.Is(err, ErrInvalidCredentials), errors.Is(err, postgres.ErrUserNotFound):
+		case errors.Is(err, ErrInvalidCredentials), errors.Is(err, user.ErrUserNotFound):
 			response.WriteError(w, http.StatusUnauthorized, "INVALID_CREDENTIALS", "Invalid credentials", nil)
 		default:
 			response.WriteError(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "Internal server error", nil)
@@ -89,7 +89,7 @@ func (h *Handler) me(w http.ResponseWriter, r *http.Request) {
 
 	currentUser, err := h.service.Me(r.Context(), userID)
 	if err != nil {
-		if errors.Is(err, postgres.ErrUserNotFound) {
+		if errors.Is(err, user.ErrUserNotFound) {
 			response.WriteError(w, http.StatusUnauthorized, "UNAUTHORIZED", "Unauthorized", nil)
 			return
 		}

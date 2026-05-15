@@ -11,12 +11,15 @@ import (
 )
 
 type fakeUserRepository struct {
-	usersByEmail map[string]user.User
-	usersByID    map[string]user.User
-	createErr    error
+	usersByEmail   map[string]user.User
+	usersByID      map[string]user.User
+	createErr      error
+	findByEmailErr error
+	createCalls    int
 }
 
 func (r *fakeUserRepository) Create(ctx context.Context, input user.User) (user.User, error) {
+	r.createCalls++
 	if r.createErr != nil {
 		return user.User{}, r.createErr
 	}
@@ -33,9 +36,12 @@ func (r *fakeUserRepository) Create(ctx context.Context, input user.User) (user.
 }
 
 func (r *fakeUserRepository) FindByEmail(ctx context.Context, email string) (user.User, error) {
+	if r.findByEmailErr != nil {
+		return user.User{}, r.findByEmailErr
+	}
 	u, ok := r.usersByEmail[email]
 	if !ok {
-		return user.User{}, errors.New("not found")
+		return user.User{}, user.ErrUserNotFound
 	}
 	return u, nil
 }
@@ -43,7 +49,7 @@ func (r *fakeUserRepository) FindByEmail(ctx context.Context, email string) (use
 func (r *fakeUserRepository) FindByID(ctx context.Context, id string) (user.User, error) {
 	u, ok := r.usersByID[id]
 	if !ok {
-		return user.User{}, errors.New("not found")
+		return user.User{}, user.ErrUserNotFound
 	}
 	return u, nil
 }
@@ -70,6 +76,25 @@ func TestRegister(t *testing.T) {
 
 	if result.User.Email != "test@example.com" {
 		t.Fatalf("expected email %q, got %q", "test@example.com", result.User.Email)
+	}
+}
+
+func TestRegisterReturnsFindByEmailError(t *testing.T) {
+	lookupErr := errors.New("lookup failed")
+	repo := &fakeUserRepository{findByEmailErr: lookupErr}
+	tokens := token.NewManager("secret", time.Hour)
+	service := NewService(repo, tokens)
+
+	_, err := service.Register(context.Background(), RegisterInput{
+		Email:    "test@example.com",
+		Password: "password123",
+	})
+	if !errors.Is(err, lookupErr) {
+		t.Fatalf("expected lookup error, got %v", err)
+	}
+
+	if repo.createCalls != 0 {
+		t.Fatalf("expected Create not to be called, got %d calls", repo.createCalls)
 	}
 }
 
