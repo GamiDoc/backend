@@ -22,7 +22,7 @@ services:
     env_file:
       - .env.prod
     volumes:
-      - gamidoc-backend-prod-pg-data:/var/lib/postgresql/data
+      - gamidoc-backend-prod-pg-data:/var/lib/postgresql
 
   gamidoc-backend-prod-redis:
     image: redis:8-bookworm

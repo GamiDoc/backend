@@ -22,6 +22,10 @@ const (
 	EventPDFDownloaded           = "pdf_downloaded"
 	EventSessionCreated          = "session_created"
 	EventSessionConverted        = "session_converted"
+	EventDesignSectionSaved      = "design_section_saved"
+	EventDesignPathChosen        = "design_path_chosen"
+	EventDesignPDFGenerated      = "design_pdf_generated"
+	EventDesignImported          = "design_imported"
 	EventFrontendPrefix          = "frontend_"
 )
 

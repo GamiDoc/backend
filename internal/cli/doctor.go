@@ -35,6 +35,7 @@ func newDoctorCommand() *cobra.Command {
 			check("config.core", cfg.ValidateCore)
 			check("config.object_storage", cfg.ValidateObjectStorage)
 			check("config.mailer", cfg.ValidateMailer)
+			check("config.ai", cfg.ValidateAI)
 			check("migrations.dir", func() error {
 				info, err := os.Stat(cfg.MigrationsDir)
 				if err != nil {
@@ -88,6 +89,10 @@ func newDoctorCommand() *cobra.Command {
 			}
 			check("mailer.init", func() error {
 				_, err := bootstrap.NewMailer(cfg)
+				return err
+			})
+			check("ai.init", func() error {
+				_, err := bootstrap.NewAssistant(cfg)
 				return err
 			})
 

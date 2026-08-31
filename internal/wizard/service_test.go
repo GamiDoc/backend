@@ -27,7 +27,7 @@ func TestSaveStepRejectsInvalidData(t *testing.T) {
 func TestSaveStepRejectsMissingStep1Fields(t *testing.T) {
 	service := NewService()
 
-	_, err := service.SaveStep(NewInitialStatus(), 1, json.RawMessage(`{"evaluationGoals":["Usability & Playability"],"projectType":"","participants":"Limited set of participants","developmentStage":"Concept idea"}`))
+	_, err := service.SaveStep(NewInitialStatus(), 1, json.RawMessage(`{"evaluationGoals":["Usability & Playability"],"projectType":"Concept test","participants":"","developmentStage":"Concept idea"}`))
 	if !errors.Is(err, ErrInvalidStepData) {
 		t.Fatalf("expected ErrInvalidStepData, got %v", err)
 	}

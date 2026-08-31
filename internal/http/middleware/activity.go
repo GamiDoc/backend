@@ -126,6 +126,20 @@ func requestEventType(method string, path string, status int) string {
 		return activity.EventAPIRequest
 	}
 
+	if containsSegment(segments, "design") {
+		switch {
+		case method == http.MethodPut && containsSegment(segments, "section"):
+			return activity.EventDesignSectionSaved
+		case method == http.MethodPost && lastSegment(segments) == "path":
+			return activity.EventDesignPathChosen
+		case method == http.MethodPost && lastSegment(segments) == "generate-pdf":
+			return activity.EventDesignPDFGenerated
+		case method == http.MethodPost && lastSegment(segments) == "import-session":
+			return activity.EventDesignImported
+		}
+		return activity.EventAPIRequest
+	}
+
 	if len(segments) >= 4 && segments[2] == "auth" {
 		switch {
 		case method == http.MethodPost && segments[3] == "register":
@@ -184,6 +198,15 @@ func pathSegments(path string) []string {
 		return nil
 	}
 	return strings.Split(trimmed, "/")
+}
+
+func containsSegment(segments []string, value string) bool {
+	for _, segment := range segments {
+		if segment == value {
+			return true
+		}
+	}
+	return false
 }
 
 func hasPathSuffix(segments []string, first string, second string) bool {

@@ -49,6 +49,28 @@ func TestRequestActivityEventExtractsSessionStep(t *testing.T) {
 	}
 }
 
+func TestRequestActivityEventClassifiesDesignRoutes(t *testing.T) {
+	cases := []struct {
+		method string
+		path   string
+		want   string
+	}{
+		{http.MethodPut, "/api/v1/sessions/session-1/design/section/3", activity.EventDesignSectionSaved},
+		{http.MethodPost, "/api/v1/projects/project-1/design/path", activity.EventDesignPathChosen},
+		{http.MethodPost, "/api/v1/sessions/session-1/design/generate-pdf", activity.EventDesignPDFGenerated},
+		{http.MethodPost, "/api/v1/projects/project-1/design/import-session", activity.EventDesignImported},
+		{http.MethodGet, "/api/v1/sessions/session-1/design/dashboard", activity.EventAPIRequest},
+	}
+
+	for _, c := range cases {
+		req := httptest.NewRequest(c.method, c.path, nil)
+		event := requestActivityEvent(req, nil, http.StatusOK, 10*time.Millisecond)
+		if event.Type != c.want {
+			t.Fatalf("%s %s: expected %q, got %q", c.method, c.path, c.want, event.Type)
+		}
+	}
+}
+
 func TestRequestActivityEventMarksFailures(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", nil)
 

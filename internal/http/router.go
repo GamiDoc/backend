@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gamidoc/backend/internal/activity"
+	"github.com/gamidoc/backend/internal/design"
 	appmiddleware "github.com/gamidoc/backend/internal/http/middleware"
 	"github.com/gamidoc/backend/internal/http/response"
 	"github.com/gamidoc/backend/internal/pdf"
@@ -36,6 +37,7 @@ type Dependencies struct {
 	AuthHandler        http.Handler
 	ProjectHandler     *project.Handler
 	SessionHandler     *session.Handler
+	DesignHandler      *design.Handler
 	PDFHandler         *pdf.Handler
 	PDFBaseURL         string
 	MaxBodyBytes       int64
@@ -145,6 +147,11 @@ func NewRouter(deps Dependencies) http.Handler {
 			r.Post("/sessions/{sessionId}/generate-pdf", deps.PDFHandler.SessionGenerate)
 			r.With(appmiddleware.RequireAuth(deps.TokenManager, deps.TokenBlacklist)).Get("/projects/{projectId}/download-pdf", deps.PDFHandler.ProjectDownload)
 			r.Get("/sessions/{sessionId}/download-pdf", deps.PDFHandler.SessionDownload)
+		}
+
+		if deps.DesignHandler != nil {
+			r.Mount("/sessions/{sessionId}/design", deps.DesignHandler.SessionRoutes())
+			r.With(appmiddleware.RequireAuth(deps.TokenManager, deps.TokenBlacklist)).Mount("/projects/{projectId}/design", deps.DesignHandler.ProjectRoutes())
 		}
 	})
 

@@ -9,6 +9,7 @@ This section documents the current backend API, the auth model, the PDF flow, an
 - [Projects](projects.md)
 - [Sessions](sessions.md)
 - [PDF delivery](pdf.md)
+- [Design System](design.md)
 - [Activity tracking](activity.md)
 - [Requirement coverage and gaps](coverage.md)
 

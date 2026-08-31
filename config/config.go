@@ -63,6 +63,12 @@ type Config struct {
 	PDFHTMLRendererTimeout time.Duration
 
 	RecommendationRulesPath string
+
+	AIProvider string
+	AIBaseURL  string
+	AIAPIKey   string
+	AIModel    string
+	AITimeout  time.Duration
 }
 
 func Load() Config {
@@ -112,6 +118,11 @@ func Load() Config {
 		PDFHTMLRendererURL:             getEnv("PDF_HTML_RENDERER_URL", ""),
 		PDFHTMLRendererTimeout:         parseDurationWithFallback(getEnv("PDF_HTML_RENDERER_TIMEOUT", "30s"), 30*time.Second),
 		RecommendationRulesPath:        getEnv("RECOMMENDATION_RULES_PATH", "rule/recommendations.json"),
+		AIProvider:                     getEnv("AI_PROVIDER", "noop"),
+		AIBaseURL:                      getEnv("AI_BASE_URL", "https://api.openai.com/v1"),
+		AIAPIKey:                       getEnv("AI_API_KEY", ""),
+		AIModel:                        getEnv("AI_MODEL", ""),
+		AITimeout:                      parseDurationWithFallback(getEnv("AI_TIMEOUT", "60s"), 60*time.Second),
 	}
 }
 
@@ -123,6 +134,9 @@ func (c Config) Validate() error {
 		return err
 	}
 	if err := c.ValidateMailer(); err != nil {
+		return err
+	}
+	if err := c.ValidateAI(); err != nil {
 		return err
 	}
 	return nil
@@ -259,6 +273,38 @@ func (c Config) ValidateObjectStorage() error {
 	}
 }
 
+func (c Config) AIProviderNormalized() string {
+	value := strings.ToLower(strings.TrimSpace(c.AIProvider))
+	switch value {
+	case "", "noop":
+		return "noop"
+	case "openai", "openai-compatible":
+		return "openai-compatible"
+	default:
+		return value
+	}
+}
+
+func (c Config) ValidateAI() error {
+	switch c.AIProviderNormalized() {
+	case "noop":
+		return nil
+	case "openai-compatible":
+		if strings.TrimSpace(c.AIBaseURL) == "" {
+			return errors.New("ai base url is required")
+		}
+		if strings.TrimSpace(c.AIAPIKey) == "" {
+			return errors.New("ai api key is required")
+		}
+		if strings.TrimSpace(c.AIModel) == "" {
+			return errors.New("ai model is required")
+		}
+		return nil
+	default:
+		return fmt.Errorf("unsupported ai provider: %s", c.AIProvider)
+	}
+}
+
 func (c Config) ValidateMailer() error {
 	switch c.MailerProviderNormalized() {
 	case "noop":
@@ -289,6 +335,7 @@ func (c Config) SafeSummary() map[string]any {
 		"object_storage_provider": c.ObjectStorageProviderNormalized(),
 		"mailer_provider":         c.MailerProviderNormalized(),
 		"pdf_html_renderer":       strings.TrimSpace(c.PDFHTMLRendererURL) != "",
+		"ai_provider":             c.AIProviderNormalized(),
 		"recommendation_rules":    c.RecommendationRulesPath,
 	}
 }
