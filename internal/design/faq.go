@@ -7,32 +7,28 @@ type FAQEntry struct {
 
 var sectionFAQ = map[int][]FAQEntry{
 	1: {
-		{Question: "What belongs in the Context section?", Answer: "The domain, the target audience, and the concrete problem the gamified system should address."},
-		{Question: "How specific should the audience be?", Answer: "Name a real group with shared traits, such as commuting students or warehouse staff, rather than a generic public."},
+		{Question: "What belongs in the Context section?", Answer: "The domain and aim of your software, a profile of your users and the behaviour you want to encourage, and the constraints your users or project may face."},
+		{Question: "How specific should the user profile be?", Answer: "Name a real group with shared traits, such as commuting students or warehouse staff, rather than a generic public."},
 	},
 	2: {
-		{Question: "What is the Experience Timeline?", Answer: "A description of how a user meets and uses the system over time: onboarding, a typical session, and long-term evolution."},
-		{Question: "How far ahead should the timeline reach?", Answer: "Cover at least the first contact, the steady state, and what keeps the experience alive after the novelty fades."},
+		{Question: "What is the Experience Timeline?", Answer: "How the experience evolves over time: how users are onboarded, how often the system changes, what keeps them coming back, and where they might drop out."},
+		{Question: "What is a retention anchor?", Answer: "A mechanism that ties users emotionally or practically to the system, such as a team that relies on them, a daily streak, or a collection they built."},
 	},
 	3: {
-		{Question: "What are personification and dynamics?", Answer: "The personas or player types you design for, and the social or competitive dynamics between them."},
-		{Question: "Do I need formal player typologies?", Answer: "No. Informal personas grounded in your audience work; typologies such as HEXAD can help structure them."},
+		{Question: "What are user types?", Answer: "Groups of users with the same primary motive, such as the HEXAD types (Philanthropist, Socialiser, Free Spirit, Achiever, Player, Disruptor)."},
+		{Question: "What is the difference between player-driven and game-driven personalization?", Answer: "Player-driven personalization is what users choose themselves; game-driven systems adapt automatically to the current session; data-driven systems use accumulated data across sessions or players."},
 	},
 	4: {
-		{Question: "What is the Gameful Core?", Answer: "The central mechanics of the system: rules, goals, challenges, and reward structures."},
-		{Question: "How many mechanics should I define?", Answer: "Start from the few mechanics that carry the core loop; supporting mechanics can be added once the loop is clear."},
+		{Question: "What is the Gameful Core?", Answer: "The actual game: the rules, the loops that repeat, the game elements and mechanics that drive them, and how players move forward over time."},
+		{Question: "What is the difference between the core loop and the long loop?", Answer: "The core loop is the basic action repeated every few seconds or minutes; the long loop gives it purpose over hours or the whole game, usually through progression and rewards."},
 	},
 	5: {
-		{Question: "What goes into Technology?", Answer: "Platforms, devices, integrations, data flows, and the technical constraints that shape the design."},
-		{Question: "Should I fix the stack here?", Answer: "Name the constraints that are already fixed and mark open choices explicitly."},
+		{Question: "What is a feedback component?", Answer: "One piece of feedback the system gives: when it appears, what it communicates, its type, timing and modality, and how it is presented and implemented."},
+		{Question: "Why define feedback before evaluation?", Answer: "Feedback is how players learn whether they are progressing; evaluation then checks whether the system as a whole reaches its goals."},
 	},
 	6: {
-		{Question: "What are Impacts and Benefits?", Answer: "The behavioural, learning, or business outcomes the system intends to produce."},
-		{Question: "How do I phrase an impact?", Answer: "As an observable change with a direction, such as more weekly active-travel trips, rather than an abstract goal."},
-	},
-	7: {
-		{Question: "What belongs in Evaluation and Feedback?", Answer: "How the system's effect will be measured, and how feedback loops reach the users."},
-		{Question: "What makes a good evaluation plan?", Answer: "A measurable outcome, a comparison point, and a decision that depends on the result."},
+		{Question: "What goes into Technical requirements?", Answer: "The platforms, engine and technology stack, performance budgets, data and online features, integrations, content pipeline, and technical risks."},
+		{Question: "Should I fix the stack here?", Answer: "Name the constraints that are already fixed and mark the open choices explicitly."},
 	},
 }
 

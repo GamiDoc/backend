@@ -22,26 +22,6 @@ func TestNoopRewrite(t *testing.T) {
 	}
 }
 
-func TestNoopRecommendBranch(t *testing.T) {
-	assistant := NewNoopAssistant()
-
-	branch, err := assistant.RecommendBranch(context.Background(), "points, badges and a leaderboard on a mobile app")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if branch != "B" {
-		t.Fatalf("expected B, got %s", branch)
-	}
-
-	branch, err = assistant.RecommendBranch(context.Background(), "the player journey and user experience over time")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if branch != "A" {
-		t.Fatalf("expected A, got %s", branch)
-	}
-}
-
 func TestNoopPrefill(t *testing.T) {
 	assistant := NewNoopAssistant()
 

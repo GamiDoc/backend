@@ -130,8 +130,6 @@ func requestEventType(method string, path string, status int) string {
 		switch {
 		case method == http.MethodPut && containsSegment(segments, "section"):
 			return activity.EventDesignSectionSaved
-		case method == http.MethodPost && lastSegment(segments) == "path":
-			return activity.EventDesignPathChosen
 		case method == http.MethodPost && lastSegment(segments) == "generate-pdf":
 			return activity.EventDesignPDFGenerated
 		case method == http.MethodPost && lastSegment(segments) == "import-session":

@@ -77,8 +77,6 @@ func (h *Handler) ProjectRoutes() chi.Router {
 func (h *Handler) mountShared(r chi.Router, guard func(func(http.ResponseWriter, *http.Request, owner)) http.HandlerFunc) {
 	r.Get("/", guard(h.getState))
 	r.Put("/spark", guard(h.saveSpark))
-	r.Get("/branch", guard(h.branch))
-	r.Post("/path", guard(h.choosePath))
 	r.Put("/section/{sectionNumber}", guard(h.saveSection))
 	r.Get("/dashboard", guard(h.dashboard))
 	r.Post("/generate-pdf", guard(h.generatePDF))
@@ -204,74 +202,6 @@ func (h *Handler) saveSpark(w http.ResponseWriter, r *http.Request, o owner) {
 	})
 }
 
-func (h *Handler) branch(w http.ResponseWriter, r *http.Request, o owner) {
-	status, err := o.states.Get(r.Context(), o.id)
-	if err != nil {
-		response.WriteError(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "Internal server error", nil)
-		return
-	}
-
-	if status.Spark == "" {
-		response.WriteJSON(w, http.StatusOK, map[string]any{
-			"recommendedPath": PathExperienceFirst,
-			"basis":           "default",
-		})
-		return
-	}
-
-	recommended, err := h.assistant.RecommendBranch(r.Context(), status.Spark)
-	if err != nil {
-		response.WriteError(w, http.StatusBadGateway, "AI_PROVIDER_ERROR", "AI provider error", nil)
-		return
-	}
-	if recommended != PathMechanicsFirst {
-		recommended = PathExperienceFirst
-	}
-
-	response.WriteJSON(w, http.StatusOK, map[string]any{
-		"recommendedPath": recommended,
-		"basis":           "spark",
-	})
-}
-
-func (h *Handler) choosePath(w http.ResponseWriter, r *http.Request, o owner) {
-	var input struct {
-		Path string `json:"path"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		response.WriteError(w, http.StatusBadRequest, "INVALID_INPUT", "Invalid request body", nil)
-		return
-	}
-
-	status, err := o.states.Get(r.Context(), o.id)
-	if err != nil {
-		response.WriteError(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "Internal server error", nil)
-		return
-	}
-
-	updated, err := h.service.ChoosePath(status, input.Path)
-	if err != nil {
-		switch {
-		case errors.Is(err, ErrInvalidPath):
-			response.WriteError(w, http.StatusBadRequest, "INVALID_PATH", "Invalid path", nil)
-		case errors.Is(err, ErrPathAlreadyChosen):
-			response.WriteError(w, http.StatusConflict, "PATH_ALREADY_CHOSEN", "Path already chosen", nil)
-		case errors.Is(err, ErrSectionLocked):
-			response.WriteError(w, http.StatusBadRequest, "SECTION_LOCKED", "Complete the Context section first", nil)
-		default:
-			response.WriteError(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "Internal server error", nil)
-		}
-		return
-	}
-
-	if err := o.states.Save(r.Context(), o.id, updated); err != nil {
-		response.WriteError(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "Internal server error", nil)
-		return
-	}
-
-	response.WriteJSON(w, http.StatusOK, updated)
-}
-
 func (h *Handler) saveSection(w http.ResponseWriter, r *http.Request, o owner) {
 	sectionValue := chi.URLParam(r, "sectionNumber")
 	sectionNumber, err := strconv.Atoi(sectionValue)
@@ -305,8 +235,6 @@ func (h *Handler) saveSection(w http.ResponseWriter, r *http.Request, o owner) {
 			response.WriteError(w, http.StatusBadRequest, "INVALID_SECTION_DATA", "Invalid section data", nil)
 		case errors.Is(err, ErrSectionLocked):
 			response.WriteError(w, http.StatusBadRequest, "SECTION_LOCKED", "Sections must be traversed in order on the first pass", nil)
-		case errors.Is(err, ErrPathNotChosen):
-			response.WriteError(w, http.StatusBadRequest, "PATH_NOT_CHOSEN", "Choose a path after the Context section", nil)
 		default:
 			response.WriteError(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "Internal server error", nil)
 		}

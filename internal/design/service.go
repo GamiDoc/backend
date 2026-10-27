@@ -35,21 +35,6 @@ func (s *Service) ApplyPrefill(current Status, prefill map[string]json.RawMessag
 	return current
 }
 
-func (s *Service) ChoosePath(current Status, path string) (Status, error) {
-	current = withSections(current)
-	if path != PathExperienceFirst && path != PathMechanicsFirst {
-		return Status{}, ErrInvalidPath
-	}
-	if current.Path != "" {
-		return Status{}, ErrPathAlreadyChosen
-	}
-	if current.Cursor < 1 && !current.FirstPassDone {
-		return Status{}, ErrSectionLocked
-	}
-	current.Path = path
-	return current, nil
-}
-
 func (s *Service) SaveSection(current Status, number int, content json.RawMessage, complete *bool, skip bool) (Status, error) {
 	current = withSections(current)
 	if number < 1 || number > SectionCount {
@@ -60,14 +45,8 @@ func (s *Service) SaveSection(current Status, number int, content json.RawMessag
 	state := current.Sections[key]
 	frontier := !current.FirstPassDone && !state.Visited
 
-	if frontier {
-		expected, err := s.nextSection(current)
-		if err != nil {
-			return Status{}, err
-		}
-		if number != expected {
-			return Status{}, ErrSectionLocked
-		}
+	if frontier && number != current.Cursor+1 {
+		return Status{}, ErrSectionLocked
 	}
 
 	state.Visited = true
@@ -92,17 +71,6 @@ func (s *Service) SaveSection(current Status, number int, content json.RawMessag
 	}
 
 	return current, nil
-}
-
-func (s *Service) nextSection(current Status) (int, error) {
-	if current.Cursor == 0 {
-		return 1, nil
-	}
-	order := Order(current.Path)
-	if order == nil {
-		return 0, ErrPathNotChosen
-	}
-	return order[current.Cursor], nil
 }
 
 func (s *Service) Dashboard(current Status) (Dashboard, error) {
@@ -130,7 +98,6 @@ func (s *Service) Dashboard(current Status) (Dashboard, error) {
 		Sections:       sections,
 		OverallPercent: total / SectionCount,
 		FirstPassDone:  current.FirstPassDone,
-		Path:           current.Path,
 	}, nil
 }
 

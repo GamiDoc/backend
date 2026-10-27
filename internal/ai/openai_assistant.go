@@ -109,25 +109,6 @@ func (a *OpenAIAssistant) Chat(ctx context.Context, section Section, message str
 	return a.complete(ctx, system, message)
 }
 
-func (a *OpenAIAssistant) RecommendBranch(ctx context.Context, spark string) (string, error) {
-	answer, err := a.complete(ctx,
-		"The user wrote a free-form project idea. Answer with the single letter A if the text mostly concerns user experience, personas, or journeys; answer B if it mostly concerns game mechanics, rewards, or technology. Answer with A or B only.",
-		spark,
-	)
-	if err != nil {
-		return "", err
-	}
-	words := strings.FieldsFunc(strings.ToUpper(answer), func(r rune) bool {
-		return r < 'A' || r > 'Z'
-	})
-	for _, word := range words {
-		if word == "A" || word == "B" {
-			return word, nil
-		}
-	}
-	return "A", nil
-}
-
 func (a *OpenAIAssistant) Prefill(ctx context.Context, spark string, sections []Section) (map[int]json.RawMessage, error) {
 	trimmed := strings.TrimSpace(spark)
 	if trimmed == "" {

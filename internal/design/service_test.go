@@ -15,7 +15,7 @@ func content(t *testing.T, value string) json.RawMessage {
 	return raw
 }
 
-func traverse(t *testing.T, service *Service, path string) Status {
+func traverse(t *testing.T, service *Service) Status {
 	t.Helper()
 	status := NewInitialStatus()
 
@@ -24,13 +24,7 @@ func traverse(t *testing.T, service *Service, path string) Status {
 		t.Fatal(err)
 	}
 
-	status, err = service.ChoosePath(status, path)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	order := Order(path)
-	for _, number := range order[1:] {
+	for number := 2; number <= SectionCount; number++ {
 		status, err = service.SaveSection(status, number, nil, nil, true)
 		if err != nil {
 			t.Fatal(err)
@@ -49,38 +43,7 @@ func TestFirstPassRequiresSectionOne(t *testing.T) {
 	}
 }
 
-func TestPathGate(t *testing.T) {
-	service := NewService()
-	status := NewInitialStatus()
-
-	if _, err := service.ChoosePath(status, PathExperienceFirst); !errors.Is(err, ErrSectionLocked) {
-		t.Fatalf("expected ErrSectionLocked, got %v", err)
-	}
-
-	status, err := service.SaveSection(status, 1, content(t, `{"draft":"context"}`), nil, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if _, err := service.SaveSection(status, 2, content(t, `{"a":1}`), nil, false); !errors.Is(err, ErrPathNotChosen) {
-		t.Fatalf("expected ErrPathNotChosen, got %v", err)
-	}
-
-	status, err = service.ChoosePath(status, PathMechanicsFirst)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if _, err := service.ChoosePath(status, PathExperienceFirst); !errors.Is(err, ErrPathAlreadyChosen) {
-		t.Fatalf("expected ErrPathAlreadyChosen, got %v", err)
-	}
-
-	if _, err := service.ChoosePath(NewInitialStatus(), "C"); !errors.Is(err, ErrInvalidPath) {
-		t.Fatalf("expected ErrInvalidPath, got %v", err)
-	}
-}
-
-func TestMechanicsFirstOrder(t *testing.T) {
+func TestSectionsOpenInOrder(t *testing.T) {
 	service := NewService()
 	status := NewInitialStatus()
 
@@ -89,16 +52,11 @@ func TestMechanicsFirstOrder(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	status, err = service.ChoosePath(status, PathMechanicsFirst)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if _, err := service.SaveSection(status, 2, content(t, `{"a":1}`), nil, false); !errors.Is(err, ErrSectionLocked) {
+	if _, err := service.SaveSection(status, 3, content(t, `{"a":1}`), nil, false); !errors.Is(err, ErrSectionLocked) {
 		t.Fatalf("expected ErrSectionLocked, got %v", err)
 	}
 
-	status, err = service.SaveSection(status, 4, content(t, `{"core":"points"}`), boolPtr(true), false)
+	status, err = service.SaveSection(status, 2, content(t, `{"onboarding":"video"}`), boolPtr(true), false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -130,7 +88,7 @@ func TestSkipAdvancesWithoutContent(t *testing.T) {
 
 func TestTraversalUnlocksFreeNavigation(t *testing.T) {
 	service := NewService()
-	status := traverse(t, service, PathExperienceFirst)
+	status := traverse(t, service)
 
 	if !status.FirstPassDone {
 		t.Fatal("expected first pass done")
@@ -161,7 +119,7 @@ func TestDashboardGateAndPercentages(t *testing.T) {
 		t.Fatalf("expected ErrDashboardLocked, got %v", err)
 	}
 
-	status := traverse(t, service, PathExperienceFirst)
+	status := traverse(t, service)
 	status, err := service.SaveSection(status, 2, content(t, `{"timeline":"weekly"}`), boolPtr(true), false)
 	if err != nil {
 		t.Fatal(err)
@@ -241,14 +199,14 @@ func TestFirstPassAllowsResaveOfVisitedSections(t *testing.T) {
 		t.Fatal("expected re-save to update content")
 	}
 
-	if _, err := service.SaveSection(status, 3, content(t, `{"a":1}`), nil, false); !errors.Is(err, ErrPathNotChosen) {
-		t.Fatalf("expected ErrPathNotChosen for the frontier, got %v", err)
+	if _, err := service.SaveSection(status, 3, content(t, `{"a":1}`), nil, false); !errors.Is(err, ErrSectionLocked) {
+		t.Fatalf("expected ErrSectionLocked beyond the frontier, got %v", err)
 	}
 }
 
 func TestCompletePointerPreservesFlag(t *testing.T) {
 	service := NewService()
-	status := traverse(t, service, PathExperienceFirst)
+	status := traverse(t, service)
 
 	status, err := service.SaveSection(status, 2, content(t, `{"a":1}`), boolPtr(true), false)
 	if err != nil {

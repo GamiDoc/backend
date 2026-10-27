@@ -56,7 +56,6 @@ func TestRequestActivityEventClassifiesDesignRoutes(t *testing.T) {
 		want   string
 	}{
 		{http.MethodPut, "/api/v1/sessions/session-1/design/section/3", activity.EventDesignSectionSaved},
-		{http.MethodPost, "/api/v1/projects/project-1/design/path", activity.EventDesignPathChosen},
 		{http.MethodPost, "/api/v1/sessions/session-1/design/generate-pdf", activity.EventDesignPDFGenerated},
 		{http.MethodPost, "/api/v1/projects/project-1/design/import-session", activity.EventDesignImported},
 		{http.MethodGet, "/api/v1/sessions/session-1/design/dashboard", activity.EventAPIRequest},
