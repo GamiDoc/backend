@@ -14,7 +14,22 @@ type RenderSection struct {
 	Number int
 	Name   string
 	Lines  []string
+	Images []RenderImage
 }
+
+// RenderImage is an uploaded image printed under its section, after the text lines.
+type RenderImage struct {
+	Label string
+	Data  []byte
+	Type  string // "PNG" or "JPG"
+	Name  string // unique name used to register the image in the PDF
+}
+
+// Largest size of an image in the report, in mm (A4 text width is 190 mm).
+const (
+	maxImageWidth  = 170.0
+	maxImageHeight = 120.0
+)
 
 type ReportBuilder struct{}
 
@@ -51,11 +66,14 @@ func (b *ReportBuilder) Build(title string, version string, spark string, sectio
 		doc.Cell(0, 8, fmt.Sprintf("%d. %s", section.Number, section.Name))
 		doc.Ln(8)
 		doc.SetFont("Arial", "", 11)
-		if len(section.Lines) == 0 {
+		if len(section.Lines) == 0 && len(section.Images) == 0 {
 			doc.MultiCell(0, 6, "Not provided.", "", "L", false)
 		}
 		for _, line := range section.Lines {
 			doc.MultiCell(0, 6, line, "", "L", false)
+		}
+		for _, image := range section.Images {
+			addImage(doc, image)
 		}
 		doc.Ln(4)
 	}
@@ -66,6 +84,28 @@ func (b *ReportBuilder) Build(title string, version string, spark string, sectio
 	}
 
 	return buffer.Bytes(), nil
+}
+
+// addImage prints the image label and the image, scaled to fit maxImageWidth x maxImageHeight.
+// An image that cannot be decoded is replaced by a short note.
+func addImage(doc *fpdf.Fpdf, image RenderImage) {
+	doc.Ln(2)
+	doc.MultiCell(0, 6, image.Label+":", "", "L", false)
+	options := fpdf.ImageOptions{ImageType: image.Type, ReadDpi: false}
+	info := doc.RegisterImageOptionsReader(image.Name, options, bytes.NewReader(image.Data))
+	if doc.Err() || info == nil || info.Width() == 0 {
+		doc.ClearError()
+		doc.MultiCell(0, 6, "(image could not be included)", "", "L", false)
+		return
+	}
+	width := maxImageWidth
+	height := width * info.Height() / info.Width()
+	if height > maxImageHeight {
+		height = maxImageHeight
+		width = height * info.Width() / info.Height()
+	}
+	doc.ImageOptions(image.Name, doc.GetX(), doc.GetY(), width, height, true, options, 0, "")
+	doc.Ln(2)
 }
 
 func SectionLines(content json.RawMessage) []string {

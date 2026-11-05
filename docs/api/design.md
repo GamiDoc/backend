@@ -59,7 +59,16 @@ Unless stated otherwise, every route in both scopes shares the guard errors belo
 | Body | optional; when present it must be valid JSON |
 | Success | `200` `{ "standard": { "reportId", "version", "url", "createdAt" }, "enhanced": {...} }` |
 | Errors | `400 INVALID_INPUT`, `403 DASHBOARD_LOCKED`, `502 AI_PROVIDER_ERROR` (AI failures), `500 INTERNAL_SERVER_ERROR` (build, storage, or database failures) |
-| Notes | One trigger produces both report versions: `standard` mirrors the form content in order, `enhanced` is AI-consolidated prose with cross-section deduplication. Project reports are recorded in `design_reports`; session reports are kept in the session design state |
+| Notes | One trigger produces both report versions: `standard` mirrors the form content in order, `enhanced` is AI-consolidated prose with cross-section deduplication. Project reports are recorded in `design_reports`; session reports are kept in the session design state. Section values that are URLs of uploaded design images are printed as the image itself (with their key as caption) in both versions |
+
+## `POST .../design/images`
+
+| Field | Value |
+| --- | --- |
+| Body | `multipart/form-data` with the image in field `file` (PNG or JPEG, max 5 MB). The global body limit does not apply to this route |
+| Success | `201` `{ "url" }` |
+| Errors | `400 INVALID_INPUT` (no `file` field), `413 IMAGE_TOO_LARGE`, `415 UNSUPPORTED_IMAGE` (type sniffed from the content, not the file name), `500 INTERNAL_SERVER_ERROR` |
+| Notes | Stored under `design/{sessions|projects}/{id}/images/` in the object store and served from the same public base URL as the PDFs, with `image/png` or `image/jpeg`. The client saves the returned `url` as a section value (e.g. `"Loop diagram"`). Removing it from a section does not delete the file |
 
 ## `GET .../design/faq/{sectionNumber}`
 

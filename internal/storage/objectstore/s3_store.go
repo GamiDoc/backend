@@ -66,7 +66,7 @@ func (s *S3Store) Save(ctx context.Context, key string, data []byte) (string, er
 		Bucket:      &s.bucket,
 		Key:         stringPtr(trimLeftSlash(key)),
 		Body:        bytes.NewReader(data),
-		ContentType: stringPtr("application/pdf"),
+		ContentType: stringPtr(contentTypeForKey(key)),
 	})
 	if err != nil {
 		return "", err

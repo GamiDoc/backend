@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gamidoc/backend/internal/ai"
@@ -40,6 +41,7 @@ func (r *ReportService) Generate(ctx context.Context, kind string, id string, st
 	if err != nil {
 		return GeneratedReports{}, fmt.Errorf("%w: %v", ErrAssistant, err)
 	}
+	r.attachImages(ctx, status, standardSections, enhancedSections)
 
 	standard, err := r.produce(ctx, kind, id, status, ReportVersionStandard, standardSections)
 	if err != nil {
@@ -85,6 +87,29 @@ func (r *ReportService) produce(ctx context.Context, kind string, id string, sta
 	}
 
 	return report, nil
+}
+
+// attachImages adds the uploaded images of each section to both versions of the report.
+// In the standard version the "label: URL" line of an image is replaced by the image itself.
+func (r *ReportService) attachImages(ctx context.Context, status Status, standard []RenderSection, enhanced []RenderSection) {
+	for i := range standard {
+		images, labels := r.sectionImages(ctx, status.Section(standard[i].Number).Content)
+		if len(images) == 0 {
+			continue
+		}
+		lines := standard[i].Lines[:0:0]
+		for _, line := range standard[i].Lines {
+			label, _, _ := strings.Cut(line, ": ")
+			if !labels[label] {
+				lines = append(lines, line)
+			}
+		}
+		standard[i].Lines = lines
+		standard[i].Images = images
+		if i < len(enhanced) {
+			enhanced[i].Images = images
+		}
+	}
 }
 
 func (r *ReportService) List(ctx context.Context, projectID string) ([]Report, error) {

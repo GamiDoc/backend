@@ -1,12 +1,27 @@
 package objectstore
 
-import "context"
+import (
+	"context"
+	"strings"
+)
 
 type ObjectStore interface {
 	Save(ctx context.Context, key string, data []byte) (string, error)
 	Read(ctx context.Context, key string) ([]byte, error)
 	Delete(ctx context.Context, key string) error
 	KeyFromURL(url string) (string, bool)
+}
+
+// contentTypeForKey picks the stored content type from the key's extension
+// (PDF reports and the PNG/JPEG design images).
+func contentTypeForKey(key string) string {
+	switch {
+	case strings.HasSuffix(key, ".png"):
+		return "image/png"
+	case strings.HasSuffix(key, ".jpg"), strings.HasSuffix(key, ".jpeg"):
+		return "image/jpeg"
+	}
+	return "application/pdf"
 }
 
 func buildPublicURL(baseURL string, key string) string {

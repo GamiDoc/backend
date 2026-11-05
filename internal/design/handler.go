@@ -80,6 +80,7 @@ func (h *Handler) mountShared(r chi.Router, guard func(func(http.ResponseWriter,
 	r.Put("/section/{sectionNumber}", guard(h.saveSection))
 	r.Get("/dashboard", guard(h.dashboard))
 	r.Post("/generate-pdf", guard(h.generatePDF))
+	r.Post("/images", guard(h.uploadImage))
 	r.Get("/faq/{sectionNumber}", guard(h.faq))
 	r.Post("/ai/rewrite", guard(h.rewrite))
 	r.Post("/ai/chat", guard(h.chat))

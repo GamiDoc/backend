@@ -188,10 +188,28 @@ func (h *Handler) Download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Design images are stored next to the PDFs: serve them inline with their own type.
+	if contentType, ok := imageContentType(key); ok {
+		w.Header().Set("Content-Type", contentType)
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write(data)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/pdf")
 	w.Header().Set("Content-Disposition", `attachment; filename="evaluation-plan.pdf"`)
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(data)
+}
+
+func imageContentType(key string) (string, bool) {
+	switch {
+	case strings.HasSuffix(key, ".png"):
+		return "image/png", true
+	case strings.HasSuffix(key, ".jpg"):
+		return "image/jpeg", true
+	}
+	return "", false
 }
 
 func decodeOptionalJSON(r *http.Request, value any) error {

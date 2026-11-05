@@ -66,7 +66,7 @@ func NewRouter(deps Dependencies) http.Handler {
 	r.Use(appmiddleware.Logging(deps.Logger))
 	r.Use(appmiddleware.Activity(deps.ActivityRecorder, deps.TokenManager, deps.Logger))
 	r.Use(appmiddleware.CORS(deps.CORSAllowedOrigins))
-	r.Use(appmiddleware.BodyLimit(deps.MaxBodyBytes))
+	r.Use(appmiddleware.BodyLimit(deps.MaxBodyBytes, design.IsImageUpload))
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		response.WriteJSON(w, http.StatusOK, healthResponse{
