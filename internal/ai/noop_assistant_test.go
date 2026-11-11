@@ -22,26 +22,11 @@ func TestNoopRewrite(t *testing.T) {
 	}
 }
 
-func TestNoopPrefill(t *testing.T) {
+func TestNoopCompleteJSONIsUnsupported(t *testing.T) {
 	assistant := NewNoopAssistant()
 
-	prefill, err := assistant.Prefill(context.Background(), "a commuting game", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(prefill) != 1 {
-		t.Fatalf("expected one prefilled section, got %d", len(prefill))
-	}
-	if _, ok := prefill[1]; !ok {
-		t.Fatal("expected section 1 prefilled")
-	}
-
-	empty, err := assistant.Prefill(context.Background(), "   ", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(empty) != 0 {
-		t.Fatalf("expected no prefill, got %d", len(empty))
+	if _, err := assistant.CompleteJSON(context.Background(), JSONRequest{Name: "x"}); !errors.Is(err, ErrUnsupported) {
+		t.Fatalf("expected ErrUnsupported, got %v", err)
 	}
 }
 

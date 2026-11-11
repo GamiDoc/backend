@@ -37,16 +37,11 @@ func (a *NoopAssistant) Chat(ctx context.Context, section Section, message strin
 	return guidance, nil
 }
 
-func (a *NoopAssistant) Prefill(ctx context.Context, spark string, sections []Section) (map[int]json.RawMessage, error) {
-	trimmed := strings.TrimSpace(spark)
-	if trimmed == "" {
-		return map[int]json.RawMessage{}, nil
-	}
-	draft, err := json.Marshal(map[string]string{"draft": trimmed})
-	if err != nil {
-		return nil, err
-	}
-	return map[int]json.RawMessage{1: draft}, nil
+func (a *NoopAssistant) SupportsJSON() bool { return false }
+
+// CompleteJSON is not available without a model: callers fall back (e.g. no prefill).
+func (a *NoopAssistant) CompleteJSON(ctx context.Context, request JSONRequest) (json.RawMessage, error) {
+	return nil, ErrUnsupported
 }
 
 func (a *NoopAssistant) Enhance(ctx context.Context, sections []SectionText) ([]SectionText, error) {

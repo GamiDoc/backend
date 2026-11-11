@@ -17,23 +17,33 @@ Unless stated otherwise, every route in both scopes shares the guard errors belo
 - Sections are, in order: 1 Context, 2 Experience Timeline, 3 Personalization & Dynamics, 4 Gameful Core, 5 Feedback & Evaluation, 6 Technical Requirements.
 - On the first pass, sections unlock in order (1 to 6); a visited section can be re-saved at any time. Sections can also be skipped.
 - After a full first pass, navigation is free and the dashboard unlocks (it needs at least one filled section).
-- The AI provider is selected with `AI_PROVIDER` (`noop` default, or `openai-compatible` with `AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL`).
+- The AI provider is selected with `AI_PROVIDER` (`noop` default, or `openai-compatible` with `AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL`). `AI_RESPONSE_FORMAT` says how JSON answers are requested: `json_schema` (strict structured outputs, default), `json_object` or `none` (schema only in the prompt) for providers without structured outputs. `AI_TIMEOUT` applies to each call.
 
 ## `GET .../design`
 
 | Field | Value |
 | --- | --- |
 | Success | `200` design status object |
-| Notes | Returns the full design state: spark, cursor, first-pass flag, sections, session-generated reports |
+| Notes | Returns the full design state: spark, cursor, first-pass flag, sections, session-generated reports, `prefill` (AI prefill progress, see below). A `prefill` stored as `running` whose job no longer runs on this instance is returned as `failed` (`error: "interrupted"`) |
 
 ## `PUT .../design/spark`
 
 | Field | Value |
 | --- | --- |
 | Body | `{ "spark": "..." }` |
-| Success | `200` `{ "designStatus", "prefillApplied", "prefillFailed" }` |
+| Success | `200` `{ "designStatus", "prefillStarted", "prefillApplied", "prefillFailed" }` |
 | Errors | `400 INVALID_INPUT` |
-| Notes | A non-empty spark asks the AI provider to prefill empty sections; user-entered content is never overwritten. `prefillFailed` is `true` when the provider errored, the spark itself is still saved |
+| Notes | A non-empty spark, with a real AI provider and at least one empty section, starts the AI prefill **in the background** (`prefillStarted: true`) and returns at once. Poll `GET .../design` while `designStatus.prefill.state` is `running`. `prefillApplied` / `prefillFailed` are always `false` (kept for older clients). A new spark cancels the running job |
+
+### AI prefill
+
+The section schema (fields, options, conditions) comes from the frontend: `npm run export-schema` in `frontend_new/` writes `internal/design/schema/sections.json`, embedded in the binary. Run it after every change to `designSections.js`.
+
+1. Analysis: one call turns the spark into `prefill.analysis` (`summary`, `domain`, `targetUsers`, `encouragedBehavior`, `goals`, `constraints`, `assumptions`, `gaps`, `language`).
+2. Sections 1→6, one call each, in order. Each call gets the spark, the analysis and the content of the previous sections, and answers with a JSON Schema generated from the section schema (only valid options). Sections that already have content are kept (`skippedSections`) and passed as context.
+3. Answers are sanitized before being stored: unknown keys and options are dropped (unknown options go to the field's "Other" text when it has one), fields hidden by `showIf` are dropped, lists are flattened as `"<list> <n> · <field>"`, mechanic links must name existing mechanics. Each section is stored as soon as it is ready; sections are never marked complete.
+
+`prefill` object: `jobId`, `state` (`running` \| `done` \| `failed`), `currentSection` (0 = analysing), `completedSections`, `skippedSections`, `failedSections`, `error`, `startedAt`, `finishedAt`, `analysis`, `notes`. `notes` maps the section number to `[{ field, reason, confidence }]` (`confidence`: `high` stated in the spark, `medium` implied, `low` assumed by the AI), shown next to the fields in the interface.
 
 ## `PUT .../design/section/{sectionNumber}`
 

@@ -38,7 +38,8 @@ func NewAssistant(cfg config.Config) (ai.Assistant, error) {
 	case "noop":
 		return ai.NewNoopAssistant(), nil
 	case "openai-compatible":
-		return ai.NewOpenAIAssistant(cfg.AIBaseURL, cfg.AIAPIKey, cfg.AIModel, &http.Client{Timeout: cfg.AITimeout}), nil
+		return ai.NewOpenAIAssistant(cfg.AIBaseURL, cfg.AIAPIKey, cfg.AIModel, cfg.AIResponseFormatNormalized(), &http.Client{Timeout: cfg.AITimeout}).
+			WithFallbackModels(cfg.AIFallbackModels), nil
 	default:
 		return nil, fmt.Errorf("unsupported ai provider: %s", cfg.AIProvider)
 	}

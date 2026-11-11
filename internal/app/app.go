@@ -156,7 +156,7 @@ func New(cfg config.Config) (*App, error) {
 		rediscache.NewDesignRepository(redisClient, cfg.SessionTTL),
 		projectRepository,
 		postgres.NewDesignStateRepository(pg),
-	)
+	).WithLogger(logger).WithPrefillTimeout(cfg.AIPrefillTimeout).WithPrefillMode(cfg.AIPrefillMode)
 
 	application := &App{
 		config: cfg,

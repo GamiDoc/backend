@@ -27,6 +27,10 @@ test:
 run:
     go run ./cmd/gamidoc-backend serve
 
+# run with the variables of .env.dev (AI provider, database, …)
+dev:
+    scripts/run-dev.sh serve
+
 build:
     go build ./cmd/gamidoc-backend
 

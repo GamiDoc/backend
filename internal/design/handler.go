@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log/slog"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gamidoc/backend/internal/ai"
 	appmiddleware "github.com/gamidoc/backend/internal/http/middleware"
@@ -32,6 +34,8 @@ type Handler struct {
 	sessionStates StateStore
 	projects      ProjectGuard
 	projectStates StateStore
+	locks         *ownerLocks
+	prefill       *prefillRunner
 }
 
 func NewHandler(
@@ -43,6 +47,7 @@ func NewHandler(
 	projects ProjectGuard,
 	projectStates StateStore,
 ) *Handler {
+	locks := newOwnerLocks()
 	return &Handler{
 		service:       service,
 		assistant:     assistant,
@@ -51,7 +56,39 @@ func NewHandler(
 		sessionStates: sessionStates,
 		projects:      projects,
 		projectStates: projectStates,
+		locks:         locks,
+		prefill:       newPrefillRunner(NewPrefiller(assistant), service, locks),
 	}
+}
+
+// WithLogger sets the logger of the background AI prefill.
+func (h *Handler) WithLogger(logger *slog.Logger) *Handler {
+	if logger != nil {
+		h.prefill.logger = logger
+	}
+	return h
+}
+
+// WithPrefillTimeout sets the maximum duration of a whole AI prefill job.
+func (h *Handler) WithPrefillTimeout(timeout time.Duration) *Handler {
+	if timeout > 0 {
+		h.prefill.timeout = timeout
+	}
+	return h
+}
+
+// WithPrefillMode sets how the AI prefill calls the model: PrefillModeSections (one call per
+// section, default) or PrefillModeSingle (one call for everything).
+func (h *Handler) WithPrefillMode(mode string) *Handler {
+	if mode == PrefillModeSingle || mode == PrefillModeSections {
+		h.prefill.mode = mode
+	}
+	return h
+}
+
+// lock serializes the state changes of one design (requests and the AI prefill job).
+func (h *Handler) lock(o owner) func() {
+	return h.locks.lock(ownerKey(o))
 }
 
 type owner struct {
@@ -155,9 +192,11 @@ func (h *Handler) getState(w http.ResponseWriter, r *http.Request, o owner) {
 		return
 	}
 
-	response.WriteJSON(w, http.StatusOK, status)
+	response.WriteJSON(w, http.StatusOK, h.prefill.withLiveness(o, status))
 }
 
+// saveSpark stores the Spark and, if it is not empty and AI is available, starts the
+// background prefill of the empty sections (progress in designStatus.prefill).
 func (h *Handler) saveSpark(w http.ResponseWriter, r *http.Request, o owner) {
 	var input struct {
 		Spark string `json:"spark"`
@@ -167,11 +206,8 @@ func (h *Handler) saveSpark(w http.ResponseWriter, r *http.Request, o owner) {
 		return
 	}
 
-	var prefill map[int]json.RawMessage
-	var prefillErr error
-	if input.Spark != "" {
-		prefill, prefillErr = h.assistant.Prefill(r.Context(), input.Spark, sectionsMeta())
-	}
+	unlock := h.lock(o)
+	defer unlock()
 
 	status, err := o.states.Get(r.Context(), o.id)
 	if err != nil {
@@ -181,25 +217,34 @@ func (h *Handler) saveSpark(w http.ResponseWriter, r *http.Request, o owner) {
 
 	status = h.service.SaveSpark(status, input.Spark)
 
-	applied := false
-	if prefillErr == nil && len(prefill) > 0 {
-		converted := make(map[string]json.RawMessage, len(prefill))
-		for number, content := range prefill {
-			converted[SectionKey(number)] = content
-		}
-		status = h.service.ApplyPrefill(status, converted)
-		applied = true
+	var job struct {
+		id  string
+		ctx context.Context
+	}
+	if status.Spark != "" && ai.SupportsJSON(h.assistant) && h.service.HasEmptySection(status) {
+		prefill, ctx := h.prefill.prepare(o)
+		status.Prefill = prefill
+		job.id, job.ctx = prefill.JobID, ctx
 	}
 
 	if err := o.states.Save(r.Context(), o.id, status); err != nil {
+		if job.id != "" {
+			h.prefill.release(o, job.id)
+		}
 		response.WriteError(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "Internal server error", nil)
 		return
 	}
 
+	if job.id != "" {
+		go h.prefill.run(job.ctx, o, job.id, status.Spark)
+	}
+
 	response.WriteJSON(w, http.StatusOK, map[string]any{
 		"designStatus":   status,
-		"prefillApplied": applied,
-		"prefillFailed":  prefillErr != nil,
+		"prefillStarted": job.id != "",
+		// Kept for older clients: the prefill is asynchronous, nothing is applied yet.
+		"prefillApplied": false,
+		"prefillFailed":  false,
 	})
 }
 
@@ -220,6 +265,9 @@ func (h *Handler) saveSection(w http.ResponseWriter, r *http.Request, o owner) {
 		response.WriteError(w, http.StatusBadRequest, "INVALID_INPUT", "Invalid request body", nil)
 		return
 	}
+
+	unlock := h.lock(o)
+	defer unlock()
 
 	status, err := o.states.Get(r.Context(), o.id)
 	if err != nil {
@@ -280,6 +328,9 @@ func (h *Handler) generatePDF(w http.ResponseWriter, r *http.Request, o owner) {
 		response.WriteError(w, http.StatusBadRequest, "INVALID_INPUT", "Invalid request body", nil)
 		return
 	}
+
+	unlock := h.lock(o)
+	defer unlock()
 
 	status, err := o.states.Get(r.Context(), o.id)
 	if err != nil {
@@ -353,6 +404,9 @@ func (h *Handler) importSession(w http.ResponseWriter, r *http.Request, o owner)
 		response.WriteError(w, http.StatusConflict, "SESSION_DESIGN_EMPTY", "Session has no design content to import", nil)
 		return
 	}
+
+	unlock := h.lock(o)
+	defer unlock()
 
 	existing, err := o.states.Get(r.Context(), o.id)
 	if err != nil {
@@ -448,15 +502,4 @@ func (h *Handler) chat(w http.ResponseWriter, r *http.Request, o owner) {
 		"reply":         reply,
 		"faq":           SectionFAQ(input.SectionNumber),
 	})
-}
-
-func sectionsMeta() []ai.Section {
-	var sections []ai.Section
-	for number := 1; number <= SectionCount; number++ {
-		sections = append(sections, ai.Section{
-			Number: number,
-			Name:   SectionName(number),
-		})
-	}
-	return sections
 }

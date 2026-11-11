@@ -1,0 +1,3036 @@
+{
+  "sections": [
+    {
+      "number": 1,
+      "title": "The context",
+      "description": "Set the foundation for your project: your domain, your users, your goals, and the constraints that shape them. Everything that follows builds on what you define here.",
+      "summary": "Domain, User profile, Constraints",
+      "optional": false,
+      "groups": [
+        {
+          "id": "domain",
+          "title": "Domain",
+          "description": "Select one or more domains that describe your project. This sets the tone and mechanics for everything that follows."
+        },
+        {
+          "id": "users",
+          "title": "User Profile",
+          "description": "Describe your user — who they are, what motivates them, and their prior experience with games."
+        },
+        {
+          "id": "constraints",
+          "title": "Constraints",
+          "description": "Select the constraints your users or project may face, then add details on any you select."
+        }
+      ],
+      "fields": [
+        {
+          "key": "Domain",
+          "group": "domain",
+          "type": "multi",
+          "display": "chips",
+          "options": [
+            {
+              "value": "Education"
+            },
+            {
+              "value": "Health"
+            },
+            {
+              "value": "Professional training"
+            },
+            {
+              "value": "Entertainment"
+            },
+            {
+              "value": "Sustainability"
+            },
+            {
+              "value": "Software"
+            },
+            {
+              "value": "Crowdsourcing"
+            }
+          ],
+          "other": true,
+          "required": true
+        },
+        {
+          "key": "Aim of the software",
+          "label": "Describe shortly the aim of your software:",
+          "group": "domain",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "Age range",
+          "label": "Age range",
+          "group": "users",
+          "type": "text",
+          "display": "input",
+          "placeholder": "e.g., 18–25",
+          "required": true
+        },
+        {
+          "key": "Game experience",
+          "label": "Gaming experience",
+          "group": "users",
+          "type": "text",
+          "display": "input",
+          "placeholder": "e.g., Casual mobile gamers",
+          "required": true
+        },
+        {
+          "key": "Occupation",
+          "label": "Occupation",
+          "group": "users",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "Encouraged behavior",
+          "label": "Encouraged behavior",
+          "group": "users",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "User profile · Additional information",
+          "label": "*Additional information",
+          "group": "users",
+          "type": "text"
+        },
+        {
+          "key": "Constraints",
+          "group": "constraints",
+          "type": "multi",
+          "display": "checklist",
+          "options": [
+            {
+              "value": "Lack of autonomy"
+            },
+            {
+              "value": "Lack of competence"
+            },
+            {
+              "value": "Lack of relatedness"
+            },
+            {
+              "value": "Lack of immersion"
+            },
+            {
+              "value": "Linguistic / Cultural differences"
+            },
+            {
+              "value": "Technical difficulties"
+            },
+            {
+              "value": "People with special needs"
+            },
+            {
+              "value": "Ethical responsibility regarding to data"
+            }
+          ]
+        },
+        {
+          "key": "Constraints · Additional information",
+          "label": "*Additional information",
+          "group": "constraints",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "The Experience Timeline",
+      "description": "Map out how your users' experience evolves over time — from their first interaction to what keeps them coming back. This helps identify where engagement might drop and what should sustain it.",
+      "summary": "Onboarding, Updates, Retention anchors",
+      "optional": false,
+      "groups": [
+        {
+          "id": "onboarding",
+          "title": "Onboarding",
+          "description": "Describe how new users are introduced to your system for the first time — what they need to learn, and how you'll teach it to them."
+        },
+        {
+          "id": "re-onboarding",
+          "title": "Re-onboarding",
+          "description": "Returning users may need a refresher, not a full tutorial. Describe how you'll re-orient them without repeating the full onboarding experience."
+        },
+        {
+          "id": "updates",
+          "title": "Updates",
+          "description": "Define how your system evolves after launch — how frequently you'll release something new, and what that will actually be."
+        },
+        {
+          "id": "retention",
+          "title": "Retention anchors",
+          "description": "Select the mechanisms that keep users emotionally or practically tied to your system, and describe how each one shows up in your design."
+        },
+        {
+          "id": "dropout",
+          "title": "Drop-out and desistance risks",
+          "description": "Check any risks that are relevant to your design, so the system can flag where your mechanics may need safeguards."
+        },
+        {
+          "id": "goals",
+          "title": "Taxonomy of gamification goals",
+          "description": "Check the goal types your system uses."
+        },
+        {
+          "id": "emotions",
+          "title": "Emotional dynamics",
+          "description": "Rate the expected intensity of each dynamic. High = primary driver. Low = side effect."
+        }
+      ],
+      "fields": [
+        {
+          "key": "Onboarding methods",
+          "group": "onboarding",
+          "type": "multi",
+          "display": "chips",
+          "options": [
+            {
+              "value": "Video"
+            },
+            {
+              "value": "Chat Bot"
+            },
+            {
+              "value": "Interactive tutorials"
+            },
+            {
+              "value": "In-app tooltips"
+            },
+            {
+              "value": "Text-based instructions"
+            },
+            {
+              "value": "Learn-by-doing"
+            }
+          ],
+          "other": true,
+          "required": true
+        },
+        {
+          "key": "Onboarding steps and goals",
+          "label": "Outline the main steps and goals of your onboarding:",
+          "group": "onboarding",
+          "type": "text",
+          "placeholder": "e.g., First 30 seconds: safe tutorial room to practice movement. Tooltips pop up only on first interaction…",
+          "required": true
+        },
+        {
+          "key": "Re-onboarding methods",
+          "group": "re-onboarding",
+          "type": "multi",
+          "display": "chips",
+          "options": [
+            {
+              "value": "Video recap"
+            },
+            {
+              "value": "Chat Bot"
+            },
+            {
+              "value": "Guided assistant"
+            },
+            {
+              "value": "\"What's new\" summary"
+            },
+            {
+              "value": "Reminder of core mechanics"
+            },
+            {
+              "value": "Learn-by-doing"
+            },
+            {
+              "value": "In-app tooltips"
+            }
+          ],
+          "other": true
+        },
+        {
+          "key": "Re-onboarding steps and goals",
+          "label": "Outline the main steps and goals of your re-onboarding:",
+          "group": "re-onboarding",
+          "type": "text",
+          "placeholder": "e.g., After 14 days of inactivity, show a 'here's what changed' summary. After a major update, highlight only the new feature"
+        },
+        {
+          "key": "No re-onboarding needed",
+          "group": "re-onboarding",
+          "type": "multi",
+          "display": "checks",
+          "options": [
+            {
+              "value": "No re-onboarding needed"
+            }
+          ]
+        },
+        {
+          "key": "Update frequency",
+          "group": "updates",
+          "type": "single",
+          "display": "chips",
+          "options": [
+            {
+              "value": "Never"
+            },
+            {
+              "value": "Daily"
+            },
+            {
+              "value": "Weekly"
+            },
+            {
+              "value": "Monthly"
+            },
+            {
+              "value": "Seasonal (6–12 weeks)"
+            },
+            {
+              "value": "Expansion (6+ months)"
+            },
+            {
+              "value": "I don't know yet"
+            }
+          ],
+          "required": true
+        },
+        {
+          "key": "Content type",
+          "title": "Content type",
+          "hint": "Define how your system evolves after launch — how frequently you'll release something new, and what that will actually be.",
+          "group": "updates",
+          "type": "multi",
+          "display": "chips",
+          "options": [
+            {
+              "value": "Narrative/story beats"
+            },
+            {
+              "value": "New modes & mechanics"
+            },
+            {
+              "value": "Content drops"
+            },
+            {
+              "value": "Live events"
+            }
+          ],
+          "other": true,
+          "required": true
+        },
+        {
+          "key": "Updates · Additional information",
+          "label": "*Additional information",
+          "group": "updates",
+          "type": "text"
+        },
+        {
+          "key": "Retention anchors",
+          "group": "retention",
+          "type": "multi",
+          "display": "checklist",
+          "options": [
+            {
+              "value": "Social anchors",
+              "description": "Guilds, clans, or alliances that require coordination with others to progress."
+            },
+            {
+              "value": "Relationship anchors",
+              "description": "Friends, duos, or peer-to-peer obligations — a raid team, a co-op progress bar shared with someone specific."
+            },
+            {
+              "value": "Ritual anchors",
+              "description": "Habitual touchpoints — daily login, weekly reset, streaks."
+            },
+            {
+              "value": "Investment anchors",
+              "description": "Sunk costs — collections, reputation, or progress that feels too painful to abandon."
+            },
+            {
+              "value": "Identity anchors",
+              "description": "Public status — cosmetics, leaderboards, titles, avatar personalization."
+            },
+            {
+              "value": "Rarity and chance",
+              "description": "Unpredictable rewards — loot, drops, or pulls — that keep users coming back for the chance of a rare outcome."
+            }
+          ],
+          "required": true
+        },
+        {
+          "key": "Drop-out risks",
+          "group": "dropout",
+          "type": "multi",
+          "display": "checklist",
+          "options": [
+            {
+              "value": "Skill-challenge imbalance",
+              "description": "If tasks were to exceed a user's current ability, they could feel overwhelmed and might give up."
+            },
+            {
+              "value": "Commitment collapse",
+              "description": "If your users hit a wall they can't cross, they lose interest completely — even in goals that matter to them."
+            },
+            {
+              "value": "Excessive difficulty",
+              "description": "If challenges were poorly balanced or overly harsh, users might walk away prematurely."
+            },
+            {
+              "value": "Over-reliance on extrinsic incentives",
+              "description": "Relying only on badges and points makes users focus on the rewards instead of the actual goal."
+            },
+            {
+              "value": "Lack of progress feedback",
+              "description": "If users can't see how they are doing, they lose direction and drop off."
+            },
+            {
+              "value": "Absence of a \"glowing choice\"",
+              "description": "If a user is stuck too long without hints or boosters, they're much more likely to stop participating."
+            }
+          ]
+        },
+        {
+          "key": "Drop-out risks · Additional information",
+          "label": "*Additional information",
+          "group": "dropout",
+          "type": "text"
+        },
+        {
+          "key": "Goal types",
+          "group": "goals",
+          "type": "multi",
+          "display": "checklist",
+          "options": [
+            {
+              "value": "Outcome goals",
+              "description": "Completing a specific result or task — finishing a quest or an exploratory mission."
+            },
+            {
+              "value": "Performance goals",
+              "description": "Meeting a standard — earning a set number of points, reaching a level, hitting a leaderboard rank."
+            },
+            {
+              "value": "Process (learning) goals",
+              "description": "Aimed at acquiring new skills or knowledge. In gamification."
+            },
+            {
+              "value": "Stretch goals",
+              "description": "These are highly difficult or even potentially impossible goals used to stimulate creative thinking (e.g., achieving 100% completion in a game)."
+            },
+            {
+              "value": "Proximal and distal goals",
+              "description": "Distal goals are long-term or distant achievements (like completing a whole chapter), while proximal goals are immediate tasks that serve as stepping stones toward the distal objective."
+            },
+            {
+              "value": "SMART goals",
+              "description": "Specific, measurable, attainable, realistic, and time-bound."
+            }
+          ],
+          "required": true
+        },
+        {
+          "key": "Expectations from the system",
+          "label": "What do you expect from the system?",
+          "group": "goals",
+          "type": "text"
+        },
+        {
+          "key": "Emotional dynamics · Competition",
+          "label": "Competition",
+          "group": "emotions",
+          "type": "single",
+          "display": "slider",
+          "options": [
+            {
+              "value": "Min"
+            },
+            {
+              "value": "Low"
+            },
+            {
+              "value": "Medium"
+            },
+            {
+              "value": "High"
+            },
+            {
+              "value": "Max"
+            }
+          ],
+          "required": true
+        },
+        {
+          "key": "Emotional dynamics · Cooperation",
+          "label": "Cooperation",
+          "group": "emotions",
+          "type": "single",
+          "display": "slider",
+          "options": [
+            {
+              "value": "Min"
+            },
+            {
+              "value": "Low"
+            },
+            {
+              "value": "Medium"
+            },
+            {
+              "value": "High"
+            },
+            {
+              "value": "Max"
+            }
+          ],
+          "required": true
+        },
+        {
+          "key": "Emotional dynamics · Curiosity",
+          "label": "Curiosity",
+          "group": "emotions",
+          "type": "single",
+          "display": "slider",
+          "options": [
+            {
+              "value": "Min"
+            },
+            {
+              "value": "Low"
+            },
+            {
+              "value": "Medium"
+            },
+            {
+              "value": "High"
+            },
+            {
+              "value": "Max"
+            }
+          ],
+          "required": true
+        },
+        {
+          "key": "Emotional dynamics · Achievement",
+          "label": "Achievement",
+          "group": "emotions",
+          "type": "single",
+          "display": "slider",
+          "options": [
+            {
+              "value": "Min"
+            },
+            {
+              "value": "Low"
+            },
+            {
+              "value": "Medium"
+            },
+            {
+              "value": "High"
+            },
+            {
+              "value": "Max"
+            }
+          ],
+          "required": true
+        },
+        {
+          "key": "Emotional dynamics · Social status",
+          "label": "Social status",
+          "group": "emotions",
+          "type": "single",
+          "display": "slider",
+          "options": [
+            {
+              "value": "Min"
+            },
+            {
+              "value": "Low"
+            },
+            {
+              "value": "Medium"
+            },
+            {
+              "value": "High"
+            },
+            {
+              "value": "Max"
+            }
+          ],
+          "required": true
+        },
+        {
+          "key": "Emotional dynamics · Anxiety / pressure",
+          "label": "Anxiety / pressure",
+          "group": "emotions",
+          "type": "single",
+          "display": "slider",
+          "options": [
+            {
+              "value": "Min"
+            },
+            {
+              "value": "Low"
+            },
+            {
+              "value": "Medium"
+            },
+            {
+              "value": "High"
+            },
+            {
+              "value": "Max"
+            }
+          ],
+          "required": true
+        },
+        {
+          "key": "Emotional dynamics · Context",
+          "label": "Add context the sliders can't capture — what's driving the high ratings, and how you're managing the low ones.",
+          "group": "emotions",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Personalization and dynamics",
+      "description": "Define your user types and how your system adapts to their different motives and goals. Describe what they can shape themselves, what the game adjusts automatically, and what you infer from their behavior.",
+      "summary": "User types, Personalization, Dynamics",
+      "optional": false,
+      "groups": [
+        {
+          "id": "user-types",
+          "title": "User types",
+          "description": "Think about your users and what drives them. Understanding their primary motives and matching them to your design mechanics will help you build a system they actually want to use."
+        },
+        {
+          "id": "personalization",
+          "title": "Personalization"
+        },
+        {
+          "id": "dynamics",
+          "title": "Dynamics",
+          "description": "Define how difficulty adapts over time: what signals trigger a change, what actually gets adjusted, and how that adjustment behaves."
+        }
+      ],
+      "fields": [
+        {
+          "key": "User types",
+          "group": "user-types",
+          "type": "multi",
+          "display": "checklist",
+          "options": [
+            {
+              "value": "Philanthropist",
+              "description": "Motivated by purpose — enjoys helping others and sharing knowledge with no expectation of reward."
+            },
+            {
+              "value": "Socialiser",
+              "description": "Motivated by relatedness — focused on interacting with others and building social connections."
+            },
+            {
+              "value": "Free Spirit",
+              "description": "Motivated by autonomy — values the freedom to explore, create, and act without external control."
+            },
+            {
+              "value": "Achiever",
+              "description": "Motivated by competence — seeks progress by mastering difficult tasks and overcoming challenges."
+            },
+            {
+              "value": "Player",
+              "description": "Motivated by extrinsic rewards — driven to complete activities to collect points, badges, and prizes."
+            },
+            {
+              "value": "Disruptor",
+              "description": "Motivated by change — tests the system's boundaries to force improvements or modifications."
+            }
+          ],
+          "required": true
+        },
+        {
+          "key": "User types · Additional information",
+          "label": "*Additional information",
+          "group": "user-types",
+          "type": "text"
+        },
+        {
+          "key": "Player-driven customization",
+          "title": "Player-driven / customization",
+          "hint": "Select what players can shape directly, from how they look to how they play.",
+          "group": "personalization",
+          "type": "multi",
+          "display": "chips",
+          "options": [
+            {
+              "value": "Character creation & appearance"
+            },
+            {
+              "value": "Loadouts, builds, skill trees"
+            },
+            {
+              "value": "Base/home decoration"
+            },
+            {
+              "value": "Explicit difficulty settings"
+            }
+          ],
+          "other": true
+        },
+        {
+          "key": "Player-driven customization · Additional information",
+          "label": "*Additional information",
+          "group": "personalization",
+          "type": "text"
+        },
+        {
+          "key": "Game-driven adaptive systems",
+          "title": "Game-driven adaptive systems",
+          "hint": "Systems that react to a player's current session — adjusting in real time based on how they're playing right now, with no history required.",
+          "group": "personalization",
+          "type": "multi",
+          "display": "chips",
+          "options": [
+            {
+              "value": "Dynamic difficulty adjustment (DDA)",
+              "info": "The game scales challenge based on performance"
+            },
+            {
+              "value": "Procedural content generation",
+              "info": "Levels, quests, or loot generated based on player behavior or preferences"
+            },
+            {
+              "value": "Narrative branching",
+              "info": "Story adapts to the user's choices"
+            }
+          ],
+          "other": true
+        },
+        {
+          "key": "Game-driven adaptive systems · Additional information",
+          "label": "*Additional information",
+          "group": "personalization",
+          "type": "text"
+        },
+        {
+          "key": "Data-driven personalization",
+          "title": "Data-driven / algorithmic personalization",
+          "hint": "Systems that use accumulated player data (across sessions or players) to shape what an individual sees, is offered, or is matched with.",
+          "group": "personalization",
+          "type": "multi",
+          "display": "chips",
+          "options": [
+            {
+              "value": "Recommendation systems",
+              "info": "Suggests content (missions, cosmetics, events) based on a player's play history."
+            },
+            {
+              "value": "Behavioral segmentation",
+              "info": "Groups players by play style to tailor content or onboarding per group."
+            },
+            {
+              "value": "Live-ops targeting",
+              "info": "Delivers personalized offers, notifications, or events based on engagement patterns."
+            },
+            {
+              "value": "Personalized matchmaking",
+              "info": "Pairs players using accumulated data like skill, latency, or behavior history — not just current lobby state."
+            }
+          ],
+          "other": true
+        },
+        {
+          "key": "Data-driven personalization · Additional information",
+          "label": "*Additional information",
+          "group": "personalization",
+          "type": "text"
+        },
+        {
+          "key": "Metrics / signals",
+          "title": "Metrics / signals",
+          "hint": "Select and describe how does the system know it's time to change the difficulty.",
+          "group": "dynamics",
+          "type": "multi",
+          "display": "chips",
+          "options": [
+            {
+              "value": "Performance"
+            },
+            {
+              "value": "Telemetry"
+            },
+            {
+              "value": "Emotions"
+            },
+            {
+              "value": "Preferences"
+            }
+          ],
+          "other": true,
+          "required": true
+        },
+        {
+          "key": "How metrics change the dynamics",
+          "label": "Describe how metrics change the dynamics:",
+          "group": "dynamics",
+          "type": "text"
+        },
+        {
+          "key": "Control variables",
+          "title": "Control variables",
+          "hint": "Select and describe what moves when the system adapts.",
+          "group": "dynamics",
+          "type": "multi",
+          "display": "chips",
+          "options": [
+            {
+              "value": "Spawn rate"
+            },
+            {
+              "value": "Frequency"
+            },
+            {
+              "value": "Starting level"
+            },
+            {
+              "value": "AI tactics"
+            },
+            {
+              "value": "Pacing"
+            },
+            {
+              "value": "Hinting"
+            },
+            {
+              "value": "Difficulty curve"
+            }
+          ],
+          "other": true,
+          "required": true
+        },
+        {
+          "key": "How control variables change the dynamics",
+          "label": "Describe how control variables change the dynamics:",
+          "group": "dynamics",
+          "type": "text"
+        },
+        {
+          "key": "What should change",
+          "title": "What should change",
+          "hint": "Once triggered, select and describe how does the adjustment itself behave?",
+          "group": "dynamics",
+          "type": "multi",
+          "display": "chips",
+          "options": [
+            {
+              "value": "Update frequency"
+            },
+            {
+              "value": "Latency"
+            },
+            {
+              "value": "Magnitude of change"
+            },
+            {
+              "value": "Smoothness"
+            },
+            {
+              "value": "Persistence"
+            },
+            {
+              "value": "Reversibility"
+            },
+            {
+              "value": "Player visibility"
+            }
+          ],
+          "other": true,
+          "required": true
+        },
+        {
+          "key": "How adjustments change the dynamics",
+          "label": "Describe how adjustments change the dynamics:",
+          "group": "dynamics",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Gameful Core",
+      "description": "This is where the actual game lives — the loops that repeat, the mechanics that drive them, and how players move forward over time.",
+      "summary": "Game rules and loops, Mechanics, Progression",
+      "optional": false,
+      "groups": [
+        {
+          "id": "rules",
+          "title": "Game rules",
+          "description": "Lay out the core rules of your system — the constraints and logic that make everything else possible."
+        },
+        {
+          "id": "mechanics",
+          "title": "Gamification & Mechanics",
+          "description": "Pick a category, select the game elements you're using within it, and describe the mechanics behind each element."
+        },
+        {
+          "id": "progression",
+          "title": "Progression",
+          "description": "Define how the player advances and grows over time"
+        },
+        {
+          "id": "modality",
+          "title": "Modality",
+          "description": "Choose how players interact with each other during play."
+        },
+        {
+          "id": "timing",
+          "title": "Timing",
+          "description": "Choose whether players need to be active at the same time, or can participate independently, on their own schedule."
+        }
+      ],
+      "fields": [
+        {
+          "key": "Game rules",
+          "group": "rules",
+          "type": "text",
+          "placeholder": "e.g. Players earn 1 point per completed task, lose points if a task is skipped 3 days in a row, and can't advance to the next level until they've completed all core tasks in the current one.",
+          "required": true
+        },
+        {
+          "key": "Core loop",
+          "title": "Game loops",
+          "hint": "Configure how each time-scale loop works.",
+          "group": "rules",
+          "type": "text",
+          "display": "loop",
+          "badge": "Core loop",
+          "description": "The basic action a player repeats every few seconds to a couple of minutes. It's the fundamental verb of the game.",
+          "popupIntro": "The core loop has to feel good on its own, over and over, because the player will do it thousands of times. If this loop isn't satisfying, no amount of long-term progression will save the game."
+        },
+        {
+          "key": "Core loop · Action sequence",
+          "label": "Describe the smallest meaningful sequence of player actions that repeats during ordinary gameplay.",
+          "group": "rules",
+          "type": "text",
+          "placeholder": "[Action 1] → [Action 2] → [Action 3]\nDuration: [seconds/minutes]",
+          "loop": "Core loop",
+          "required": true
+        },
+        {
+          "key": "Core loop · Immediate result",
+          "label": "What immediate result does the player receive, and how does the game communicate it?",
+          "group": "rules",
+          "type": "text",
+          "placeholder": "Player does: [action]\nSystem produces: [outcome]\nPlayer perceives: [feedback]",
+          "loop": "Core loop"
+        },
+        {
+          "key": "Core loop · Meaningful choice",
+          "label": "After receiving the result, what meaningful choice does the player make before repeating or changing the loop?",
+          "group": "rules",
+          "type": "text",
+          "placeholder": "Result: [outcome]\nPlayer chooses between: [A] / [B] / [C]\nTrade-off: [risk, cost, time, reward, information]\nNext loop changes because: [consequence]",
+          "loop": "Core loop"
+        },
+        {
+          "key": "Long loop",
+          "group": "rules",
+          "type": "text",
+          "display": "loop",
+          "badge": "Long loop",
+          "description": "The larger structure that gives the short loop purpose over minutes, hours, or the whole game. It's built from many repetitions of the short loop and typically involves progression, rewards, or strategic decisions.",
+          "popupIntro": "Describe how repeated gameplay leads to long-term progress, changes the player's future possibilities, and creates the next reason to play."
+        },
+        {
+          "key": "Long loop · Long-term goal",
+          "label": "What does the player work toward across multiple sessions, and what concrete milestone marks progress?",
+          "group": "rules",
+          "type": "text",
+          "placeholder": "Repeated Core Loops produce: [progress/resource]\nLong-term goal: [goal]\nMilestone: [observable achievement]\nExpected timeframe: [time period]",
+          "loop": "Long loop",
+          "required": true
+        },
+        {
+          "key": "Long loop · Change in future play",
+          "label": "How does reaching the milestone change future play?",
+          "group": "rules",
+          "type": "text",
+          "placeholder": "Milestone: [achievement]\nUnlocks or changes: [system/content/capability]\nCore Loop now differs because: [specific change]\nNew strategic possibility: [possibility]",
+          "loop": "Long loop"
+        },
+        {
+          "key": "Long loop · Reason to return",
+          "label": "After the milestone, what new goal, challenge, social context, or unresolved desire motivates the player to re-enter the Core Loop?",
+          "group": "rules",
+          "type": "text",
+          "placeholder": "New ambition: [goal]\nWhy it matters: [player motivation]\nReturn trigger: [what brings the player back]\nThe next cycle is different because: [difference]",
+          "loop": "Long loop"
+        },
+        {
+          "key": "Loop diagram",
+          "label": "Attach a sketch or diagram of your loop",
+          "group": "rules",
+          "type": "text",
+          "display": "image"
+        },
+        {
+          "key": "Game element categories",
+          "group": "mechanics",
+          "type": "single",
+          "display": "chips",
+          "options": [
+            {
+              "value": "Performance",
+              "info": "Elements that give the player feedback on how they are doing: points, levels, progression, status, achievements."
+            },
+            {
+              "value": "Social",
+              "info": "Elements based on interaction between players: competition, cooperation, reputation, social pressure."
+            },
+            {
+              "value": "Personal",
+              "info": "Elements about the player as an individual: novelty, objectives, puzzles, renovation, sensation."
+            },
+            {
+              "value": "Fictional",
+              "info": "Elements that tie the experience to a story or context: narrative, storytelling."
+            },
+            {
+              "value": "Ecological",
+              "info": "Elements tied to the environment the game creates: chance, imposed choice, economy, rarity, time pressure."
+            }
+          ],
+          "required": true
+        },
+        {
+          "key": "Performance elements",
+          "title": "Performance game elements",
+          "group": "mechanics",
+          "type": "single",
+          "display": "chips",
+          "options": [
+            {
+              "value": "Points"
+            },
+            {
+              "value": "Level"
+            },
+            {
+              "value": "Progression"
+            },
+            {
+              "value": "Status"
+            },
+            {
+              "value": "Achievement"
+            }
+          ],
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Performance",
+              "keep": true
+            }
+          ]
+        },
+        {
+          "key": "Points mechanics",
+          "title": "Points",
+          "group": "mechanics",
+          "type": "list",
+          "itemLabel": "Points",
+          "numbered": true,
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Performance",
+              "keep": true
+            },
+            {
+              "key": "Performance elements",
+              "includes": "Points",
+              "keep": true
+            }
+          ],
+          "itemFields": [
+            {
+              "key": "Trigger",
+              "title": "Trigger: what does the player do?",
+              "type": "text",
+              "placeholder": "e.g. Player completes a daily quest..."
+            },
+            {
+              "key": "System response",
+              "title": "System response: what happens in return?",
+              "type": "text",
+              "placeholder": "e.g. +15 points added to weekly score..."
+            },
+            {
+              "key": "Goal supported",
+              "title": "Goal supported: what goal does this bring the player closer to?",
+              "type": "text",
+              "placeholder": "e.g. Encourages daily engagement..."
+            },
+            {
+              "key": "Linked mechanics",
+              "type": "multi",
+              "display": "mechanics"
+            }
+          ]
+        },
+        {
+          "key": "Level mechanics",
+          "title": "Level",
+          "group": "mechanics",
+          "type": "list",
+          "itemLabel": "Level",
+          "numbered": true,
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Performance",
+              "keep": true
+            },
+            {
+              "key": "Performance elements",
+              "includes": "Level",
+              "keep": true
+            }
+          ],
+          "itemFields": [
+            {
+              "key": "Trigger",
+              "title": "Trigger: what does the player do?",
+              "type": "text",
+              "placeholder": "e.g. Player completes a daily quest..."
+            },
+            {
+              "key": "System response",
+              "title": "System response: what happens in return?",
+              "type": "text",
+              "placeholder": "e.g. +15 points added to weekly score..."
+            },
+            {
+              "key": "Goal supported",
+              "title": "Goal supported: what goal does this bring the player closer to?",
+              "type": "text",
+              "placeholder": "e.g. Encourages daily engagement..."
+            },
+            {
+              "key": "Linked mechanics",
+              "type": "multi",
+              "display": "mechanics"
+            }
+          ]
+        },
+        {
+          "key": "Progression mechanics",
+          "title": "Progression",
+          "group": "mechanics",
+          "type": "list",
+          "itemLabel": "Progression",
+          "numbered": true,
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Performance",
+              "keep": true
+            },
+            {
+              "key": "Performance elements",
+              "includes": "Progression",
+              "keep": true
+            }
+          ],
+          "itemFields": [
+            {
+              "key": "Trigger",
+              "title": "Trigger: what does the player do?",
+              "type": "text",
+              "placeholder": "e.g. Player completes a daily quest..."
+            },
+            {
+              "key": "System response",
+              "title": "System response: what happens in return?",
+              "type": "text",
+              "placeholder": "e.g. +15 points added to weekly score..."
+            },
+            {
+              "key": "Goal supported",
+              "title": "Goal supported: what goal does this bring the player closer to?",
+              "type": "text",
+              "placeholder": "e.g. Encourages daily engagement..."
+            },
+            {
+              "key": "Linked mechanics",
+              "type": "multi",
+              "display": "mechanics"
+            }
+          ]
+        },
+        {
+          "key": "Status mechanics",
+          "title": "Status",
+          "group": "mechanics",
+          "type": "list",
+          "itemLabel": "Status",
+          "numbered": true,
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Performance",
+              "keep": true
+            },
+            {
+              "key": "Performance elements",
+              "includes": "Status",
+              "keep": true
+            }
+          ],
+          "itemFields": [
+            {
+              "key": "Trigger",
+              "title": "Trigger: what does the player do?",
+              "type": "text",
+              "placeholder": "e.g. Player completes a daily quest..."
+            },
+            {
+              "key": "System response",
+              "title": "System response: what happens in return?",
+              "type": "text",
+              "placeholder": "e.g. +15 points added to weekly score..."
+            },
+            {
+              "key": "Goal supported",
+              "title": "Goal supported: what goal does this bring the player closer to?",
+              "type": "text",
+              "placeholder": "e.g. Encourages daily engagement..."
+            },
+            {
+              "key": "Linked mechanics",
+              "type": "multi",
+              "display": "mechanics"
+            }
+          ]
+        },
+        {
+          "key": "Achievement mechanics",
+          "title": "Achievement",
+          "group": "mechanics",
+          "type": "list",
+          "itemLabel": "Achievement",
+          "numbered": true,
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Performance",
+              "keep": true
+            },
+            {
+              "key": "Performance elements",
+              "includes": "Achievement",
+              "keep": true
+            }
+          ],
+          "itemFields": [
+            {
+              "key": "Trigger",
+              "title": "Trigger: what does the player do?",
+              "type": "text",
+              "placeholder": "e.g. Player completes a daily quest..."
+            },
+            {
+              "key": "System response",
+              "title": "System response: what happens in return?",
+              "type": "text",
+              "placeholder": "e.g. +15 points added to weekly score..."
+            },
+            {
+              "key": "Goal supported",
+              "title": "Goal supported: what goal does this bring the player closer to?",
+              "type": "text",
+              "placeholder": "e.g. Encourages daily engagement..."
+            },
+            {
+              "key": "Linked mechanics",
+              "type": "multi",
+              "display": "mechanics"
+            }
+          ]
+        },
+        {
+          "key": "Social elements",
+          "title": "Social game elements",
+          "group": "mechanics",
+          "type": "single",
+          "display": "chips",
+          "options": [
+            {
+              "value": "Competition"
+            },
+            {
+              "value": "Cooperation"
+            },
+            {
+              "value": "Reputation"
+            },
+            {
+              "value": "Social pressure"
+            }
+          ],
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Social",
+              "keep": true
+            }
+          ]
+        },
+        {
+          "key": "Competition mechanics",
+          "title": "Competition",
+          "group": "mechanics",
+          "type": "list",
+          "itemLabel": "Competition",
+          "numbered": true,
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Social",
+              "keep": true
+            },
+            {
+              "key": "Social elements",
+              "includes": "Competition",
+              "keep": true
+            }
+          ],
+          "itemFields": [
+            {
+              "key": "Trigger",
+              "title": "Trigger: what does the player do?",
+              "type": "text",
+              "placeholder": "e.g. Player completes a daily quest..."
+            },
+            {
+              "key": "System response",
+              "title": "System response: what happens in return?",
+              "type": "text",
+              "placeholder": "e.g. +15 points added to weekly score..."
+            },
+            {
+              "key": "Goal supported",
+              "title": "Goal supported: what goal does this bring the player closer to?",
+              "type": "text",
+              "placeholder": "e.g. Encourages daily engagement..."
+            },
+            {
+              "key": "Linked mechanics",
+              "type": "multi",
+              "display": "mechanics"
+            }
+          ]
+        },
+        {
+          "key": "Cooperation mechanics",
+          "title": "Cooperation",
+          "group": "mechanics",
+          "type": "list",
+          "itemLabel": "Cooperation",
+          "numbered": true,
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Social",
+              "keep": true
+            },
+            {
+              "key": "Social elements",
+              "includes": "Cooperation",
+              "keep": true
+            }
+          ],
+          "itemFields": [
+            {
+              "key": "Trigger",
+              "title": "Trigger: what does the player do?",
+              "type": "text",
+              "placeholder": "e.g. Player completes a daily quest..."
+            },
+            {
+              "key": "System response",
+              "title": "System response: what happens in return?",
+              "type": "text",
+              "placeholder": "e.g. +15 points added to weekly score..."
+            },
+            {
+              "key": "Goal supported",
+              "title": "Goal supported: what goal does this bring the player closer to?",
+              "type": "text",
+              "placeholder": "e.g. Encourages daily engagement..."
+            },
+            {
+              "key": "Linked mechanics",
+              "type": "multi",
+              "display": "mechanics"
+            }
+          ]
+        },
+        {
+          "key": "Reputation mechanics",
+          "title": "Reputation",
+          "group": "mechanics",
+          "type": "list",
+          "itemLabel": "Reputation",
+          "numbered": true,
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Social",
+              "keep": true
+            },
+            {
+              "key": "Social elements",
+              "includes": "Reputation",
+              "keep": true
+            }
+          ],
+          "itemFields": [
+            {
+              "key": "Trigger",
+              "title": "Trigger: what does the player do?",
+              "type": "text",
+              "placeholder": "e.g. Player completes a daily quest..."
+            },
+            {
+              "key": "System response",
+              "title": "System response: what happens in return?",
+              "type": "text",
+              "placeholder": "e.g. +15 points added to weekly score..."
+            },
+            {
+              "key": "Goal supported",
+              "title": "Goal supported: what goal does this bring the player closer to?",
+              "type": "text",
+              "placeholder": "e.g. Encourages daily engagement..."
+            },
+            {
+              "key": "Linked mechanics",
+              "type": "multi",
+              "display": "mechanics"
+            }
+          ]
+        },
+        {
+          "key": "Social pressure mechanics",
+          "title": "Social pressure",
+          "group": "mechanics",
+          "type": "list",
+          "itemLabel": "Social pressure",
+          "numbered": true,
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Social",
+              "keep": true
+            },
+            {
+              "key": "Social elements",
+              "includes": "Social pressure",
+              "keep": true
+            }
+          ],
+          "itemFields": [
+            {
+              "key": "Trigger",
+              "title": "Trigger: what does the player do?",
+              "type": "text",
+              "placeholder": "e.g. Player completes a daily quest..."
+            },
+            {
+              "key": "System response",
+              "title": "System response: what happens in return?",
+              "type": "text",
+              "placeholder": "e.g. +15 points added to weekly score..."
+            },
+            {
+              "key": "Goal supported",
+              "title": "Goal supported: what goal does this bring the player closer to?",
+              "type": "text",
+              "placeholder": "e.g. Encourages daily engagement..."
+            },
+            {
+              "key": "Linked mechanics",
+              "type": "multi",
+              "display": "mechanics"
+            }
+          ]
+        },
+        {
+          "key": "Personal elements",
+          "title": "Personal game elements",
+          "group": "mechanics",
+          "type": "single",
+          "display": "chips",
+          "options": [
+            {
+              "value": "Novelty"
+            },
+            {
+              "value": "Objectives"
+            },
+            {
+              "value": "Puzzles"
+            },
+            {
+              "value": "Renovation"
+            },
+            {
+              "value": "Sensation"
+            }
+          ],
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Personal",
+              "keep": true
+            }
+          ]
+        },
+        {
+          "key": "Novelty mechanics",
+          "title": "Novelty",
+          "group": "mechanics",
+          "type": "list",
+          "itemLabel": "Novelty",
+          "numbered": true,
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Personal",
+              "keep": true
+            },
+            {
+              "key": "Personal elements",
+              "includes": "Novelty",
+              "keep": true
+            }
+          ],
+          "itemFields": [
+            {
+              "key": "Trigger",
+              "title": "Trigger: what does the player do?",
+              "type": "text",
+              "placeholder": "e.g. Player completes a daily quest..."
+            },
+            {
+              "key": "System response",
+              "title": "System response: what happens in return?",
+              "type": "text",
+              "placeholder": "e.g. +15 points added to weekly score..."
+            },
+            {
+              "key": "Goal supported",
+              "title": "Goal supported: what goal does this bring the player closer to?",
+              "type": "text",
+              "placeholder": "e.g. Encourages daily engagement..."
+            },
+            {
+              "key": "Linked mechanics",
+              "type": "multi",
+              "display": "mechanics"
+            }
+          ]
+        },
+        {
+          "key": "Objectives mechanics",
+          "title": "Objectives",
+          "group": "mechanics",
+          "type": "list",
+          "itemLabel": "Objectives",
+          "numbered": true,
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Personal",
+              "keep": true
+            },
+            {
+              "key": "Personal elements",
+              "includes": "Objectives",
+              "keep": true
+            }
+          ],
+          "itemFields": [
+            {
+              "key": "Trigger",
+              "title": "Trigger: what does the player do?",
+              "type": "text",
+              "placeholder": "e.g. Player completes a daily quest..."
+            },
+            {
+              "key": "System response",
+              "title": "System response: what happens in return?",
+              "type": "text",
+              "placeholder": "e.g. +15 points added to weekly score..."
+            },
+            {
+              "key": "Goal supported",
+              "title": "Goal supported: what goal does this bring the player closer to?",
+              "type": "text",
+              "placeholder": "e.g. Encourages daily engagement..."
+            },
+            {
+              "key": "Linked mechanics",
+              "type": "multi",
+              "display": "mechanics"
+            }
+          ]
+        },
+        {
+          "key": "Puzzles mechanics",
+          "title": "Puzzles",
+          "group": "mechanics",
+          "type": "list",
+          "itemLabel": "Puzzles",
+          "numbered": true,
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Personal",
+              "keep": true
+            },
+            {
+              "key": "Personal elements",
+              "includes": "Puzzles",
+              "keep": true
+            }
+          ],
+          "itemFields": [
+            {
+              "key": "Trigger",
+              "title": "Trigger: what does the player do?",
+              "type": "text",
+              "placeholder": "e.g. Player completes a daily quest..."
+            },
+            {
+              "key": "System response",
+              "title": "System response: what happens in return?",
+              "type": "text",
+              "placeholder": "e.g. +15 points added to weekly score..."
+            },
+            {
+              "key": "Goal supported",
+              "title": "Goal supported: what goal does this bring the player closer to?",
+              "type": "text",
+              "placeholder": "e.g. Encourages daily engagement..."
+            },
+            {
+              "key": "Linked mechanics",
+              "type": "multi",
+              "display": "mechanics"
+            }
+          ]
+        },
+        {
+          "key": "Renovation mechanics",
+          "title": "Renovation",
+          "group": "mechanics",
+          "type": "list",
+          "itemLabel": "Renovation",
+          "numbered": true,
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Personal",
+              "keep": true
+            },
+            {
+              "key": "Personal elements",
+              "includes": "Renovation",
+              "keep": true
+            }
+          ],
+          "itemFields": [
+            {
+              "key": "Trigger",
+              "title": "Trigger: what does the player do?",
+              "type": "text",
+              "placeholder": "e.g. Player completes a daily quest..."
+            },
+            {
+              "key": "System response",
+              "title": "System response: what happens in return?",
+              "type": "text",
+              "placeholder": "e.g. +15 points added to weekly score..."
+            },
+            {
+              "key": "Goal supported",
+              "title": "Goal supported: what goal does this bring the player closer to?",
+              "type": "text",
+              "placeholder": "e.g. Encourages daily engagement..."
+            },
+            {
+              "key": "Linked mechanics",
+              "type": "multi",
+              "display": "mechanics"
+            }
+          ]
+        },
+        {
+          "key": "Sensation mechanics",
+          "title": "Sensation",
+          "group": "mechanics",
+          "type": "list",
+          "itemLabel": "Sensation",
+          "numbered": true,
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Personal",
+              "keep": true
+            },
+            {
+              "key": "Personal elements",
+              "includes": "Sensation",
+              "keep": true
+            }
+          ],
+          "itemFields": [
+            {
+              "key": "Trigger",
+              "title": "Trigger: what does the player do?",
+              "type": "text",
+              "placeholder": "e.g. Player completes a daily quest..."
+            },
+            {
+              "key": "System response",
+              "title": "System response: what happens in return?",
+              "type": "text",
+              "placeholder": "e.g. +15 points added to weekly score..."
+            },
+            {
+              "key": "Goal supported",
+              "title": "Goal supported: what goal does this bring the player closer to?",
+              "type": "text",
+              "placeholder": "e.g. Encourages daily engagement..."
+            },
+            {
+              "key": "Linked mechanics",
+              "type": "multi",
+              "display": "mechanics"
+            }
+          ]
+        },
+        {
+          "key": "Fictional elements",
+          "title": "Fictional game elements",
+          "group": "mechanics",
+          "type": "single",
+          "display": "chips",
+          "options": [
+            {
+              "value": "Narrative"
+            },
+            {
+              "value": "Storytelling"
+            }
+          ],
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Fictional",
+              "keep": true
+            }
+          ]
+        },
+        {
+          "key": "Narrative mechanics",
+          "title": "Narrative",
+          "group": "mechanics",
+          "type": "list",
+          "itemLabel": "Narrative",
+          "numbered": true,
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Fictional",
+              "keep": true
+            },
+            {
+              "key": "Fictional elements",
+              "includes": "Narrative",
+              "keep": true
+            }
+          ],
+          "itemFields": [
+            {
+              "key": "Trigger",
+              "title": "Trigger: what does the player do?",
+              "type": "text",
+              "placeholder": "e.g. Player completes a daily quest..."
+            },
+            {
+              "key": "System response",
+              "title": "System response: what happens in return?",
+              "type": "text",
+              "placeholder": "e.g. +15 points added to weekly score..."
+            },
+            {
+              "key": "Goal supported",
+              "title": "Goal supported: what goal does this bring the player closer to?",
+              "type": "text",
+              "placeholder": "e.g. Encourages daily engagement..."
+            },
+            {
+              "key": "Linked mechanics",
+              "type": "multi",
+              "display": "mechanics"
+            }
+          ]
+        },
+        {
+          "key": "Storytelling mechanics",
+          "title": "Storytelling",
+          "group": "mechanics",
+          "type": "list",
+          "itemLabel": "Storytelling",
+          "numbered": true,
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Fictional",
+              "keep": true
+            },
+            {
+              "key": "Fictional elements",
+              "includes": "Storytelling",
+              "keep": true
+            }
+          ],
+          "itemFields": [
+            {
+              "key": "Trigger",
+              "title": "Trigger: what does the player do?",
+              "type": "text",
+              "placeholder": "e.g. Player completes a daily quest..."
+            },
+            {
+              "key": "System response",
+              "title": "System response: what happens in return?",
+              "type": "text",
+              "placeholder": "e.g. +15 points added to weekly score..."
+            },
+            {
+              "key": "Goal supported",
+              "title": "Goal supported: what goal does this bring the player closer to?",
+              "type": "text",
+              "placeholder": "e.g. Encourages daily engagement..."
+            },
+            {
+              "key": "Linked mechanics",
+              "type": "multi",
+              "display": "mechanics"
+            }
+          ]
+        },
+        {
+          "key": "Ecological elements",
+          "title": "Ecological game elements",
+          "group": "mechanics",
+          "type": "single",
+          "display": "chips",
+          "options": [
+            {
+              "value": "Chance"
+            },
+            {
+              "value": "Imposed choice"
+            },
+            {
+              "value": "Economy"
+            },
+            {
+              "value": "Rarity"
+            },
+            {
+              "value": "Time pressure"
+            }
+          ],
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Ecological",
+              "keep": true
+            }
+          ]
+        },
+        {
+          "key": "Chance mechanics",
+          "title": "Chance",
+          "group": "mechanics",
+          "type": "list",
+          "itemLabel": "Chance",
+          "numbered": true,
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Ecological",
+              "keep": true
+            },
+            {
+              "key": "Ecological elements",
+              "includes": "Chance",
+              "keep": true
+            }
+          ],
+          "itemFields": [
+            {
+              "key": "Trigger",
+              "title": "Trigger: what does the player do?",
+              "type": "text",
+              "placeholder": "e.g. Player completes a daily quest..."
+            },
+            {
+              "key": "System response",
+              "title": "System response: what happens in return?",
+              "type": "text",
+              "placeholder": "e.g. +15 points added to weekly score..."
+            },
+            {
+              "key": "Goal supported",
+              "title": "Goal supported: what goal does this bring the player closer to?",
+              "type": "text",
+              "placeholder": "e.g. Encourages daily engagement..."
+            },
+            {
+              "key": "Linked mechanics",
+              "type": "multi",
+              "display": "mechanics"
+            }
+          ]
+        },
+        {
+          "key": "Imposed choice mechanics",
+          "title": "Imposed choice",
+          "group": "mechanics",
+          "type": "list",
+          "itemLabel": "Imposed choice",
+          "numbered": true,
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Ecological",
+              "keep": true
+            },
+            {
+              "key": "Ecological elements",
+              "includes": "Imposed choice",
+              "keep": true
+            }
+          ],
+          "itemFields": [
+            {
+              "key": "Trigger",
+              "title": "Trigger: what does the player do?",
+              "type": "text",
+              "placeholder": "e.g. Player completes a daily quest..."
+            },
+            {
+              "key": "System response",
+              "title": "System response: what happens in return?",
+              "type": "text",
+              "placeholder": "e.g. +15 points added to weekly score..."
+            },
+            {
+              "key": "Goal supported",
+              "title": "Goal supported: what goal does this bring the player closer to?",
+              "type": "text",
+              "placeholder": "e.g. Encourages daily engagement..."
+            },
+            {
+              "key": "Linked mechanics",
+              "type": "multi",
+              "display": "mechanics"
+            }
+          ]
+        },
+        {
+          "key": "Economy mechanics",
+          "title": "Economy",
+          "group": "mechanics",
+          "type": "list",
+          "itemLabel": "Economy",
+          "numbered": true,
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Ecological",
+              "keep": true
+            },
+            {
+              "key": "Ecological elements",
+              "includes": "Economy",
+              "keep": true
+            }
+          ],
+          "itemFields": [
+            {
+              "key": "Trigger",
+              "title": "Trigger: what does the player do?",
+              "type": "text",
+              "placeholder": "e.g. Player completes a daily quest..."
+            },
+            {
+              "key": "System response",
+              "title": "System response: what happens in return?",
+              "type": "text",
+              "placeholder": "e.g. +15 points added to weekly score..."
+            },
+            {
+              "key": "Goal supported",
+              "title": "Goal supported: what goal does this bring the player closer to?",
+              "type": "text",
+              "placeholder": "e.g. Encourages daily engagement..."
+            },
+            {
+              "key": "Linked mechanics",
+              "type": "multi",
+              "display": "mechanics"
+            }
+          ]
+        },
+        {
+          "key": "Rarity mechanics",
+          "title": "Rarity",
+          "group": "mechanics",
+          "type": "list",
+          "itemLabel": "Rarity",
+          "numbered": true,
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Ecological",
+              "keep": true
+            },
+            {
+              "key": "Ecological elements",
+              "includes": "Rarity",
+              "keep": true
+            }
+          ],
+          "itemFields": [
+            {
+              "key": "Trigger",
+              "title": "Trigger: what does the player do?",
+              "type": "text",
+              "placeholder": "e.g. Player completes a daily quest..."
+            },
+            {
+              "key": "System response",
+              "title": "System response: what happens in return?",
+              "type": "text",
+              "placeholder": "e.g. +15 points added to weekly score..."
+            },
+            {
+              "key": "Goal supported",
+              "title": "Goal supported: what goal does this bring the player closer to?",
+              "type": "text",
+              "placeholder": "e.g. Encourages daily engagement..."
+            },
+            {
+              "key": "Linked mechanics",
+              "type": "multi",
+              "display": "mechanics"
+            }
+          ]
+        },
+        {
+          "key": "Time pressure mechanics",
+          "title": "Time pressure",
+          "group": "mechanics",
+          "type": "list",
+          "itemLabel": "Time pressure",
+          "numbered": true,
+          "showIf": [
+            {
+              "key": "Game element categories",
+              "includes": "Ecological",
+              "keep": true
+            },
+            {
+              "key": "Ecological elements",
+              "includes": "Time pressure",
+              "keep": true
+            }
+          ],
+          "itemFields": [
+            {
+              "key": "Trigger",
+              "title": "Trigger: what does the player do?",
+              "type": "text",
+              "placeholder": "e.g. Player completes a daily quest..."
+            },
+            {
+              "key": "System response",
+              "title": "System response: what happens in return?",
+              "type": "text",
+              "placeholder": "e.g. +15 points added to weekly score..."
+            },
+            {
+              "key": "Goal supported",
+              "title": "Goal supported: what goal does this bring the player closer to?",
+              "type": "text",
+              "placeholder": "e.g. Encourages daily engagement..."
+            },
+            {
+              "key": "Linked mechanics",
+              "type": "multi",
+              "display": "mechanics"
+            }
+          ]
+        },
+        {
+          "key": "Primary progression type",
+          "title": "Primary progression type",
+          "group": "progression",
+          "type": "multi",
+          "display": "checks",
+          "options": [
+            {
+              "value": "Character power"
+            },
+            {
+              "value": "Player skill"
+            },
+            {
+              "value": "Content unlocks"
+            },
+            {
+              "value": "Rule knowledge"
+            },
+            {
+              "value": "Narrative progression"
+            },
+            {
+              "value": "Collection"
+            },
+            {
+              "value": "Meta-progression",
+              "info": "Progress that persists between runs or sessions, even when a single attempt ends."
+            }
+          ],
+          "required": true
+        },
+        {
+          "key": "Progression structure",
+          "title": "Progression structure",
+          "group": "progression",
+          "type": "multi",
+          "display": "checks",
+          "options": [
+            {
+              "value": "Linear"
+            },
+            {
+              "value": "Branching",
+              "info": "The player chooses between different paths, each leading to different content."
+            },
+            {
+              "value": "Open-ended",
+              "info": "No fixed end point: players set their own goals and keep progressing."
+            },
+            {
+              "value": "Hub-and-spoke",
+              "info": "A central hub from which the player reaches separate areas or missions and then returns."
+            },
+            {
+              "value": "Procedural",
+              "info": "The progression path is generated by the system instead of being fixed in advance."
+            },
+            {
+              "value": "Cyclical",
+              "info": "Progress happens in repeating cycles, such as seasons or runs, that reset and start again."
+            }
+          ]
+        },
+        {
+          "key": "Main source of progression",
+          "title": "Main source of progression",
+          "group": "progression",
+          "type": "multi",
+          "display": "checks",
+          "options": [
+            {
+              "value": "Core gameplay loop"
+            },
+            {
+              "value": "Side activities"
+            },
+            {
+              "value": "Exploration"
+            },
+            {
+              "value": "Story progression"
+            },
+            {
+              "value": "Defeating enemies"
+            },
+            {
+              "value": "Crafting"
+            },
+            {
+              "value": "Social actions"
+            }
+          ]
+        },
+        {
+          "key": "Reward type",
+          "title": "Reward type",
+          "group": "progression",
+          "type": "multi",
+          "display": "checks",
+          "options": [
+            {
+              "value": "Power reward"
+            },
+            {
+              "value": "Utility reward"
+            },
+            {
+              "value": "Content access"
+            },
+            {
+              "value": "Information reward"
+            },
+            {
+              "value": "Narrative reward"
+            },
+            {
+              "value": "Cosmetic reward"
+            },
+            {
+              "value": "Resource reward"
+            }
+          ]
+        },
+        {
+          "key": "Difficulty growth",
+          "title": "Difficulty growth",
+          "group": "progression",
+          "type": "multi",
+          "display": "checks",
+          "options": [
+            {
+              "value": "Linear"
+            },
+            {
+              "value": "Stepped",
+              "info": "Difficulty stays flat for a while and then jumps up, for example at the start of a new level."
+            },
+            {
+              "value": "Branching",
+              "info": "Different paths have different difficulty, and the player picks one."
+            },
+            {
+              "value": "Adaptive"
+            },
+            {
+              "value": "Player-selected"
+            }
+          ]
+        },
+        {
+          "key": "Role of failure",
+          "title": "Role of failure",
+          "group": "progression",
+          "type": "multi",
+          "display": "checks",
+          "options": [
+            {
+              "value": "Full reset"
+            },
+            {
+              "value": "Partial reset"
+            },
+            {
+              "value": "Progress preserved"
+            },
+            {
+              "value": "Failure enables growth"
+            },
+            {
+              "value": "Failure does not affect progression"
+            }
+          ]
+        },
+        {
+          "key": "Progression structure in the project",
+          "label": "Describe the structure of progression in your project:",
+          "group": "progression",
+          "type": "text"
+        },
+        {
+          "key": "Modality",
+          "group": "modality",
+          "type": "single",
+          "display": "cards",
+          "options": [
+            {
+              "value": "Single player",
+              "description": "Solo experience. Simpler infrastructure, personal focus."
+            },
+            {
+              "value": "Cooperative",
+              "description": "Real-time collaboration toward shared goals."
+            },
+            {
+              "value": "Competitive / Cooperative",
+              "description": "Teams cooperate internally, but the teams compete against each other."
+            },
+            {
+              "value": "Competitive",
+              "description": "Real-time competition. Requires matchmaking."
+            }
+          ],
+          "required": true
+        },
+        {
+          "key": "Modality · Additional information",
+          "label": "*Additional information",
+          "group": "modality",
+          "type": "text"
+        },
+        {
+          "key": "Timing",
+          "group": "timing",
+          "type": "single",
+          "display": "cards",
+          "options": [
+            {
+              "value": "Asynchronous",
+              "description": "Players do not need to act at the same time; interaction happens across different time frames or turns."
+            },
+            {
+              "value": "Synchronous timing",
+              "description": "Players act at the same time, so the interaction depends on real-time coordination."
+            }
+          ],
+          "required": true
+        },
+        {
+          "key": "Timing · Additional information",
+          "label": "*Additional information",
+          "group": "timing",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Feedback and Evaluation",
+      "description": "Close the loop: define how the system communicates with players, then how you'll know if it's working. Work through these in order — each answer builds on the last.",
+      "summary": "Feedback components",
+      "optional": false,
+      "groups": [
+        {
+          "id": "feedback",
+          "title": "Feedback components"
+        }
+      ],
+      "fields": [
+        {
+          "key": "Feedback component",
+          "group": "feedback",
+          "type": "list",
+          "itemLabel": "New feedback component",
+          "required": true,
+          "itemFields": [
+            {
+              "key": "Process stage",
+              "title": "In which part of the process do you want to provide feedback?",
+              "type": "multi",
+              "display": "chips",
+              "options": [
+                {
+                  "value": "Onboarding"
+                },
+                {
+                  "value": "Core loop / mid-action"
+                },
+                {
+                  "value": "After failure"
+                },
+                {
+                  "value": "After success"
+                },
+                {
+                  "value": "Long loop / Milestone"
+                }
+              ],
+              "other": true
+            },
+            {
+              "key": "Message",
+              "title": "What do you prefer to communicate to the user?",
+              "type": "text",
+              "placeholder": "e.g. You were spotted because you ran across a noisy surface…"
+            },
+            {
+              "key": "Typology",
+              "title": "What is the feedback typology?",
+              "type": "multi",
+              "display": "chips",
+              "options": [
+                {
+                  "value": "Praise / Encouragement"
+                },
+                {
+                  "value": "Correction"
+                },
+                {
+                  "value": "Status updates"
+                },
+                {
+                  "value": "Alerts / Risks"
+                },
+                {
+                  "value": "Warning"
+                },
+                {
+                  "value": "Comparisons with others"
+                }
+              ],
+              "other": true
+            },
+            {
+              "key": "Content",
+              "title": "What is the feedback content?",
+              "type": "text",
+              "placeholder": "e.g. A red detection icon fills above the enemy's head, with a short alert stinger"
+            },
+            {
+              "key": "Timing",
+              "title": "What is the most suitable timing?",
+              "type": "multi",
+              "display": "chips",
+              "options": [
+                {
+                  "value": "Immediate"
+                },
+                {
+                  "value": "Delayed"
+                },
+                {
+                  "value": "Periodic"
+                },
+                {
+                  "value": "Milestone-based"
+                }
+              ],
+              "other": true
+            },
+            {
+              "key": "Timing details",
+              "label": "*Specify your feedback timings:",
+              "type": "text"
+            },
+            {
+              "key": "Modality",
+              "title": "What is the best modality?",
+              "type": "multi",
+              "display": "chips",
+              "options": [
+                {
+                  "value": "Visual"
+                },
+                {
+                  "value": "Audio"
+                },
+                {
+                  "value": "Haptic"
+                },
+                {
+                  "value": "Textual"
+                }
+              ]
+            },
+            {
+              "key": "Linked game mechanics",
+              "title": "What is the best game element that can support feedback?",
+              "type": "multi",
+              "display": "mechanics"
+            },
+            {
+              "key": "Presentation",
+              "title": "Feedback presentation:",
+              "type": "text",
+              "placeholder": "e.g. Top-right corner, 400ms fade-in, holds 2s, fades before HUD returns to idle state"
+            },
+            {
+              "key": "Implementation",
+              "title": "Feedback implementation:",
+              "type": "text",
+              "placeholder": "e.g. Fires from DetectionSystem.onSpotted(); suppress if player is already in combat state"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Technical requirements",
+      "description": "Ground your design in what's actually feasible to build — the platforms, engine, and constraints your team is working within.",
+      "summary": "Platforms, Engine, Performance, Data",
+      "optional": true,
+      "groups": [
+        {
+          "id": "platforms",
+          "title": "Platforms",
+          "description": "Select your target platforms — each one comes with its own constraints on your design."
+        },
+        {
+          "id": "engine",
+          "title": "Engine and technology stack",
+          "description": "Define your engine and technology stack; your choice of architecture dictates your production constraints."
+        },
+        {
+          "id": "runtime",
+          "title": "Runtime and controls",
+          "description": "Define where and how your game runs, and what players use to control it — this shapes both performance and what mechanics are possible."
+        },
+        {
+          "id": "display",
+          "title": "Display, audio, haptics",
+          "description": "Define how players interact physically with your system and note any accessibility options you're supporting."
+        },
+        {
+          "id": "performance",
+          "title": "Performance budgets",
+          "description": "Set concrete numbers now, so you're not redesigning around them later."
+        },
+        {
+          "id": "data",
+          "title": "Data, save and online",
+          "description": "Describe how progress is stored and recovered — lost progress is the fastest way to lose a player."
+        },
+        {
+          "id": "sdks",
+          "title": "External SDKs and integrations",
+          "description": "List every third-party SDK you depend on, so each risk is visible before it becomes a problem."
+        },
+        {
+          "id": "pipeline",
+          "title": "Content pipeline",
+          "description": "Describe your production tools and conventions, so ambitious content stays realistic to produce."
+        },
+        {
+          "id": "risks",
+          "title": "Technical risks",
+          "description": "Log technical unknowns as they come up — untracked risk is what causes late surprises."
+        }
+      ],
+      "fields": [
+        {
+          "key": "Platforms",
+          "group": "platforms",
+          "type": "multi",
+          "display": "chips",
+          "options": [
+            {
+              "value": "PC"
+            },
+            {
+              "value": "PlayStation 5"
+            },
+            {
+              "value": "Meta Quest 3"
+            },
+            {
+              "value": "Mobile"
+            },
+            {
+              "value": "Web"
+            },
+            {
+              "value": "Xbox / Switch"
+            }
+          ],
+          "other": true
+        },
+        {
+          "key": "Notes per platform",
+          "label": "Notes per platform (min/recommended device, orientation, mode):",
+          "group": "platforms",
+          "type": "text",
+          "placeholder": "e.g. PC: GTX 1060 min, RTX 3060 recommended. Quest: standalone, seated or standing"
+        },
+        {
+          "key": "Engine and version",
+          "label": "Engine and version:",
+          "group": "engine",
+          "type": "text",
+          "placeholder": "e.g. Unreal Engine 5.4"
+        },
+        {
+          "key": "Programming split",
+          "label": "Programming split:",
+          "group": "engine",
+          "type": "text",
+          "placeholder": "e.g. C++ for core systems, Blueprints for gameplay scripting"
+        },
+        {
+          "key": "Version control and build tooling",
+          "label": "Version control and build tooling:",
+          "group": "engine",
+          "type": "text",
+          "placeholder": "e.g. Perforce, Jenkins"
+        },
+        {
+          "key": "Target OS",
+          "title": "Target OS:",
+          "group": "runtime",
+          "type": "multi",
+          "display": "chips",
+          "options": [
+            {
+              "value": "Windows"
+            },
+            {
+              "value": "Console OS"
+            },
+            {
+              "value": "Android"
+            },
+            {
+              "value": "iOS"
+            },
+            {
+              "value": "Web"
+            }
+          ],
+          "other": true
+        },
+        {
+          "key": "Target frame rate",
+          "title": "Target frame rate:",
+          "group": "runtime",
+          "type": "multi",
+          "display": "chips",
+          "options": [
+            {
+              "value": "30 fps"
+            },
+            {
+              "value": "60 fps"
+            },
+            {
+              "value": "90 fps"
+            },
+            {
+              "value": "120 fps"
+            }
+          ],
+          "other": true
+        },
+        {
+          "key": "Session mode",
+          "title": "Session mode:",
+          "group": "runtime",
+          "type": "multi",
+          "display": "chips",
+          "options": [
+            {
+              "value": "Single-player"
+            },
+            {
+              "value": "Co-op"
+            },
+            {
+              "value": "Dedicated server"
+            }
+          ],
+          "other": true
+        },
+        {
+          "key": "Input devices",
+          "title": "Input devices:",
+          "group": "runtime",
+          "type": "multi",
+          "display": "chips",
+          "options": [
+            {
+              "value": "Keyboard + mouse"
+            },
+            {
+              "value": "Gamepad"
+            },
+            {
+              "value": "Touch"
+            },
+            {
+              "value": "VR controllers"
+            }
+          ],
+          "other": true
+        },
+        {
+          "key": "Accessibility",
+          "title": "Accessibility:",
+          "group": "runtime",
+          "type": "multi",
+          "display": "chips",
+          "options": [
+            {
+              "value": "Remapping"
+            },
+            {
+              "value": "Sensitivity/dead zones"
+            },
+            {
+              "value": "One-handed mode"
+            },
+            {
+              "value": "Subtitles"
+            },
+            {
+              "value": "Colorblind support"
+            }
+          ],
+          "other": true
+        },
+        {
+          "key": "Runtime and controls · Additional information",
+          "label": "*Additional information",
+          "group": "runtime",
+          "type": "text"
+        },
+        {
+          "key": "Per-platform minimums",
+          "label": "Per-platform minimums:",
+          "group": "display",
+          "type": "text",
+          "placeholder": "e.g. PC: 1080p, stereo audio. Quest: 72 Hz, controller haptics"
+        },
+        {
+          "key": "VR comfort options",
+          "label": "*VR comfort options (if VR is selected above):",
+          "group": "display",
+          "type": "multi",
+          "display": "chips",
+          "options": [
+            {
+              "value": "Snap turning"
+            },
+            {
+              "value": "Smooth turning"
+            },
+            {
+              "value": "Teleport"
+            },
+            {
+              "value": "Vignette"
+            },
+            {
+              "value": "Seated/standing"
+            }
+          ],
+          "other": true
+        },
+        {
+          "key": "Target frame rate (budget)",
+          "label": "Target frame rate:",
+          "group": "performance",
+          "type": "text",
+          "placeholder": "e.g. 60 FPS"
+        },
+        {
+          "key": "Target frame rate (budget) · TBD",
+          "group": "performance",
+          "type": "multi",
+          "display": "checks",
+          "options": [
+            {
+              "value": "TBD — confirm after prototype"
+            }
+          ]
+        },
+        {
+          "key": "Frame budget (ms)",
+          "label": "Frame budget (ms):",
+          "group": "performance",
+          "type": "text",
+          "placeholder": "e.g. 16.6 ms"
+        },
+        {
+          "key": "Frame budget (ms) · TBD",
+          "group": "performance",
+          "type": "multi",
+          "display": "checks",
+          "options": [
+            {
+              "value": "TBD — confirm after prototype"
+            }
+          ]
+        },
+        {
+          "key": "Loading time",
+          "label": "Loading time:",
+          "group": "performance",
+          "type": "text",
+          "placeholder": "e.g. under 8 seconds on target SSD"
+        },
+        {
+          "key": "Loading time · TBD",
+          "group": "performance",
+          "type": "multi",
+          "display": "checks",
+          "options": [
+            {
+              "value": "TBD — confirm after prototype"
+            }
+          ]
+        },
+        {
+          "key": "Memory ceiling",
+          "label": "Memory ceiling:",
+          "group": "performance",
+          "type": "text",
+          "placeholder": "e.g. maximum 10 GB RAM on PC minimum spec"
+        },
+        {
+          "key": "Memory ceiling · TBD",
+          "group": "performance",
+          "type": "multi",
+          "display": "checks",
+          "options": [
+            {
+              "value": "TBD — confirm after prototype"
+            }
+          ]
+        },
+        {
+          "key": "Draw calls",
+          "label": "Draw calls:",
+          "group": "performance",
+          "type": "text",
+          "placeholder": "e.g. target under 2,000 per frame on minimum GPU"
+        },
+        {
+          "key": "Draw calls · TBD",
+          "group": "performance",
+          "type": "multi",
+          "display": "checks",
+          "options": [
+            {
+              "value": "TBD — confirm after prototype"
+            }
+          ]
+        },
+        {
+          "key": "Performance budgets · Additional information",
+          "label": "*Additional information",
+          "group": "performance",
+          "type": "text"
+        },
+        {
+          "key": "Save format and location",
+          "label": "Save format and location:",
+          "group": "data",
+          "type": "text",
+          "placeholder": "e.g. Local JSON, synced to cloud on save"
+        },
+        {
+          "key": "Save features",
+          "group": "data",
+          "type": "multi",
+          "display": "chips",
+          "options": [
+            {
+              "value": "Autosave"
+            },
+            {
+              "value": "Cloud save"
+            },
+            {
+              "value": "Cross-progression"
+            }
+          ],
+          "other": true
+        },
+        {
+          "key": "Multiplayer architecture and offline capability",
+          "label": "Multiplayer architecture and offline capability:",
+          "group": "data",
+          "type": "text",
+          "placeholder": "e.g. Dedicated server for ranked; core loop playable fully offline"
+        },
+        {
+          "key": "SDK",
+          "group": "sdks",
+          "type": "list",
+          "itemLabel": "SDK",
+          "itemFields": [
+            {
+              "key": "SDK name",
+              "type": "text",
+              "display": "input",
+              "placeholder": "SDK name (e.g. Steamworks)"
+            },
+            {
+              "key": "Requirement",
+              "type": "single",
+              "display": "select",
+              "options": [
+                {
+                  "value": "Required"
+                },
+                {
+                  "value": "Optional"
+                },
+                {
+                  "value": "Fallback needed"
+                }
+              ]
+            },
+            {
+              "key": "Purpose",
+              "title": "Purpose",
+              "type": "multi",
+              "display": "chips",
+              "options": [
+                {
+                  "value": "Achievements"
+                },
+                {
+                  "value": "Cloud save"
+                },
+                {
+                  "value": "Trophies"
+                },
+                {
+                  "value": "Analytics"
+                },
+                {
+                  "value": "Anti-cheat"
+                },
+                {
+                  "value": "Localization"
+                }
+              ],
+              "other": true
+            },
+            {
+              "key": "Owner",
+              "label": "Owner:",
+              "type": "text",
+              "display": "input",
+              "placeholder": "e.g. Backend engineer"
+            }
+          ]
+        },
+        {
+          "key": "DCC and texture tools",
+          "title": "DCC and texture tools",
+          "group": "pipeline",
+          "type": "multi",
+          "display": "chips",
+          "options": [
+            {
+              "value": "Blender"
+            },
+            {
+              "value": "Maya"
+            },
+            {
+              "value": "Houdini"
+            },
+            {
+              "value": "Substance Painter"
+            },
+            {
+              "value": "Photoshop"
+            }
+          ],
+          "other": true
+        },
+        {
+          "key": "Audio middleware",
+          "label": "Audio middleware:",
+          "group": "pipeline",
+          "type": "single",
+          "display": "select",
+          "options": [
+            {
+              "value": "FMOD"
+            },
+            {
+              "value": "Wwise"
+            },
+            {
+              "value": "Other"
+            }
+          ]
+        },
+        {
+          "key": "Naming, import, and compression conventions",
+          "title": "Naming, import, and compression conventions",
+          "group": "pipeline",
+          "type": "text",
+          "display": "input",
+          "placeholder": "e.g. PascalCase for assets, 2K texture cap, LOD0–2 required"
+        },
+        {
+          "key": "Risk",
+          "group": "risks",
+          "type": "list",
+          "itemLabel": "Risk",
+          "itemFields": [
+            {
+              "key": "Description",
+              "label": "Risk:",
+              "type": "text",
+              "display": "input",
+              "placeholder": "e.g. Quest build may not support planned dynamic light count"
+            },
+            {
+              "key": "Owner",
+              "label": "Owner:",
+              "type": "text",
+              "display": "input",
+              "placeholder": "e.g. Rendering programmer"
+            },
+            {
+              "key": "Status",
+              "label": "Status:",
+              "type": "single",
+              "display": "select",
+              "options": [
+                {
+                  "value": "Open"
+                },
+                {
+                  "value": "Monitoring"
+                },
+                {
+                  "value": "Resolved"
+                }
+              ]
+            },
+            {
+              "key": "Impact and validation",
+              "label": "Impact and validation:",
+              "type": "text",
+              "display": "input",
+              "placeholder": "e.g. Levels must use baked lighting; validate via performance prototype at vertical slice"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

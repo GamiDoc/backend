@@ -66,6 +66,8 @@ type Status struct {
 	FirstPassDone bool                    `json:"firstPassDone"`
 	Sections      map[string]SectionState `json:"sections"`
 	Reports       []Report                `json:"reports,omitempty"`
+	// Prefill: progress and explanations of the AI prefill started by the Spark.
+	Prefill *PrefillState `json:"prefill,omitempty"`
 }
 
 func NewInitialStatus() Status {

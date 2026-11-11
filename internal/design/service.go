@@ -35,6 +35,16 @@ func (s *Service) ApplyPrefill(current Status, prefill map[string]json.RawMessag
 	return current
 }
 
+// HasEmptySection reports whether at least one section has no content (something to prefill).
+func (s *Service) HasEmptySection(current Status) bool {
+	for number := 1; number <= SectionCount; number++ {
+		if len(current.Section(number).Content) == 0 {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *Service) SaveSection(current Status, number int, content json.RawMessage, complete *bool, skip bool) (Status, error) {
 	current = withSections(current)
 	if number < 1 || number > SectionCount {

@@ -69,6 +69,15 @@ type Config struct {
 	AIAPIKey   string
 	AIModel    string
 	AITimeout  time.Duration
+	// AIResponseFormat is how structured (JSON) answers are requested from the provider:
+	// "json_schema" (strict structured outputs), "json_object" or "none" (schema in the prompt).
+	AIResponseFormat string
+	// AIPrefillTimeout bounds a whole Spark prefill (analysis + one call per section).
+	AIPrefillTimeout time.Duration
+	// AIFallbackModels (OpenRouter only): comma-separated models tried when AIModel fails.
+	AIFallbackModels []string
+	// AIPrefillMode: "sections" (one AI call per section) or "single" (one call in all).
+	AIPrefillMode string
 }
 
 func Load() Config {
@@ -123,6 +132,10 @@ func Load() Config {
 		AIAPIKey:                       getEnv("AI_API_KEY", ""),
 		AIModel:                        getEnv("AI_MODEL", ""),
 		AITimeout:                      parseDurationWithFallback(getEnv("AI_TIMEOUT", "60s"), 60*time.Second),
+		AIResponseFormat:               getEnv("AI_RESPONSE_FORMAT", "json_schema"),
+		AIPrefillTimeout:               parseDurationWithFallback(getEnv("AI_PREFILL_TIMEOUT", "20m"), 20*time.Minute),
+		AIFallbackModels:               getEnvCSV("AI_FALLBACK_MODELS", nil),
+		AIPrefillMode:                  strings.ToLower(strings.TrimSpace(getEnv("AI_PREFILL_MODE", "sections"))),
 	}
 }
 
@@ -285,6 +298,14 @@ func (c Config) AIProviderNormalized() string {
 	}
 }
 
+func (c Config) AIResponseFormatNormalized() string {
+	value := strings.ToLower(strings.TrimSpace(c.AIResponseFormat))
+	if value == "" {
+		return "json_schema"
+	}
+	return value
+}
+
 func (c Config) ValidateAI() error {
 	switch c.AIProviderNormalized() {
 	case "noop":
@@ -299,7 +320,15 @@ func (c Config) ValidateAI() error {
 		if strings.TrimSpace(c.AIModel) == "" {
 			return errors.New("ai model is required")
 		}
-		return nil
+		if c.AIPrefillMode != "sections" && c.AIPrefillMode != "single" {
+			return fmt.Errorf("unsupported ai prefill mode: %s", c.AIPrefillMode)
+		}
+		switch c.AIResponseFormatNormalized() {
+		case "json_schema", "json_object", "none":
+			return nil
+		default:
+			return fmt.Errorf("unsupported ai response format: %s", c.AIResponseFormat)
+		}
 	default:
 		return fmt.Errorf("unsupported ai provider: %s", c.AIProvider)
 	}
