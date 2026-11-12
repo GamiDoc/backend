@@ -3,12 +3,14 @@ package objectstore
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"strings"
 
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/smithy-go"
 )
 
 type S3StoreConfig struct {
@@ -114,4 +116,23 @@ func (s *S3Store) KeyFromURL(url string) (string, bool) {
 
 func stringPtr(value string) *string {
 	return &value
+}
+
+func (s *S3Store) Exists(ctx context.Context, key string) (bool, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	_, err := s.client.HeadObject(ctx, &s3.HeadObjectInput{
+		Bucket: &s.bucket,
+		Key:    stringPtr(trimLeftSlash(key)),
+	})
+	if err == nil {
+		return true, nil
+	}
+	var apiErr smithy.APIError
+	if errors.As(err, &apiErr) && (apiErr.ErrorCode() == "NotFound" || apiErr.ErrorCode() == "NoSuchKey") {
+		return false, nil
+	}
+	return false, err
 }

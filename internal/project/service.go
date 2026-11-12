@@ -31,10 +31,11 @@ type SessionProjectReader interface {
 	Delete(ctx context.Context, sessionID string) error
 }
 
-// PDFCleaner allows deleting a stored PDF file by URL.
+// PDFCleaner allows deleting a stored PDF file by URL and checking it still exists.
 type PDFCleaner interface {
 	KeyFromURL(url string) (string, bool)
 	Delete(ctx context.Context, key string) error
+	Exists(ctx context.Context, key string) (bool, error)
 }
 
 type Service struct {
@@ -167,6 +168,23 @@ func (s *Service) Get(ctx context.Context, userID string, projectID string) (Pro
 	}
 
 	return found, nil
+}
+
+// WithoutMissingPDF clears the evaluation PDF URL when its file is no longer stored
+// (e.g. lost with the local disk of an earlier deploy), so the client offers to
+// generate it again instead of a broken download.
+func (s *Service) WithoutMissingPDF(ctx context.Context, p Project) Project {
+	if s.store == nil || p.PDFURL == nil || *p.PDFURL == "" {
+		return p
+	}
+	key, ok := s.store.KeyFromURL(*p.PDFURL)
+	if !ok {
+		return p
+	}
+	if exists, err := s.store.Exists(ctx, key); err == nil && !exists {
+		p.PDFURL = nil
+	}
+	return p
 }
 
 func normalizeListOptions(options ListOptions) ListOptions {

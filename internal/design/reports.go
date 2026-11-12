@@ -142,6 +142,23 @@ func documentIDFor(designID string) string {
 	return "DES-" + compact
 }
 
+// MarkMissing flags the reports whose file is no longer in the object store. If the
+// store cannot be checked, the report is left as available.
+func (r *ReportService) MarkMissing(ctx context.Context, reports []Report) []Report {
+	marked := make([]Report, len(reports))
+	for i, report := range reports {
+		marked[i] = report
+		key, ok := r.store.KeyFromURL(report.URL)
+		if !ok {
+			continue
+		}
+		if exists, err := r.store.Exists(ctx, key); err == nil && !exists {
+			marked[i].Missing = true
+		}
+	}
+	return marked
+}
+
 func (r *ReportService) List(ctx context.Context, projectID string) ([]Report, error) {
 	return r.repo.ListByProjectID(ctx, projectID)
 }

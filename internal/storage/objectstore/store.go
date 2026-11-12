@@ -9,6 +9,8 @@ type ObjectStore interface {
 	Save(ctx context.Context, key string, data []byte) (string, error)
 	Read(ctx context.Context, key string) ([]byte, error)
 	Delete(ctx context.Context, key string) error
+	// Exists reports whether a file is stored under key (false, nil when it is not).
+	Exists(ctx context.Context, key string) (bool, error)
 	KeyFromURL(url string) (string, bool)
 }
 

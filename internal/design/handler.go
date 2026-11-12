@@ -198,6 +198,7 @@ func (h *Handler) getState(w http.ResponseWriter, r *http.Request, o owner) {
 		return
 	}
 
+	status.Reports = h.reports.MarkMissing(r.Context(), status.Reports)
 	response.WriteJSON(w, http.StatusOK, h.documents.withLiveness(o, h.prefill.withLiveness(o, status)))
 }
 
@@ -381,6 +382,7 @@ func (h *Handler) listReports(w http.ResponseWriter, r *http.Request, o owner) {
 		response.WriteError(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "Internal server error", nil)
 		return
 	}
+	reports = h.reports.MarkMissing(r.Context(), reports)
 
 	response.WriteJSON(w, http.StatusOK, map[string]any{
 		"reports": reports,

@@ -101,3 +101,32 @@ func TestCreateFromSessionCopiesPDFAndDeletesSession(t *testing.T) {
 		t.Fatalf("expected repository input to include pdf url")
 	}
 }
+
+type fakePDFStore struct{ stored map[string]bool }
+
+func (s fakePDFStore) KeyFromURL(url string) (string, bool) {
+	const prefix = "/files/pdfs/"
+	if len(url) <= len(prefix) || url[:len(prefix)] != prefix {
+		return "", false
+	}
+	return url[len(prefix):], true
+}
+
+func (s fakePDFStore) Delete(ctx context.Context, key string) error { return nil }
+
+func (s fakePDFStore) Exists(ctx context.Context, key string) (bool, error) {
+	return s.stored[key], nil
+}
+
+func TestWithoutMissingPDFClearsURLOfLostFile(t *testing.T) {
+	service := NewService(nil, nil, wizard.NewService(), recommendation.NewService(recommendation.NewEngine(nil))).
+		WithPDFCleaner(fakePDFStore{stored: map[string]bool{"kept.pdf": true}})
+
+	kept, lost := "/files/pdfs/kept.pdf", "/files/pdfs/lost.pdf"
+	if got := service.WithoutMissingPDF(context.Background(), Project{PDFURL: &kept}); got.PDFURL == nil {
+		t.Fatal("stored PDF hidden")
+	}
+	if got := service.WithoutMissingPDF(context.Background(), Project{PDFURL: &lost}); got.PDFURL != nil {
+		t.Fatal("lost PDF still offered")
+	}
+}

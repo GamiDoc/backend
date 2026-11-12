@@ -40,6 +40,11 @@ func (s *fakeObjectStore) Delete(ctx context.Context, key string) error {
 	return nil
 }
 
+func (s *fakeObjectStore) Exists(ctx context.Context, key string) (bool, error) {
+	_, ok := s.items[key]
+	return ok, nil
+}
+
 func (s *fakeObjectStore) KeyFromURL(url string) (string, bool) {
 	const prefix = "/files/pdfs/"
 	if len(url) <= len(prefix) || url[:len(prefix)] != prefix {

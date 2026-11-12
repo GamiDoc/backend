@@ -115,7 +115,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.WriteJSON(w, http.StatusOK, found)
+	response.WriteJSON(w, http.StatusOK, h.service.WithoutMissingPDF(r.Context(), found))
 }
 
 func parseListOptions(r *http.Request) (ListOptions, error) {

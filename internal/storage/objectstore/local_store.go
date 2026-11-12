@@ -46,6 +46,17 @@ func (s *LocalStore) Delete(ctx context.Context, key string) error {
 	return err
 }
 
+func (s *LocalStore) Exists(ctx context.Context, key string) (bool, error) {
+	path := filepath.Join(s.rootDir, filepath.FromSlash(trimLeftSlash(key)))
+	if _, err := os.Stat(path); err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
 func (s *LocalStore) KeyFromURL(url string) (string, bool) {
 	base := trimRightSlash(s.baseURL)
 	prefix := base + "/"

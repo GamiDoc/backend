@@ -137,4 +137,7 @@ type Report struct {
 	Version   string    `json:"version"`
 	URL       string    `json:"url"`
 	CreatedAt time.Time `json:"createdAt"`
+	// Missing: the file is no longer in the object store (e.g. lost with the local disk
+	// of an earlier deploy). Set when listing, never stored.
+	Missing bool `json:"missing,omitempty"`
 }

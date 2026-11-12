@@ -102,3 +102,19 @@ func TestIsImageUpload(t *testing.T) {
 		}
 	}
 }
+
+func TestMarkMissingFlagsReportsWithoutFile(t *testing.T) {
+	reports, _ := newImageReports(t)
+	url, err := reports.SaveImage(context.Background(), "sessions", "s-1", samplePNG(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	marked := reports.MarkMissing(context.Background(), []Report{
+		{ID: "kept", URL: url},
+		{ID: "lost", URL: "/files/pdfs/design/sessions/s-1/lost.pdf"},
+	})
+	if marked[0].Missing || !marked[1].Missing {
+		t.Fatalf("expected only the lost report to be missing, got %+v", marked)
+	}
+}
