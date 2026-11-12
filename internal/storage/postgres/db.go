@@ -5,18 +5,25 @@ import (
 	"database/sql"
 	"time"
 
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/stdlib"
 )
 
 type DB struct {
 	sql *sql.DB
 }
 
+// New opens the pool with pgx in simple protocol: no prepared statements, so it also works
+// behind a pooler in transaction mode (Supabase, port 6543), where prepared statements land
+// on different server connections ("unnamed prepared statement does not exist"). JSON
+// parameters are passed as strings: in simple protocol []byte would be sent as bytea.
 func New(dsn string) (*DB, error) {
-	db, err := sql.Open("postgres", dsn)
+	config, err := pgx.ParseConfig(dsn)
 	if err != nil {
 		return nil, err
 	}
+	config.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
+	db := stdlib.OpenDB(*config)
 
 	db.SetConnMaxLifetime(30 * time.Minute)
 	db.SetMaxOpenConns(10)

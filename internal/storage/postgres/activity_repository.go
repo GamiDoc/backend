@@ -50,7 +50,7 @@ func (r *ActivityRepository) Save(ctx context.Context, event activity.Event) err
 		event.Path,
 		event.StatusCode,
 		durationMS,
-		metadata,
+		string(metadata),
 		event.CreatedAt,
 	)
 	return err

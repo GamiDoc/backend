@@ -35,7 +35,7 @@ func (r *ProjectRepository) Create(ctx context.Context, input project.Project) (
 		input.UserID,
 		input.Name,
 		nullableString(input.Description),
-		wizardData,
+		string(wizardData),
 		nullableStringPtr(input.PDFURL),
 	)
 
@@ -132,7 +132,7 @@ func (r *ProjectRepository) UpdateWizard(ctx context.Context, projectID string, 
 		RETURNING id, user_id, name, description, wizard_data, pdf_url, created_at, updated_at
 		`,
 		projectID,
-		wizardData,
+		string(wizardData),
 	)
 
 	found, err := scanProject(row)
