@@ -2,8 +2,7 @@ package design
 
 import (
 	"context"
-	"errors"
-	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -12,56 +11,101 @@ import (
 	"github.com/google/uuid"
 )
 
-var ErrAssistant = errors.New("assistant error")
-
-type GeneratedReports struct {
-	Standard Report `json:"standard"`
-	Enhanced Report `json:"enhanced"`
+// RenderImage is an uploaded image printed in a document.
+type RenderImage struct {
+	Label string
+	Data  []byte
+	Type  string // "PNG" or "JPG"
+	Name  string // storage key
 }
 
+// ReportService produces the final documents of a design (see document.go) and keeps
+// track of them.
 type ReportService struct {
 	assistant ai.Assistant
-	builder   *ReportBuilder
+	renderer  HTMLRenderer // nil: plain PDF only
 	store     objectstore.ObjectStore
 	repo      ReportRepository
+	logger    *slog.Logger
 }
 
-func NewReportService(assistant ai.Assistant, builder *ReportBuilder, store objectstore.ObjectStore, repo ReportRepository) *ReportService {
+func NewReportService(assistant ai.Assistant, renderer HTMLRenderer, store objectstore.ObjectStore, repo ReportRepository) *ReportService {
 	return &ReportService{
 		assistant: assistant,
-		builder:   builder,
+		renderer:  renderer,
 		store:     store,
 		repo:      repo,
+		logger:    slog.Default(),
 	}
 }
 
-func (r *ReportService) Generate(ctx context.Context, kind string, id string, status Status) (GeneratedReports, error) {
-	standardSections := renderStandard(status)
-	enhancedSections, err := r.renderEnhanced(ctx, status)
-	if err != nil {
-		return GeneratedReports{}, fmt.Errorf("%w: %v", ErrAssistant, err)
+// Generate writes the document in the given format (AI when available, otherwise the
+// entered data only), prints it to PDF and stores it. kind is "sessions" or "projects".
+func (r *ReportService) Generate(ctx context.Context, kind string, id string, status Status, format string) (Report, error) {
+	if !ValidReportFormat(format) {
+		return Report{}, ErrInvalidReportVersion
 	}
-	r.attachImages(ctx, status, standardSections, enhancedSections)
+	logger := r.logger.With("design", kind+":"+id, "format", format)
 
-	standard, err := r.produce(ctx, kind, id, status, ReportVersionStandard, standardSections)
-	if err != nil {
-		return GeneratedReports{}, err
+	var document any
+	withAI := false
+	if ai.SupportsJSON(r.assistant) {
+		var thin *ReportDoc
+		// A thin report (blocks without explanations) is asked again once.
+		for attempt := 1; attempt <= 2 && document == nil; attempt++ {
+			generated, err := GenerateDocument(ctx, r.assistant, format, status)
+			if err != nil {
+				logger.Error("document generation failed", "attempt", attempt, "error", err)
+				break
+			}
+			if report, ok := generated.(*ReportDoc); ok {
+				if completeness := reportCompleteness(report); completeness < 0.6 {
+					logger.Warn("thin design report", "attempt", attempt, "completeness", completeness, "sample", firstBlockSample(report))
+					thin = report
+					continue
+				}
+			}
+			document, withAI = generated, true
+		}
+		if document == nil && thin != nil {
+			document, withAI = completeThinReport(thin, status), true
+		}
+	}
+	if document == nil {
+		document = fallbackDocument(format, status)
 	}
 
-	enhanced, err := r.produce(ctx, kind, id, status, ReportVersionEnhanced, enhancedSections)
-	if err != nil {
-		return GeneratedReports{}, err
+	documentID := documentIDFor(id)
+	images := map[int][]RenderImage{}
+	for number := 1; number <= SectionCount; number++ {
+		if list, _ := r.sectionImages(ctx, status.Section(number).Content); len(list) > 0 {
+			images[number] = list
+		}
 	}
 
-	return GeneratedReports{Standard: standard, Enhanced: enhanced}, nil
-}
-
-func (r *ReportService) produce(ctx context.Context, kind string, id string, status Status, version string, sections []RenderSection) (Report, error) {
-	data, err := r.builder.Build("Gamification Design Report", version, status.Spark, sections)
+	data, err := r.render(ctx, document, format, status, documentID, images, withAI, logger)
 	if err != nil {
 		return Report{}, err
 	}
+	return r.saveDocument(ctx, kind, id, format, data)
+}
 
+func (r *ReportService) render(ctx context.Context, document any, format string, status Status, documentID string, images map[int][]RenderImage, withAI bool, logger *slog.Logger) ([]byte, error) {
+	if r.renderer != nil {
+		html, err := RenderDocumentHTML(document, format, status, documentID, images, withAI)
+		if err != nil {
+			return nil, err
+		}
+		data, err := r.renderer.RenderHTML(ctx, html)
+		if err == nil {
+			return data, nil
+		}
+		logger.Error("html to pdf failed, printing a plain pdf", "error", err)
+	}
+	return RenderDocumentPlainPDF(document, format, status, documentID)
+}
+
+func (r *ReportService) saveDocument(ctx context.Context, kind string, id string, format string, data []byte) (Report, error) {
 	reportID := uuid.NewString()
 	key := "design/" + kind + "/" + id + "/" + reportID + ".pdf"
 	url, err := r.store.Save(ctx, key, data)
@@ -71,12 +115,12 @@ func (r *ReportService) produce(ctx context.Context, kind string, id string, sta
 
 	report := Report{
 		ID:        reportID,
-		Version:   version,
+		Version:   format,
 		URL:       url,
 		CreatedAt: time.Now().UTC(),
 	}
 
-	if kind == "projects" {
+	if kind == "projects" && r.repo != nil {
 		report.ProjectID = id
 		created, err := r.repo.Create(ctx, report)
 		if err != nil {
@@ -89,27 +133,13 @@ func (r *ReportService) produce(ctx context.Context, kind string, id string, sta
 	return report, nil
 }
 
-// attachImages adds the uploaded images of each section to both versions of the report.
-// In the standard version the "label: URL" line of an image is replaced by the image itself.
-func (r *ReportService) attachImages(ctx context.Context, status Status, standard []RenderSection, enhanced []RenderSection) {
-	for i := range standard {
-		images, labels := r.sectionImages(ctx, status.Section(standard[i].Number).Content)
-		if len(images) == 0 {
-			continue
-		}
-		lines := standard[i].Lines[:0:0]
-		for _, line := range standard[i].Lines {
-			label, _, _ := strings.Cut(line, ": ")
-			if !labels[label] {
-				lines = append(lines, line)
-			}
-		}
-		standard[i].Lines = lines
-		standard[i].Images = images
-		if i < len(enhanced) {
-			enhanced[i].Images = images
-		}
+// documentIDFor gives a short, stable document id for a design ("DES-1A2B3C").
+func documentIDFor(designID string) string {
+	compact := strings.ToUpper(strings.ReplaceAll(designID, "-", ""))
+	if len(compact) > 6 {
+		compact = compact[:6]
 	}
+	return "DES-" + compact
 }
 
 func (r *ReportService) List(ctx context.Context, projectID string) ([]Report, error) {
@@ -128,55 +158,4 @@ func (r *ReportService) Persist(ctx context.Context, projectID string, reports [
 		}
 	}
 	return nil
-}
-
-func renderStandard(status Status) []RenderSection {
-	var sections []RenderSection
-	for number := 1; number <= SectionCount; number++ {
-		sections = append(sections, RenderSection{
-			Number: number,
-			Name:   SectionName(number),
-			Lines:  SectionLines(status.Section(number).Content),
-		})
-	}
-	return sections
-}
-
-func (r *ReportService) renderEnhanced(ctx context.Context, status Status) ([]RenderSection, error) {
-	var inputs []ai.SectionText
-	for number := 1; number <= SectionCount; number++ {
-		text := SectionPlainText(status.Section(number).Content)
-		if text == "" {
-			continue
-		}
-		inputs = append(inputs, ai.SectionText{
-			Number: number,
-			Name:   SectionName(number),
-			Text:   text,
-		})
-	}
-
-	enhanced, err := r.assistant.Enhance(ctx, inputs)
-	if err != nil {
-		return nil, err
-	}
-
-	prose := make(map[int]string, len(enhanced))
-	for _, section := range enhanced {
-		prose[section.Number] = section.Text
-	}
-
-	var sections []RenderSection
-	for number := 1; number <= SectionCount; number++ {
-		var lines []string
-		if text, ok := prose[number]; ok && text != "" {
-			lines = []string{text}
-		}
-		sections = append(sections, RenderSection{
-			Number: number,
-			Name:   SectionName(number),
-			Lines:  lines,
-		})
-	}
-	return sections, nil
 }

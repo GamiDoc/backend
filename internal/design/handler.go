@@ -36,6 +36,7 @@ type Handler struct {
 	projectStates StateStore
 	locks         *ownerLocks
 	prefill       *prefillRunner
+	documents     *reportRunner
 }
 
 func NewHandler(
@@ -58,6 +59,7 @@ func NewHandler(
 		projectStates: projectStates,
 		locks:         locks,
 		prefill:       newPrefillRunner(NewPrefiller(assistant), service, locks),
+		documents:     newReportRunner(reports, locks),
 	}
 }
 
@@ -65,6 +67,10 @@ func NewHandler(
 func (h *Handler) WithLogger(logger *slog.Logger) *Handler {
 	if logger != nil {
 		h.prefill.logger = logger
+		h.documents.logger = logger
+		if h.reports != nil {
+			h.reports.logger = logger
+		}
 	}
 	return h
 }
@@ -192,7 +198,7 @@ func (h *Handler) getState(w http.ResponseWriter, r *http.Request, o owner) {
 		return
 	}
 
-	response.WriteJSON(w, http.StatusOK, h.prefill.withLiveness(o, status))
+	response.WriteJSON(w, http.StatusOK, h.documents.withLiveness(o, h.prefill.withLiveness(o, status)))
 }
 
 // saveSpark stores the Spark and, if it is not empty and AI is available, starts the
@@ -322,10 +328,21 @@ func (h *Handler) dashboard(w http.ResponseWriter, r *http.Request, o owner) {
 	response.WriteJSON(w, http.StatusOK, dashboard)
 }
 
+// generatePDF starts the generation of a final document ({"format": "report" | "gdd"}) in
+// the background; the result appears in designStatus.reportJob.
 func (h *Handler) generatePDF(w http.ResponseWriter, r *http.Request, o owner) {
-	var input struct{}
+	var input struct {
+		Format string `json:"format"`
+	}
 	if err := decodeOptional(r, &input); err != nil {
 		response.WriteError(w, http.StatusBadRequest, "INVALID_INPUT", "Invalid request body", nil)
+		return
+	}
+	if input.Format == "" {
+		input.Format = ReportFormatReport
+	}
+	if !ValidReportFormat(input.Format) {
+		response.WriteError(w, http.StatusBadRequest, "INVALID_REPORT_FORMAT", "Format must be \"report\" or \"gdd\"", nil)
 		return
 	}
 
@@ -343,25 +360,19 @@ func (h *Handler) generatePDF(w http.ResponseWriter, r *http.Request, o owner) {
 		return
 	}
 
-	generated, err := h.reports.Generate(r.Context(), o.kind, o.id, status)
-	if err != nil {
-		if errors.Is(err, ErrAssistant) {
-			response.WriteError(w, http.StatusBadGateway, "AI_PROVIDER_ERROR", "AI provider error", nil)
-			return
-		}
+	job, ctx := h.documents.prepare(o, input.Format)
+	status.ReportJob = job
+	if err := o.states.Save(r.Context(), o.id, status); err != nil {
+		h.documents.release(o, job.JobID)
 		response.WriteError(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "Internal server error", nil)
 		return
 	}
+	go h.documents.run(ctx, o, *job, status)
 
-	if o.kind == "sessions" {
-		status.Reports = append(status.Reports, generated.Standard, generated.Enhanced)
-		if err := o.states.Save(r.Context(), o.id, status); err != nil {
-			response.WriteError(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "Internal server error", nil)
-			return
-		}
-	}
-
-	response.WriteJSON(w, http.StatusOK, generated)
+	response.WriteJSON(w, http.StatusAccepted, map[string]any{
+		"designStatus": status,
+		"reportJob":    job,
+	})
 }
 
 func (h *Handler) listReports(w http.ResponseWriter, r *http.Request, o owner) {

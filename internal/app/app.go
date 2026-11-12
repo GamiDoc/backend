@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/gamidoc/backend/config"
 	"github.com/gamidoc/backend/internal/activity"
@@ -142,9 +143,21 @@ func New(cfg config.Config) (*App, error) {
 		return nil, err
 	}
 
+	// Final documents are HTML printed by Chromium: Gotenberg when configured, else a
+	// local Chrome/Edge; without either, a plain PDF.
+	var documentRenderer design.HTMLRenderer
+	if strings.TrimSpace(cfg.PDFHTMLRendererURL) != "" {
+		documentRenderer = pdf.NewGotenbergHTMLRenderer(cfg.PDFHTMLRendererURL, cfg.PDFHTMLRendererTimeout)
+	} else if !strings.EqualFold(strings.TrimSpace(cfg.PDFChromePath), "none") {
+		if chrome, ok := pdf.FindChrome(cfg.PDFChromePath); ok {
+			documentRenderer = pdf.NewChromeHTMLRenderer(chrome, 2*time.Minute)
+			logger.Info("design documents printed with a local browser", "path", chrome)
+		}
+	}
+
 	designReports := design.NewReportService(
 		assistant,
-		design.NewReportBuilder(),
+		documentRenderer,
 		store,
 		postgres.NewDesignReportRepository(pg),
 	)

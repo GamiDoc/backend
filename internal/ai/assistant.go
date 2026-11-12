@@ -17,12 +17,6 @@ type Section struct {
 	Name   string
 }
 
-type SectionText struct {
-	Number int
-	Name   string
-	Text   string
-}
-
 // JSONRequest asks the model for an answer that is a JSON value matching Schema
 // (a JSON Schema document). Name identifies the schema towards the provider.
 type JSONRequest struct {
@@ -38,7 +32,6 @@ type Assistant interface {
 	// CompleteJSON returns the model's answer as raw JSON. The answer is guaranteed to be
 	// valid JSON, not to match the schema: callers must validate it.
 	CompleteJSON(ctx context.Context, request JSONRequest) (json.RawMessage, error)
-	Enhance(ctx context.Context, sections []SectionText) ([]SectionText, error)
 }
 
 // SupportsJSON reports whether the assistant can answer CompleteJSON (a real model is

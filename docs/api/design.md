@@ -66,10 +66,21 @@ The section schema (fields, options, conditions) comes from the frontend: `npm r
 
 | Field | Value |
 | --- | --- |
-| Body | optional; when present it must be valid JSON |
-| Success | `200` `{ "standard": { "reportId", "version", "url", "createdAt" }, "enhanced": {...} }` |
-| Errors | `400 INVALID_INPUT`, `403 DASHBOARD_LOCKED`, `502 AI_PROVIDER_ERROR` (AI failures), `500 INTERNAL_SERVER_ERROR` (build, storage, or database failures) |
-| Notes | One trigger produces both report versions: `standard` mirrors the form content in order, `enhanced` is AI-consolidated prose with cross-section deduplication. Project reports are recorded in `design_reports`; session reports are kept in the session design state. Section values that are URLs of uploaded design images are printed as the image itself (with their key as caption) in both versions |
+| Body | `{ "format": "report" \| "gdd" }` (default `report`) |
+| Success | `202` `{ "designStatus", "reportJob": { "jobId", "format", "state": "running", "startedAt" } }` |
+| Errors | `400 INVALID_INPUT`, `400 INVALID_REPORT_FORMAT`, `403 DASHBOARD_LOCKED`, `500 INTERNAL_SERVER_ERROR` |
+| Notes | Starts the generation of one final document **in the background** (one AI request, 1–3 minutes). Poll `GET .../design` while `reportJob.state` is `running`; when `done`, `reportJob.report` holds `{ reportId, version, url, createdAt }` (`version` = the format). A new request replaces the previous job. Project reports are recorded in `design_reports`; session reports are kept in the session design state |
+
+### Final documents
+
+Two formats, chosen by the user:
+
+- `report` — **Design report**, a reasoned report with sources: the design at a glance (who, what, motivation, how we will know, main risk), core and long loop diagram, then one section per design section with the choices made, *why*, *in the design* and *watch out*, feedback cards, how the choices fit together, link to the evaluation, glossary and references.
+- `gdd` — **Game Design Document**: design on one page (high concept, pillars, loops), players and Hexad types, core gameplay and rules, one card per game system (purpose, rules, values, feedback, risks, GamiDoc fields), progression and rewards, player journey, adaptation rules, feedback, technical requirements, risks, success metrics, rationale, glossary and references.
+
+The AI answers with JSON constrained by a schema generated from the Go structs (`internal/design/document.go`). References come from a curated catalogue (`document_generate.go`): the AI cites them only by id, the document renumbers them; the glossary is built from the descriptions of the options chosen. A report without explanations is asked again once and otherwise completed with the entered data; without AI (or if it fails) the document lists the entered data only.
+
+Documents are HTML (`internal/design/doctemplates`) printed by Chromium: Gotenberg when `PDF_HTML_RENDERER_URL` is set, otherwise a local Chrome/Edge (`PDF_CHROME_PATH`, empty = auto-detect, `none` = disabled); without either, a plain PDF. Uploaded design images are embedded in the document.
 
 ## `POST .../design/images`
 

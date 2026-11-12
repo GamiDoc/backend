@@ -1,0 +1,178 @@
+{{define "gdd"}}<!doctype html>
+<html><head><meta charset="utf-8"><title>{{.Doc.Title}} · {{.FormatTitle}}</title>
+<style>{{.CSS}}
+@page { @bottom-left { content: {{.FooterCSS}}; font: 7.5pt "IBM Plex Sans", "Segoe UI", Helvetica, Arial, sans-serif; color: #8a8f98; } }
+@page :first { @bottom-left { content: ""; } @bottom-right { content: ""; } }
+</style></head>
+<body>
+{{$doc := .Doc}}
+
+<!-- Cover -->
+<section class="cover">
+    <div class="cover-top">
+        <span class="brand">GamiDoc</span>
+        <span class="cover-type">{{.FormatTitle}}</span>
+    </div>
+    <div class="cover-main">
+        <div class="cover-heading">
+            <h1 class="cover-title">{{$doc.Title}}</h1>
+            {{if $doc.Subtitle}}<p class="cover-subtitle">{{$doc.Subtitle}}</p>{{end}}
+            <div class="cover-meta">{{.Date}} <span class="sep">·</span> {{.DocumentID}}</div>
+        </div>
+    </div>
+    <div class="cover-bottom">
+        <div class="contents-title">Contents</div>
+        <ol class="contents">{{range .Contents}}<li>{{.}}</li>{{end}}</ol>
+        <p class="cover-note">{{.Note}}</p>
+    </div>
+</section>
+
+<!-- Design on one page -->
+<section class="page-break">
+    <h2 class="page-title">Design on one page</h2>
+    {{if $doc.HighConcept}}<p class="serif"><b>High concept.</b> {{$doc.HighConcept}}</p>{{end}}
+    <table class="stats">
+        {{if $doc.Domain}}<tr><th>Domain</th><td>{{$doc.Domain}}</td></tr>{{end}}
+        {{if $doc.Players}}<tr><th>Players</th><td>{{$doc.Players}}</td></tr>{{end}}
+        {{if $doc.TargetBehaviour}}<tr><th>Target behaviour</th><td>{{$doc.TargetBehaviour}}</td></tr>{{end}}
+        {{if $doc.Modality}}<tr><th>Modality</th><td>{{$doc.Modality}}</td></tr>{{end}}
+    </table>
+    {{if $doc.Pillars}}
+    <div class="label">Design pillars</div>
+    <div class="pillars">{{range $i, $p := $doc.Pillars}}<div class="pillar"><b>{{add $i 1}} · {{$p.Title}}</b>{{$p.Text}}</div>{{end}}</div>
+    {{end}}
+    {{template "loops" $doc.Loops}}
+    {{range .AllImages}}<figure class="figure"><img src="{{.Src}}" alt="{{.Label}}"><figcaption>{{.Label}}</figcaption></figure>{{end}}
+    {{if $doc.OutOfScope}}<p class="out-of-scope"><b>Out of scope for v1:</b> {{$doc.OutOfScope}}</p>{{end}}
+</section>
+
+{{if or $doc.PlayerAspects $doc.PlayerTypes}}
+<section class="page-break">
+    <h2 class="section-title"><span class="num auto"></span>Players</h2>
+    {{if $doc.PlayerAspects}}
+    <table><tr><th>Aspect</th><th>Description</th></tr>
+        {{range $doc.PlayerAspects}}<tr><td><b>{{.Name}}</b></td><td>{{.Value}}</td></tr>{{end}}</table>
+    {{end}}
+    {{if $doc.PlayerTypes}}
+    <div class="block-title">Player types (Hexad) and what serves them</div>
+    <table><tr><th>Type</th><th>Motivated by</th><th>Served by</th></tr>
+        {{range $doc.PlayerTypes}}<tr><td><b>{{.Type}}</b></td><td>{{.MotivatedBy}}</td><td>{{.ServedBy}}</td></tr>{{end}}</table>
+    {{end}}
+</section>
+{{end}}
+
+{{if or $doc.LoopRows $doc.GlobalRules}}
+<section>
+    <h2 class="section-title"><span class="num auto"></span>Core gameplay</h2>
+    {{if $doc.LoopRows}}
+    <table><tr><th>Loop</th><th>Steps</th><th>Frequency</th></tr>
+        {{range $doc.LoopRows}}<tr><td><b>{{.Loop}}</b></td><td>{{.Steps}}</td><td>{{.Frequency}}</td></tr>{{end}}</table>
+    {{end}}
+    {{if $doc.GlobalRules}}<div class="block-title">Global rules</div><ul>{{range $doc.GlobalRules}}<li>{{.}}</li>{{end}}</ul>{{end}}
+</section>
+{{end}}
+
+{{if $doc.Systems}}
+<section class="page-break">
+    <h2 class="section-title"><span class="num auto"></span>Game systems</h2>
+    {{range $doc.Systems}}
+    <div class="system">
+        <div class="system-head"><b>{{.Name}}</b><span class="system-id">{{.ID}}</span></div>
+        <div class="system-body">
+            {{if .Purpose}}<p><b>Purpose.</b> {{.Purpose}}</p>{{end}}
+            {{if .Rules}}<div class="label">Rules</div><ul>{{range .Rules}}<li>{{.}}</li>{{end}}</ul>{{end}}
+            {{if .Values}}<div class="label">Values</div>
+                <table><tr><th>Parameter</th><th>Value</th></tr>{{range .Values}}<tr><td>{{.Name}}</td><td>{{.Value}}</td></tr>{{end}}</table>{{end}}
+            {{if .Feedback}}<div class="label">Feedback</div><ul>{{range .Feedback}}<li>{{.}}</li>{{end}}</ul>{{end}}
+            {{if .Risks}}<div class="label">Risks and safeguards</div><p>{{.Risks}}</p>{{end}}
+            {{if .FromGamiDoc}}<div class="from">From GamiDoc: {{.FromGamiDoc}}</div>{{end}}
+        </div>
+    </div>
+    {{end}}
+</section>
+{{end}}
+
+{{if or $doc.Progression $doc.Rewards}}
+<section>
+    <h2 class="section-title"><span class="num auto"></span>Progression and rewards</h2>
+    {{if $doc.Progression}}<p>{{$doc.Progression}}</p>{{end}}
+    {{if $doc.Rewards}}
+    <table><tr><th>Reward</th><th>Type</th><th>Where it appears</th></tr>
+        {{range $doc.Rewards}}<tr><td><b>{{.Reward}}</b></td><td>{{.Type}}</td><td>{{.Where}}</td></tr>{{end}}</table>
+    {{end}}
+</section>
+{{end}}
+
+{{if $doc.Journey}}
+<section>
+    <h2 class="section-title"><span class="num auto"></span>Player journey</h2>
+    <table><tr><th>Moment</th><th>What the player does</th><th>What the system does</th><th>Risk to watch</th></tr>
+        {{range $doc.Journey}}<tr><td><b>{{.Moment}}</b></td><td>{{.PlayerDoes}}</td><td>{{.SystemDoes}}</td><td>{{.Risk}}</td></tr>{{end}}</table>
+</section>
+{{end}}
+
+{{if $doc.Adaptation}}
+<section>
+    <h2 class="section-title"><span class="num auto"></span>Adaptation rules</h2>
+    {{if $doc.AdaptationNote}}<p>{{$doc.AdaptationNote}}</p>{{end}}
+    <table><tr><th>If…</th><th>Then the system…</th><th>Player control</th></tr>
+        {{range $doc.Adaptation}}<tr><td>{{.If}}</td><td>{{.Then}}</td><td>{{.PlayerControl}}</td></tr>{{end}}</table>
+</section>
+{{end}}
+
+{{if $doc.Feedback}}
+<section>
+    <h2 class="section-title"><span class="num auto"></span>Feedback and screens</h2>
+    <table><tr><th>ID</th><th>Moment</th><th>Example message</th><th>Channel and timing</th><th>System</th></tr>
+        {{range $doc.Feedback}}<tr><td><b>{{.ID}}</b></td><td>{{.Moment}}</td><td class="quote">"{{.Message}}"</td><td>{{.Channel}}</td><td>{{.Systems}}</td></tr>{{end}}</table>
+</section>
+{{end}}
+
+{{if $doc.Technical}}
+<section>
+    <h2 class="section-title"><span class="num auto"></span>Technical requirements</h2>
+    <table><tr><th>Area</th><th>Requirement</th></tr>
+        {{range $doc.Technical}}<tr><td><b>{{.Name}}</b></td><td>{{.Value}}</td></tr>{{end}}</table>
+</section>
+{{end}}
+
+{{if $doc.Risks}}
+<section>
+    <h2 class="section-title"><span class="num auto"></span>Risks</h2>
+    <table><tr><th>Risk</th><th>Mitigation</th><th>Systems</th></tr>
+        {{range $doc.Risks}}<tr><td>{{.Risk}}</td><td>{{.Mitigation}}</td><td>{{.Systems}}</td></tr>{{end}}</table>
+</section>
+{{end}}
+
+{{if $doc.Metrics}}
+<section>
+    <h2 class="section-title"><span class="num auto"></span>Success metrics</h2>
+    <table><tr><th>Metric</th><th>Target</th><th>How it is measured</th></tr>
+        {{range $doc.Metrics}}<tr><td><b>{{.Metric}}</b></td><td>{{.Target}}</td><td>{{.How}}</td></tr>{{end}}</table>
+</section>
+{{end}}
+
+{{if $doc.Rationale}}
+<section class="page-break">
+    <h2 class="section-title"><span class="num">A</span>Appendix A · Design rationale</h2>
+    <p class="caption">Why the main choices were made. Numbers in brackets refer to the references in Appendix B.</p>
+    {{range $doc.Rationale}}<p class="serif"><b>{{.Title}}.</b> {{.Text}}{{cite .Refs}}</p>{{end}}
+</section>
+{{end}}
+
+{{if or .Glossary $doc.Terms .References}}
+<section>
+    <h2 class="section-title"><span class="num">B</span>Appendix B · Glossary and references</h2>
+    {{if or .Glossary $doc.Terms}}
+    <table class="glossary-group"><tr><th>Term</th><th>Meaning</th></tr>
+        {{range $doc.Terms}}<tr><td>{{.Term}}</td><td>{{.Meaning}}</td></tr>{{end}}
+        {{range .Glossary}}<tr class="group-row"><td colspan="2">{{.Title}}</td></tr>
+            {{range .Terms}}<tr><td>{{.Term}}</td><td>{{.Meaning}}</td></tr>{{end}}
+        {{end}}
+    </table>
+    {{end}}
+    {{if .References}}<div class="block-title">References</div><ol class="refs">{{range .References}}<li>{{.Text}}</li>{{end}}</ol>{{end}}
+</section>
+{{end}}
+</body></html>
+{{end}}

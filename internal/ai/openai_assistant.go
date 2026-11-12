@@ -9,7 +9,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -260,43 +259,4 @@ func (a *OpenAIAssistant) Chat(ctx context.Context, section Section, message str
 		section.Name,
 	)
 	return a.complete(ctx, system, message)
-}
-
-func (a *OpenAIAssistant) Enhance(ctx context.Context, sections []SectionText) ([]SectionText, error) {
-	var filtered []SectionText
-	var parts []string
-	for _, section := range sections {
-		if strings.TrimSpace(section.Text) == "" {
-			continue
-		}
-		filtered = append(filtered, section)
-		parts = append(parts, fmt.Sprintf("Section %d (%s):\n%s", section.Number, section.Name, section.Text))
-	}
-	if len(filtered) == 0 {
-		return nil, nil
-	}
-
-	answer, err := a.complete(ctx,
-		"Rewrite the raw notes of a gamification design report into naturally readable prose, section by section. Preserve the meaning and facts; do not add new claims. Where content repeats across sections, keep it in the most fitting section and drop the repetitions elsewhere. Reply with a JSON object whose keys are the section numbers as strings and whose values are the prose strings. Reply with JSON only.",
-		strings.Join(parts, "\n\n"),
-	)
-	if err != nil {
-		return nil, err
-	}
-	answer = strings.TrimPrefix(answer, "```json")
-	answer = strings.Trim(answer, "` \n")
-
-	var decoded map[string]string
-	if err := json.Unmarshal([]byte(answer), &decoded); err != nil {
-		return nil, fmt.Errorf("ai provider returned unparseable enhancement: %w", err)
-	}
-
-	result := make([]SectionText, 0, len(filtered))
-	for _, section := range filtered {
-		if prose, ok := decoded[strconv.Itoa(section.Number)]; ok && strings.TrimSpace(prose) != "" {
-			section.Text = strings.TrimSpace(prose)
-		}
-		result = append(result, section)
-	}
-	return result, nil
 }

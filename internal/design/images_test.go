@@ -32,7 +32,7 @@ func samplePNG(t *testing.T) []byte {
 func newImageReports(t *testing.T) (*ReportService, *objectstore.LocalStore) {
 	t.Helper()
 	store := objectstore.NewLocalStore(t.TempDir(), "/files/pdfs")
-	return NewReportService(ai.NewNoopAssistant(), NewReportBuilder(), store, nil), store
+	return NewReportService(ai.NewNoopAssistant(), nil, store, nil), store
 }
 
 func TestSaveImageStoresPNGUnderTheOwner(t *testing.T) {
@@ -60,7 +60,7 @@ func TestSaveImageRejectsOtherTypes(t *testing.T) {
 	}
 }
 
-func TestReportReplacesImageURLWithTheImage(t *testing.T) {
+func TestDocumentIncludesUploadedImages(t *testing.T) {
 	reports, _ := newImageReports(t)
 	url, err := reports.SaveImage(context.Background(), "sessions", "s-1", samplePNG(t))
 	if err != nil {
@@ -71,26 +71,20 @@ func TestReportReplacesImageURLWithTheImage(t *testing.T) {
 	status := NewInitialStatus()
 	status.Sections[SectionKey(4)] = SectionState{Content: content, Visited: true}
 
-	standard := renderStandard(status)
-	enhanced, _ := reports.renderEnhanced(context.Background(), status)
-	reports.attachImages(context.Background(), status, standard, enhanced)
-
-	section := standard[3]
-	if len(section.Images) != 1 || section.Images[0].Label != "Loop diagram" {
-		t.Fatalf("expected the loop diagram image, got %+v", section.Images)
-	}
-	for _, line := range section.Lines {
-		if strings.Contains(line, url) {
-			t.Fatalf("image URL still printed as text: %q", line)
-		}
-	}
-	if len(section.Lines) != 1 {
-		t.Fatalf("expected the other line to stay, got %v", section.Lines)
+	images, labels := reports.sectionImages(context.Background(), status.Section(4).Content)
+	if len(images) != 1 || images[0].Label != "Loop diagram" || !labels["Loop diagram"] {
+		t.Fatalf("expected the loop diagram image, got %+v", images)
 	}
 
-	pdf, err := NewReportBuilder().Build("Report", ReportVersionStandard, "", standard)
-	if err != nil || !bytes.HasPrefix(pdf, []byte("%PDF")) {
-		t.Fatalf("PDF with image not built: %v", err)
+	html, err := RenderDocumentHTML(fallbackDocument(ReportFormatGDD, status), ReportFormatGDD, status, "DES-1", map[int][]RenderImage{4: images}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(html, "data:image/png;base64,") {
+		t.Fatal("image not embedded in the document")
+	}
+	if strings.Contains(html, url) {
+		t.Fatal("image URL printed as text")
 	}
 }
 

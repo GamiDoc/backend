@@ -19,4 +19,9 @@ if [[ "${AI_PROVIDER:-noop}" != "noop" && -z "${AI_API_KEY:-}" ]]; then
     exit 1
 fi
 
+# Git Bash (MSYS) rewrites env values that look like paths when starting Windows programs
+# (e.g. OBJECT_STORAGE_PUBLIC_BASE_URL=/files/pdfs -> C:/Program Files/Git/files/pdfs):
+# keep the values as written. No effect on Linux and macOS.
+export MSYS_NO_PATHCONV=1 MSYS2_ENV_CONV_EXCL='*'
+
 exec go run ./cmd/gamidoc-backend "${@:-serve}"

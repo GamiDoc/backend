@@ -1,0 +1,153 @@
+{{define "loops"}}
+{{if .Core.Steps}}
+<div class="loop core">
+    <div class="loop-label core">CORE LOOP{{if .CoreLabel}} · {{.CoreLabel}}{{end}}</div>
+    <div class="loop-row">
+        {{range $i, $s := .Core.Steps}}{{if $i}}<div class="arrow">→</div>{{end}}
+        <div class="loop-step"><b>{{add $i 1}}. {{$s.Title}}</b><span>{{$s.Text}}</span></div>
+        {{end}}
+    </div>
+    {{if .Core.Repeat}}<div class="loop-repeat">{{.Core.Repeat}}</div>{{end}}
+</div>
+{{end}}
+{{if and .Link .Long.Steps}}<div class="loop-link">{{.Link}}</div>{{end}}
+{{if .Long.Steps}}
+<div class="loop long">
+    <div class="loop-label long">LONG LOOP{{if .LongLabel}} · {{.LongLabel}}{{end}}</div>
+    <div class="loop-row">
+        {{range $i, $s := .Long.Steps}}{{if $i}}<div class="arrow">→</div>{{end}}
+        <div class="loop-step"><b>{{$s.Title}}</b><span>{{$s.Text}}</span></div>
+        {{end}}
+    </div>
+    {{if .Long.Repeat}}<div class="loop-repeat">{{.Long.Repeat}}</div>{{end}}
+</div>
+{{end}}
+{{end}}
+
+{{define "report"}}<!doctype html>
+<html><head><meta charset="utf-8"><title>{{.Doc.Title}} · {{.FormatTitle}}</title>
+<style>{{.CSS}}
+@page { @bottom-left { content: {{.FooterCSS}}; font: 7.5pt "IBM Plex Sans", "Segoe UI", Helvetica, Arial, sans-serif; color: #8a8f98; } }
+@page :first { @bottom-left { content: ""; } @bottom-right { content: ""; } }
+</style></head>
+<body>
+{{$doc := .Doc}}{{$v := .}}
+
+<!-- Cover -->
+<section class="cover">
+    <div class="cover-top">
+        <span class="brand">GamiDoc</span>
+        <span class="cover-type">{{.FormatTitle}}</span>
+    </div>
+    <div class="cover-main">
+        <div class="cover-heading">
+            <h1 class="cover-title">{{$doc.Title}}</h1>
+            {{if $doc.Subtitle}}<p class="cover-subtitle">{{$doc.Subtitle}}</p>{{end}}
+            <div class="cover-meta">{{.Date}} <span class="sep">·</span> {{.DocumentID}}</div>
+        </div>
+    </div>
+    <div class="cover-bottom">
+        <div class="contents-title">Contents</div>
+        <ol class="contents">{{range .Contents}}<li>{{.}}</li>{{end}}</ol>
+        <p class="cover-note">{{.Note}}</p>
+    </div>
+</section>
+
+<!-- At a glance -->
+<section class="page-break">
+    <h2 class="page-title">The design at a glance</h2>
+    <div class="cards">
+        {{if $doc.Glance.ForWhom}}<div class="card"><div class="label">Who it is for</div>{{$doc.Glance.ForWhom}}</div>{{end}}
+        {{if $doc.Glance.WhatWeWant}}<div class="card"><div class="label">What we want them to do</div>{{$doc.Glance.WhatWeWant}}</div>{{end}}
+        {{if $doc.Glance.Motivation}}<div class="card"><div class="label">What motivates them</div>{{$doc.Glance.Motivation}}</div>{{end}}
+        {{if $doc.Glance.HowWeKnow}}<div class="card"><div class="label">How we will know it works</div>{{$doc.Glance.HowWeKnow}}</div>{{end}}
+        {{if $doc.Glance.MainRisk}}<div class="card risk"><div class="label">The main risk</div>{{$doc.Glance.MainRisk}}</div>{{end}}
+        {{if $doc.Glance.Addressing}}<div class="card risk"><div class="label">How we address it</div>{{$doc.Glance.Addressing}}</div>{{end}}
+    </div>
+    {{template "loops" $doc.Loops}}
+</section>
+
+<!-- Design sections -->
+{{range $i, $s := $doc.Sections}}
+<section{{if eq $i 0}} class="page-break"{{end}}>
+    <h2 class="section-title"><span class="num auto"></span>{{sectionTitle $s.Number}}</h2>
+    {{if $s.InShort}}<div class="in-short"><b>In short.</b> {{$s.InShort}}</div>{{end}}
+    {{if $s.Facts}}
+    <table class="facts">{{range $s.Facts}}<tr><td>{{.Label}}</td><td>{{.Value}}</td></tr>{{end}}</table>
+    {{end}}
+    {{range $s.Blocks}}
+    <div>
+        <div class="block-title">{{.Title}}{{if and .Term (ne .Term .Title)}} <span class="term">({{.Term}})</span>{{end}}</div>
+        {{with chips .Values}}<div class="chips">{{range .}}<span class="chip">{{.}}</span>{{end}}</div>{{end}}
+        {{range longValues .Values}}<p class="value-text">{{.}}</p>{{end}}
+        {{if .Why}}<div class="label">Why</div><p class="serif">{{.Why}}{{cite .Refs}}</p>{{end}}
+        {{if .InTheDesign}}<div class="label">In the design</div>
+            {{if .Numbered}}<ol class="serif">{{range .InTheDesign}}<li>{{.}}</li>{{end}}</ol>
+            {{else}}<ul class="serif">{{range .InTheDesign}}<li>{{.}}</li>{{end}}</ul>{{end}}
+        {{end}}
+        {{if .WatchOut}}<div class="watch-out"><b>Watch out.</b> {{.WatchOut}}</div>{{end}}
+    </div>
+    {{end}}
+    {{range $s.Feedback}}
+    <div class="fb">
+        <div class="fb-head"><span class="fb-id">{{.ID}}</span><span>{{.Moment}}</span></div>
+        {{if .Message}}<div class="fb-msg">"{{.Message}}"</div>{{end}}
+        <table class="facts">
+            {{if .When}}<tr><td>When</td><td>{{.When}}</td></tr>{{end}}
+            {{if .Type}}<tr><td>Type</td><td>{{.Type}}</td></tr>{{end}}
+            {{if .Channel}}<tr><td>Channel</td><td>{{.Channel}}</td></tr>{{end}}
+            {{if .GameElement}}<tr><td>Game element</td><td>{{.GameElement}}</td></tr>{{end}}
+        </table>
+        {{if .WhyThisWay}}<p><b>Why this way.</b> {{.WhyThisWay}}</p>{{end}}
+        {{if .Technical}}<p class="caption"><b>Technical.</b> {{.Technical}}</p>{{end}}
+    </div>
+    {{end}}
+    {{if $s.Closing}}<p class="serif">{{$s.Closing}}</p>{{end}}
+    {{range index $v.Images $s.Number}}<figure class="figure"><img src="{{.Src}}" alt="{{.Label}}"><figcaption>{{.Label}}</figcaption></figure>{{end}}
+</section>
+{{end}}
+
+{{if $doc.Coherence}}
+<section>
+    <h2 class="section-title"><span class="num auto"></span>How the choices fit together</h2>
+    <div class="in-short"><b>In short.</b> Where the choices in different sections support each other, where they may conflict, and what is left uncovered.</div>
+    <table>
+        <tr><th>Outcome</th><th>Choices involved</th><th>How it is handled</th></tr>
+        {{range $doc.Coherence}}<tr><td><b>{{.Outcome}}</b></td><td>{{.Choices}}</td><td>{{.Handling}}</td></tr>{{end}}
+    </table>
+</section>
+{{end}}
+
+{{if $doc.Evaluation}}
+<section>
+    <h2 class="section-title"><span class="num auto"></span>Link to the evaluation</h2>
+    {{if $doc.EvalIntro}}<div class="in-short"><b>In short.</b> {{$doc.EvalIntro}}</div>{{end}}
+    <table>
+        <tr><th>Design choice</th><th>Evaluation goal</th><th>How it is measured</th></tr>
+        {{range $doc.Evaluation}}<tr><td>{{.Choice}}</td><td>{{.Goal}}</td><td>{{.Measure}}</td></tr>{{end}}
+    </table>
+    {{if $doc.Assumptions}}<div class="label">Assumptions</div><ul>{{range $doc.Assumptions}}<li>{{.}}</li>{{end}}</ul>{{end}}
+</section>
+{{end}}
+
+{{if .Glossary}}
+<section class="page-break">
+    <h2 class="section-title"><span class="num auto"></span>Glossary</h2>
+    <p>The terms used in GamiDoc and what they mean. Definitions come from the Design System catalogue.</p>
+    <table class="glossary-group">
+        <tr><th>Term in GamiDoc</th><th>Meaning</th></tr>
+        {{range .Glossary}}<tr class="group-row"><td colspan="2">{{.Title}}</td></tr>
+            {{range .Terms}}<tr><td>{{.Term}}</td><td>{{.Meaning}}</td></tr>{{end}}
+        {{end}}
+    </table>
+</section>
+{{end}}
+
+{{if .References}}
+<section>
+    <h2 class="section-title"><span class="num auto"></span>References</h2>
+    <ol class="refs">{{range .References}}<li>{{.Text}}</li>{{end}}</ol>
+</section>
+{{end}}
+</body></html>
+{{end}}

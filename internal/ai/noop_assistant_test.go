@@ -41,21 +41,3 @@ func TestNoopChat(t *testing.T) {
 		t.Fatal("expected non-empty guidance")
 	}
 }
-
-func TestNoopEnhanceDeduplicatesAcrossSections(t *testing.T) {
-	assistant := NewNoopAssistant()
-
-	result, err := assistant.Enhance(context.Background(), []SectionText{
-		{Number: 1, Name: "Context", Text: "students commute daily\nwalking is healthy"},
-		{Number: 6, Name: "Impacts & Benefits", Text: "walking is healthy\nless car traffic"},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(result) != 2 {
-		t.Fatalf("expected 2 sections, got %d", len(result))
-	}
-	if result[1].Text != "less car traffic" {
-		t.Fatalf("expected duplicate line dropped, got %q", result[1].Text)
-	}
-}

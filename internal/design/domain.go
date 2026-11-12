@@ -68,6 +68,8 @@ type Status struct {
 	Reports       []Report                `json:"reports,omitempty"`
 	// Prefill: progress and explanations of the AI prefill started by the Spark.
 	Prefill *PrefillState `json:"prefill,omitempty"`
+	// ReportJob: the last generation of a final document (see report_job.go).
+	ReportJob *ReportJobState `json:"reportJob,omitempty"`
 }
 
 func NewInitialStatus() Status {

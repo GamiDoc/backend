@@ -61,6 +61,9 @@ type Config struct {
 
 	PDFHTMLRendererURL     string
 	PDFHTMLRendererTimeout time.Duration
+	// PDFChromePath: local Chrome/Chromium/Edge used to print documents when no
+	// PDF_HTML_RENDERER_URL is set ("" = look in the usual places, "none" = never).
+	PDFChromePath string
 
 	RecommendationRulesPath string
 
@@ -126,6 +129,7 @@ func Load() Config {
 		ResendBaseURL:                  getEnv("RESEND_BASE_URL", "https://api.resend.com"),
 		PDFHTMLRendererURL:             getEnv("PDF_HTML_RENDERER_URL", ""),
 		PDFHTMLRendererTimeout:         parseDurationWithFallback(getEnv("PDF_HTML_RENDERER_TIMEOUT", "30s"), 30*time.Second),
+		PDFChromePath:                  getEnv("PDF_CHROME_PATH", ""),
 		RecommendationRulesPath:        getEnv("RECOMMENDATION_RULES_PATH", "rule/recommendations.json"),
 		AIProvider:                     getEnv("AI_PROVIDER", "noop"),
 		AIBaseURL:                      getEnv("AI_BASE_URL", "https://api.openai.com/v1"),
