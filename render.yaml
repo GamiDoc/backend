@@ -1,9 +1,11 @@
 services:
   - type: web
     name: gamidoc-backend
-    runtime: go
-    buildCommand: go build -o app ./cmd/gamidoc-backend/
-    startCommand: ./app serve
+    # Docker (free plan too): the image includes Chromium, which prints the design
+    # documents to PDF with the full layout. The native Go runtime cannot install it.
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
     envVars:
       - key: APP_ENV
         value: production

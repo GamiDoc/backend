@@ -1,0 +1,7 @@
+# Never ship local secrets or data in the image
+.env.dev
+.env
+.localdata
+*.exe
+docs/reference
+.git

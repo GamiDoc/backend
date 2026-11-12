@@ -100,17 +100,25 @@ func (r *ChromeHTMLRenderer) RenderHTML(ctx context.Context, html string) ([]byt
 	if runtime.GOOS == "windows" {
 		inputURL = "file:///" + filepath.ToSlash(input)
 	}
-	cmd := exec.CommandContext(ctx, r.binary,
+	args := []string{
 		"--headless=new",
 		"--disable-gpu",
 		"--no-first-run",
 		"--no-default-browser-check",
 		"--disable-extensions",
 		"--no-pdf-header-footer",
-		"--user-data-dir="+filepath.Join(dir, "profile"),
-		"--print-to-pdf="+output,
-		inputURL,
-	)
+		"--user-data-dir=" + filepath.Join(dir, "profile"),
+	}
+	if runtime.GOOS == "linux" {
+		// In a container (e.g. the Docker image on Render) Chromium runs as root, where its
+		// sandbox cannot start, and /dev/shm is tiny: without these flags it crashes.
+		args = append(args, "--disable-dev-shm-usage", "--no-zygote")
+		if os.Geteuid() == 0 {
+			args = append(args, "--no-sandbox")
+		}
+	}
+	args = append(args, "--print-to-pdf="+output, inputURL)
+	cmd := exec.CommandContext(ctx, r.binary, args...)
 	if detail, err := cmd.CombinedOutput(); err != nil {
 		return nil, fmt.Errorf("chrome print-to-pdf failed: %w: %s", err, strings.TrimSpace(string(detail)))
 	}
