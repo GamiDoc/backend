@@ -23,6 +23,18 @@ type OpenAIAssistant struct {
 	retryDelays []time.Duration
 	// fallbackModels (OpenRouter only): used in order when the main model fails.
 	fallbackModels []string
+	// maxTokens: cap of each answer (0 = the provider's default, often too low for a full
+	// document, which then ends with finish_reason=length).
+	maxTokens int
+}
+
+// WithMaxTokens sets the maximum length of each answer, in tokens (0 = provider default).
+func (a *OpenAIAssistant) WithMaxTokens(tokens int) *OpenAIAssistant {
+	if tokens < 0 {
+		tokens = 0
+	}
+	a.maxTokens = tokens
+	return a
 }
 
 // WithFallbackModels sets the models OpenRouter falls back to when the main model fails
@@ -77,6 +89,7 @@ type chatRequest struct {
 	Model          string          `json:"model"`
 	Messages       []chatMessage   `json:"messages"`
 	ResponseFormat *responseFormat `json:"response_format,omitempty"`
+	MaxTokens      int             `json:"max_tokens,omitempty"`
 	// Provider and Models are OpenRouter-only (never sent to other APIs, which reject them).
 	Provider *openRouterRouting `json:"provider,omitempty"`
 	// Models: the model followed by fallbacks, tried in order when one fails.
@@ -112,6 +125,7 @@ func (a *OpenAIAssistant) completeWithFormat(ctx context.Context, system string,
 			{Role: "user", Content: user},
 		},
 		ResponseFormat: format,
+		MaxTokens:      a.maxTokens,
 	}
 	if format != nil && a.isOpenRouter() {
 		request.Provider = &openRouterRouting{RequireParameters: true}

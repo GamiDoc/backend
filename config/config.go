@@ -79,6 +79,9 @@ type Config struct {
 	AIPrefillTimeout time.Duration
 	// AIFallbackModels (OpenRouter only): comma-separated models tried when AIModel fails.
 	AIFallbackModels []string
+	// AIMaxTokens caps each AI answer (0 = provider default). A full document (GDD, report)
+	// is long: with the default of some providers it gets cut (finish_reason=length).
+	AIMaxTokens int
 	// AIPrefillMode: "sections" (one AI call per section) or "single" (one call in all).
 	AIPrefillMode string
 }
@@ -139,6 +142,7 @@ func Load() Config {
 		AIResponseFormat:               getEnv("AI_RESPONSE_FORMAT", "json_schema"),
 		AIPrefillTimeout:               parseDurationWithFallback(getEnv("AI_PREFILL_TIMEOUT", "20m"), 20*time.Minute),
 		AIFallbackModels:               getEnvCSV("AI_FALLBACK_MODELS", nil),
+		AIMaxTokens:                    int(getEnvInt64("AI_MAX_TOKENS", 32000)),
 		AIPrefillMode:                  strings.ToLower(strings.TrimSpace(getEnv("AI_PREFILL_MODE", "sections"))),
 	}
 }
