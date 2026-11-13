@@ -78,6 +78,7 @@ func (h *Handler) uploadImage(w http.ResponseWriter, r *http.Request, o owner) {
 			response.WriteError(w, http.StatusUnsupportedMediaType, "UNSUPPORTED_IMAGE", "Only PNG and JPEG images are accepted", nil)
 			return
 		}
+		h.documents.logger.Error("image upload failed", "owner", ownerKey(o), "error", err)
 		response.WriteError(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "Internal server error", nil)
 		return
 	}
