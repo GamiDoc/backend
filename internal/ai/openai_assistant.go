@@ -107,6 +107,14 @@ func (a *OpenAIAssistant) isOpenRouter() bool {
 }
 
 type chatResponse struct {
+	Model string `json:"model"`
+	Usage struct {
+		PromptTokens            int `json:"prompt_tokens"`
+		CompletionTokens        int `json:"completion_tokens"`
+		CompletionTokensDetails struct {
+			ReasoningTokens int `json:"reasoning_tokens"`
+		} `json:"completion_tokens_details"`
+	} `json:"usage"`
 	Choices []struct {
 		Message      chatMessage `json:"message"`
 		FinishReason string      `json:"finish_reason"`
@@ -117,9 +125,50 @@ func (a *OpenAIAssistant) complete(ctx context.Context, system string, user stri
 	return a.completeWithFormat(ctx, system, user, nil)
 }
 
+// truncatedError: the model hit the token limit before finishing its answer.
+type truncatedError struct {
+	model  string
+	detail string
+}
+
+func (e *truncatedError) Error() string {
+	return "ai provider truncated the answer (" + e.detail + ")"
+}
+
 func (a *OpenAIAssistant) completeWithFormat(ctx context.Context, system string, user string, format *responseFormat) (string, error) {
+	models := []string{a.model}
+	if a.isOpenRouter() {
+		models = append(models, a.fallbackModels...)
+	}
+	// OpenRouter moves to the fallback models only when a model fails, not when it stops
+	// at the token limit: then the request is sent again without that model.
+	var err error
+	for len(models) > 0 {
+		var answer string
+		answer, err = a.completeWith(ctx, models, system, user, format)
+		var truncated *truncatedError
+		if err == nil || !errors.As(err, &truncated) || ctx.Err() != nil {
+			return answer, err
+		}
+		models = withoutModel(models, truncated.model)
+	}
+	return "", err
+}
+
+// withoutModel drops the model that truncated (OpenRouter may report it with a suffix such
+// as ":free" or a date); when it cannot be matched, the first one is dropped.
+func withoutModel(models []string, model string) []string {
+	for i, candidate := range models {
+		if model != "" && (candidate == model || strings.HasPrefix(model, strings.TrimSuffix(candidate, ":free"))) {
+			return append(append([]string{}, models[:i]...), models[i+1:]...)
+		}
+	}
+	return models[1:]
+}
+
+func (a *OpenAIAssistant) completeWith(ctx context.Context, models []string, system string, user string, format *responseFormat) (string, error) {
 	request := chatRequest{
-		Model: a.model,
+		Model: models[0],
 		Messages: []chatMessage{
 			{Role: "system", Content: system},
 			{Role: "user", Content: user},
@@ -130,8 +179,8 @@ func (a *OpenAIAssistant) completeWithFormat(ctx context.Context, system string,
 	if format != nil && a.isOpenRouter() {
 		request.Provider = &openRouterRouting{RequireParameters: true}
 	}
-	if len(a.fallbackModels) > 0 && a.isOpenRouter() {
-		request.Models = append([]string{a.model}, a.fallbackModels...)
+	if len(models) > 1 && a.isOpenRouter() {
+		request.Models = models
 	}
 	payload, err := json.Marshal(request)
 	if err != nil {
@@ -189,7 +238,11 @@ func (a *OpenAIAssistant) send(ctx context.Context, payload []byte) (string, boo
 		return "", true, fmt.Errorf("ai provider returned no choices")
 	}
 	if decoded.Choices[0].FinishReason == "length" {
-		return "", false, fmt.Errorf("ai provider truncated the answer (finish_reason=length)")
+		// Which model stopped and after how many tokens: a cap of the provider (well below
+		// max_tokens), reasoning that used the budget, or an answer that never ends.
+		return "", false, &truncatedError{model: decoded.Model, detail: fmt.Sprintf("finish_reason=length, model=%s, prompt_tokens=%d, completion_tokens=%d, reasoning_tokens=%d, max_tokens=%d, answer_chars=%d)",
+			decoded.Model, decoded.Usage.PromptTokens, decoded.Usage.CompletionTokens,
+			decoded.Usage.CompletionTokensDetails.ReasoningTokens, a.maxTokens, len(decoded.Choices[0].Message.Content))}
 	}
 
 	answer := strings.TrimSpace(decoded.Choices[0].Message.Content)

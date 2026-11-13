@@ -177,3 +177,55 @@ func TestOpenRouterFallbackModels(t *testing.T) {
 		t.Fatalf("unexpected models %v", body["models"])
 	}
 }
+
+func TestCompleteJSONMovesToNextModelWhenTruncated(t *testing.T) {
+	var sent []string
+	client := &http.Client{Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		var body struct {
+			Model     string   `json:"model"`
+			Models    []string `json:"models"`
+			MaxTokens int      `json:"max_tokens"`
+		}
+		data, _ := io.ReadAll(r.Body)
+		_ = json.Unmarshal(data, &body)
+		sent = append(sent, body.Model)
+		reply := `{"model":"vendor/long","usage":{"completion_tokens":8192},"choices":[{"message":{"role":"assistant","content":"{\"a\":"},"finish_reason":"length"}]}`
+		if body.Model == "vendor/short:free" {
+			if body.MaxTokens != 32000 || len(body.Models) != 0 {
+				t.Errorf("second request: max_tokens=%d models=%v", body.MaxTokens, body.Models)
+			}
+			reply = `{"model":"vendor/short","choices":[{"message":{"role":"assistant","content":"{\"a\":\"b\"}"},"finish_reason":"stop"}]}`
+		}
+		return &http.Response{
+			StatusCode: 200,
+			Header:     http.Header{"Content-Type": {"application/json"}},
+			Body:       io.NopCloser(strings.NewReader(reply)),
+		}, nil
+	})}
+
+	assistant := NewOpenAIAssistant("https://openrouter.ai/api/v1", "key", "vendor/long:free", "json_schema", client).
+		WithFallbackModels([]string{"vendor/short:free"}).
+		WithMaxTokens(32000)
+	answer, err := assistant.CompleteJSON(context.Background(), JSONRequest{Name: "test", Schema: testSchema})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(answer) != `{"a":"b"}` || strings.Join(sent, ",") != "vendor/long:free,vendor/short:free" {
+		t.Fatalf("answer %s, models sent %v", answer, sent)
+	}
+}
+
+func TestTruncatedErrorNamesModelAndTokens(t *testing.T) {
+	client := &http.Client{Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: 200,
+			Header:     http.Header{"Content-Type": {"application/json"}},
+			Body:       io.NopCloser(strings.NewReader(`{"model":"vendor/long","usage":{"prompt_tokens":9000,"completion_tokens":8192},"choices":[{"message":{"role":"assistant","content":"{"},"finish_reason":"length"}]}`)),
+		}, nil
+	})}
+	assistant := NewOpenAIAssistant("https://openrouter.ai/api/v1", "key", "vendor/long:free", "json_schema", client).WithMaxTokens(32000)
+	_, err := assistant.CompleteJSON(context.Background(), JSONRequest{Name: "test", Schema: testSchema})
+	if err == nil || !strings.Contains(err.Error(), "model=vendor/long") || !strings.Contains(err.Error(), "completion_tokens=8192") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
