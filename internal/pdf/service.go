@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gamidoc/backend/internal/docname"
 	"github.com/gamidoc/backend/internal/mailer"
 	"github.com/gamidoc/backend/internal/project"
 	"github.com/gamidoc/backend/internal/recommendation"
@@ -133,7 +134,11 @@ func (s *Service) GenerateProjectPDFWithOptions(ctx context.Context, userID stri
 		return Generated{}, err
 	}
 
-	key := filepath.ToSlash(fmt.Sprintf("projects/%s/%d.pdf", projectID, time.Now().UnixNano()))
+	name := strings.TrimSpace(item.Name)
+	if name == "" {
+		name = docname.DefaultTitle
+	}
+	key := filepath.ToSlash(fmt.Sprintf("projects/%s/%d/%s", projectID, time.Now().UnixNano(), docname.FileName(name, docname.EvaluationPlan)))
 	url, err := s.store.Save(ctx, key, bytes)
 	if err != nil {
 		return Generated{}, err
@@ -195,7 +200,7 @@ func (s *Service) GenerateSessionPDFWithOptions(ctx context.Context, sessionID s
 		return Generated{}, err
 	}
 
-	key := filepath.ToSlash(fmt.Sprintf("sessions/%s/%d.pdf", sessionID, time.Now().UnixNano()))
+	key := filepath.ToSlash(fmt.Sprintf("sessions/%s/%d/%s", sessionID, time.Now().UnixNano(), docname.FileName(docname.DefaultTitle, docname.EvaluationPlan)))
 	url, err := s.store.Save(ctx, key, bytes)
 	if err != nil {
 		return Generated{}, err
@@ -234,37 +239,41 @@ func (s *Service) Download(ctx context.Context, key string) ([]byte, error) {
 	return s.store.Read(ctx, key)
 }
 
-func (s *Service) DownloadProjectPDF(ctx context.Context, userID, projectID string) ([]byte, error) {
+// DownloadProjectPDF returns the project's evaluation plan and its download file name.
+func (s *Service) DownloadProjectPDF(ctx context.Context, userID, projectID string) ([]byte, string, error) {
 	item, err := s.projects.FindByID(ctx, projectID)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	if item.UserID != userID {
-		return nil, project.ErrForbiddenProject
+		return nil, "", project.ErrForbiddenProject
 	}
 	if item.PDFURL == nil {
-		return nil, ErrPDFNotFound
+		return nil, "", ErrPDFNotFound
 	}
 	key, ok := s.store.KeyFromURL(*item.PDFURL)
 	if !ok {
-		return nil, ErrPDFNotFound
+		return nil, "", ErrPDFNotFound
 	}
-	return s.store.Read(ctx, key)
+	data, err := s.store.Read(ctx, key)
+	return data, docname.FromKey(key, docname.FileName(item.Name, docname.EvaluationPlan)), err
 }
 
-func (s *Service) DownloadSessionPDF(ctx context.Context, sessionID string) ([]byte, error) {
+// DownloadSessionPDF returns the session's evaluation plan and its download file name.
+func (s *Service) DownloadSessionPDF(ctx context.Context, sessionID string) ([]byte, string, error) {
 	item, err := s.sessions.FindByID(ctx, sessionID)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	if item.PDFURL == nil {
-		return nil, ErrPDFNotFound
+		return nil, "", ErrPDFNotFound
 	}
 	key, ok := s.store.KeyFromURL(*item.PDFURL)
 	if !ok {
-		return nil, ErrPDFNotFound
+		return nil, "", ErrPDFNotFound
 	}
-	return s.store.Read(ctx, key)
+	data, err := s.store.Read(ctx, key)
+	return data, docname.FromKey(key, docname.FileName(docname.DefaultTitle, docname.EvaluationPlan)), err
 }
 
 func (s *Service) sendPDFReadyEmail(ctx context.Context, notifyEmail string, title string, pdfURL string) *EmailDelivery {

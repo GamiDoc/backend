@@ -74,6 +74,8 @@ func (r *ReportService) Generate(ctx context.Context, kind string, id string, st
 	if document == nil {
 		document = fallbackDocument(format, status)
 	}
+	title := DesignTitle(status, "")
+	setDocumentTitle(document, title)
 
 	documentID := documentIDFor(id)
 	images := map[int][]RenderImage{}
@@ -87,7 +89,7 @@ func (r *ReportService) Generate(ctx context.Context, kind string, id string, st
 	if err != nil {
 		return Report{}, err
 	}
-	return r.saveDocument(ctx, kind, id, format, data)
+	return r.saveDocument(ctx, kind, id, format, title, data)
 }
 
 func (r *ReportService) render(ctx context.Context, document any, format string, status Status, documentID string, images map[int][]RenderImage, withAI bool, logger *slog.Logger) ([]byte, error) {
@@ -105,9 +107,9 @@ func (r *ReportService) render(ctx context.Context, document any, format string,
 	return RenderDocumentPlainPDF(document, format, status, documentID)
 }
 
-func (r *ReportService) saveDocument(ctx context.Context, kind string, id string, format string, data []byte) (Report, error) {
+func (r *ReportService) saveDocument(ctx context.Context, kind string, id string, format string, title string, data []byte) (Report, error) {
 	reportID := uuid.NewString()
-	key := "design/" + kind + "/" + id + "/" + reportID + ".pdf"
+	key := "design/" + kind + "/" + id + "/" + reportID + "/" + DocumentFileName(title, format)
 	url, err := r.store.Save(ctx, key, data)
 	if err != nil {
 		return Report{}, err

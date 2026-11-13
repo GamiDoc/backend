@@ -61,7 +61,10 @@ type SectionState struct {
 }
 
 type Status struct {
-	Spark         string                  `json:"spark,omitempty"`
+	Spark string `json:"spark,omitempty"`
+	// Title: name on the documents and in their file names, set in the overview (empty =
+	// the project name, or "Your project").
+	Title         string                  `json:"title,omitempty"`
 	Cursor        int                     `json:"cursor"`
 	FirstPassDone bool                    `json:"firstPassDone"`
 	Sections      map[string]SectionState `json:"sections"`

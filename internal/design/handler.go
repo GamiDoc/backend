@@ -120,6 +120,7 @@ func (h *Handler) ProjectRoutes() chi.Router {
 func (h *Handler) mountShared(r chi.Router, guard func(func(http.ResponseWriter, *http.Request, owner)) http.HandlerFunc) {
 	r.Get("/", guard(h.getState))
 	r.Put("/spark", guard(h.saveSpark))
+	r.Put("/title", guard(h.saveTitle))
 	r.Put("/section/{sectionNumber}", guard(h.saveSection))
 	r.Get("/dashboard", guard(h.dashboard))
 	r.Post("/generate-pdf", guard(h.generatePDF))
@@ -368,7 +369,10 @@ func (h *Handler) generatePDF(w http.ResponseWriter, r *http.Request, o owner) {
 		response.WriteError(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "Internal server error", nil)
 		return
 	}
-	go h.documents.run(ctx, o, *job, status)
+	// The document is named after the title set in the overview, else the project name.
+	jobStatus := status
+	jobStatus.Title = DesignTitle(status, h.projectName(r.Context(), o))
+	go h.documents.run(ctx, o, *job, jobStatus)
 
 	response.WriteJSON(w, http.StatusAccepted, map[string]any{
 		"designStatus": status,

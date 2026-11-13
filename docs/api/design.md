@@ -45,6 +45,16 @@ The section schema (fields, options, conditions) comes from the frontend: `npm r
 
 `prefill` object: `jobId`, `state` (`running` \| `done` \| `failed`), `currentSection` (0 = analysing), `completedSections`, `skippedSections`, `failedSections`, `error`, `startedAt`, `finishedAt`, `analysis`, `notes`. `notes` maps the section number to `[{ field, reason, confidence }]` (`confidence`: `high` stated in the spark, `medium` implied, `low` assumed by the AI), shown next to the fields in the interface.
 
+## `PUT .../design/title`
+
+Body: `{ "title": "GreenStep" }` (max 120 characters; `""` = back to the default).
+Response: the design status (`title` included).
+
+The title is the name printed on the documents and used in their file names:
+`<Title>_design-report.pdf`, `<Title>_game-design-document.pdf` (letters and digits only, the
+rest becomes `-`). Without a title the project name is used, else "Your project". The
+evaluation plan is named `<project name>_evaluation-plan.pdf`.
+
 ## `PUT .../design/section/{sectionNumber}`
 
 | Field | Value |

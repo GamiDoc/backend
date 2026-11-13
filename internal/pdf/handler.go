@@ -3,6 +3,7 @@ package pdf
 import (
 	"encoding/json"
 	"errors"
+	"github.com/gamidoc/backend/internal/docname"
 	"io"
 	"net/http"
 	"strings"
@@ -131,7 +132,7 @@ func (h *Handler) ProjectDownload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := h.service.DownloadProjectPDF(r.Context(), userID, projectID)
+	data, fileName, err := h.service.DownloadProjectPDF(r.Context(), userID, projectID)
 	if err != nil {
 		switch {
 		case errors.Is(err, project.ErrProjectNotFound):
@@ -147,7 +148,7 @@ func (h *Handler) ProjectDownload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/pdf")
-	w.Header().Set("Content-Disposition", `attachment; filename="evaluation-plan.pdf"`)
+	w.Header().Set("Content-Disposition", `attachment; filename="`+fileName+`"`)
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(data)
 }
@@ -159,7 +160,7 @@ func (h *Handler) SessionDownload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := h.service.DownloadSessionPDF(r.Context(), sessionID)
+	data, fileName, err := h.service.DownloadSessionPDF(r.Context(), sessionID)
 	if err != nil {
 		switch {
 		case errors.Is(err, session.ErrSessionNotFound):
@@ -173,7 +174,7 @@ func (h *Handler) SessionDownload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/pdf")
-	w.Header().Set("Content-Disposition", `attachment; filename="evaluation-plan.pdf"`)
+	w.Header().Set("Content-Disposition", `attachment; filename="`+fileName+`"`)
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(data)
 }
@@ -197,7 +198,7 @@ func (h *Handler) Download(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/pdf")
-	w.Header().Set("Content-Disposition", `attachment; filename="evaluation-plan.pdf"`)
+	w.Header().Set("Content-Disposition", `attachment; filename="`+docname.FromKey(key, "document.pdf")+`"`)
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(data)
 }
