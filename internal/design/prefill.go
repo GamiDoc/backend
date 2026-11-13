@@ -308,6 +308,16 @@ func writePrevious(b *strings.Builder, previous map[int]json.RawMessage, before 
 
 func describeSection(section SchemaSection, mechanics []string) string {
 	var b strings.Builder
+	// Tab selectors: fields that other fields depend on through a Keep condition (e.g. the
+	// game element category and the element shown). They only choose the tab shown first.
+	tabSelectors := map[string]bool{}
+	for _, field := range section.Fields {
+		for _, condition := range field.ShowIf {
+			if condition.Keep {
+				tabSelectors[condition.Key] = true
+			}
+		}
+	}
 	groups := map[string]SchemaGroup{}
 	for _, group := range section.Groups {
 		groups[group.ID] = group
@@ -333,6 +343,9 @@ func describeSection(section SchemaSection, mechanics []string) string {
 			continue
 		}
 		describeField(&b, field, "", mechanics)
+		if tabSelectors[field.Key] {
+			b.WriteString("  This only picks the tab shown first: it does not limit the categories or game elements you describe below.\n")
+		}
 	}
 	return b.String()
 }
