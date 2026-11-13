@@ -110,8 +110,7 @@ Rules:
 func formatInstructions(format string) string {
 	if format == ReportFormatGDD {
 		return `Write a Game Design Document organised for reference: the design on one page (high concept, three design pillars, core and long loop), the players and the Hexad types served, the core gameplay with global rules, one card per game system (purpose, rules, values, feedback, risks and safeguards, the GamiDoc fields it comes from), progression and rewards, the player journey, adaptation rules, feedback messages, technical requirements, risks with mitigations, success metrics and the design rationale.
-Number systems SYS-01, SYS-02… and feedback F1, F2…, and use these ids to cross-reference them. Derive systems from the game rules, the game elements and their mechanics, goals, levels, progression, streaks and challenges in the data. Put in "values" only parameters actually entered.
-LENGTH: the answer has a size limit and a cut answer is lost. With many game elements, group related ones into one system (at most 10 systems); keep every text short (rules and values: one line each; at most 4 items per list); the whole document stays under about 6000 words.`
+Number systems SYS-01, SYS-02… and feedback F1, F2…, and use these ids to cross-reference them. Derive systems from the game rules, the game elements and their mechanics, goals, levels, progression, streaks and challenges in the data. Put in "values" only parameters actually entered.`
 	}
 	return `Write a reasoned design report: page one summarises the whole design (who it is for, what we want them to do, what motivates them, how we will know it works, the main risk and how we address it, the core and long loop). Then one section per design section with content: a short summary ("inShort"), key facts, and blocks that explain each group of choices — the options chosen, WHY they fit this project, HOW they show up IN THE DESIGN (one concrete item per choice) and what to WATCH OUT for. In the feedback section, one card per feedback component. Then how the choices fit together (reinforce each other / keep an eye on / not covered) and the link to the evaluation (which evaluation goal and measure tests each risky choice).
 
@@ -123,8 +122,7 @@ The blocks are the core of the report and must be complete. For EVERY [choice] f
 - "watchOut": the main risk or caveat, when there is one.
 A block with only a title is useless: never leave values, why and inTheDesign empty.
 Do NOT make blocks for [text] fields: put short ones (aim, users, age, experience) in "facts" and use the others inside the explanations. Keep the report focused: at most 6 blocks per section.
-Never write citation numbers like [3] in the text: put reference ids only in "refs".
-LENGTH: the answer has a size limit and a cut answer is lost, so be concise. "why": at most 3 sentences. Each "inTheDesign" item: one sentence of at most 25 words. When a field has many options chosen (e.g. game elements), still one short item per option, but no longer text. The whole report stays under about 6000 words.`
+Never write citation numbers like [3] in the text: put reference ids only in "refs".`
 }
 
 // designDataText renders the design (Spark, AI analysis, sections) as text for the prompt.
