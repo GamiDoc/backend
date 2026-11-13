@@ -305,10 +305,15 @@ func matchOption(field SchemaField, value string) (string, bool) {
 	return "", false
 }
 
-// isVisible mirrors isFieldVisible of the frontend. Hidden fields are never pre-filled,
-// even those the frontend keeps when hidden.
+// isVisible mirrors isFieldVisible of the frontend, except for conditions with Keep: those
+// only pick the tab shown on screen (e.g. which game element is open), and the frontend
+// keeps the values of hidden tabs, so the AI may fill every tab (mechanics of several
+// elements and categories). Fields hidden by other conditions are never pre-filled.
 func isVisible(field SchemaField, values map[string]any) bool {
 	for _, condition := range field.ShowIf {
+		if condition.Keep {
+			continue
+		}
 		switch value := values[condition.Key].(type) {
 		case string:
 			if value != condition.Includes {

@@ -345,8 +345,16 @@ func describeField(b *strings.Builder, field SchemaField, indent string, mechani
 	if field.Placeholder != "" {
 		fmt.Fprintf(b, "%s  Example format: %s\n", indent, strings.ReplaceAll(field.Placeholder, "\n", " / "))
 	}
+	tabbed := false
 	for _, condition := range field.ShowIf {
+		if condition.Keep {
+			tabbed = true
+			continue
+		}
 		fmt.Fprintf(b, "%s  Only if \"%s\" is/includes \"%s\"; otherwise leave it empty.\n", indent, condition.Key, condition.Includes)
+	}
+	if tabbed {
+		fmt.Fprintf(b, "%s  Shown in a tab: fill it whenever it applies to the design, whichever tab is open (several game elements, also of different categories, can each get their mechanics).\n", indent)
 	}
 	if field.linksMechanics() {
 		if len(mechanics) > 0 {

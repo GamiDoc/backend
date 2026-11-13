@@ -200,7 +200,7 @@ func TestSanitizeKeepsValidOptionsInSchemaOrder(t *testing.T) {
 	}
 }
 
-func TestSanitizeDropsHiddenFieldsAndFlattensMechanics(t *testing.T) {
+func TestSanitizeKeepsTabFieldsAndFlattensMechanics(t *testing.T) {
 	section, _ := SchemaFor(4)
 	answer := `{
 		"values": {
@@ -231,13 +231,12 @@ func TestSanitizeDropsHiddenFieldsAndFlattensMechanics(t *testing.T) {
 
 	var decoded map[string]any
 	_ = json.Unmarshal(content, &decoded)
-	if _, ok := decoded["Social elements"]; ok {
-		t.Fatal("field hidden by showIf was kept")
+	// Fields hidden only by a tab (showIf keep) are kept: the AI may fill every tab.
+	if decoded["Social elements"] != "Competition" {
+		t.Fatalf("tab field dropped: %v", decoded["Social elements"])
 	}
-	for key := range decoded {
-		if strings.HasPrefix(key, "Competition mechanics") {
-			t.Fatal("hidden list was kept")
-		}
+	if decoded["Competition mechanics 1 · Trigger"] != "Hidden" {
+		t.Fatalf("mechanics of another tab dropped: %v", decoded)
 	}
 	if decoded["Points mechanics 1 · Name"] != "Points 1" || decoded["Points mechanics 2 · Name"] != "Points 2" {
 		t.Fatalf("numbered names not assigned (empty item must be skipped): %v", decoded)
@@ -246,7 +245,7 @@ func TestSanitizeDropsHiddenFieldsAndFlattensMechanics(t *testing.T) {
 	if len(links) != 1 || links[0] != "Points 2" {
 		t.Fatalf("unknown mechanic links must be dropped, got %v", links)
 	}
-	if names := mechanicNamesFrom(content); strings.Join(names, ",") != "Points 1,Points 2" {
+	if names := mechanicNamesFrom(content); strings.Join(names, ",") != "Points 1,Points 2,Competition 1" {
 		t.Fatalf("unexpected mechanic names %v", names)
 	}
 	if len(notes) != 1 || notes[0].Field != "Points mechanics" {
