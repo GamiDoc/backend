@@ -149,3 +149,18 @@ func TestEvaluationPlanIsBuiltWithoutAI(t *testing.T) {
 		t.Fatal("plan cover or note missing")
 	}
 }
+
+func TestCleanContextKeepsOnlyTheContext(t *testing.T) {
+	got := cleanContext([]string{
+		"# Progress test", "## Subtitle", "A concept-stage evaluation.",
+		"## Project context", "Progress test is an education concept [4].", "The study has 10-30 participants.",
+		"## Goals", "### G1 Usability & Efficiency", "Learners must reach tasks.",
+	})
+	if len(got) != 2 || got[0] != "Progress test is an education concept." {
+		t.Fatalf("context: %q", got)
+	}
+	plain := cleanContext([]string{"First paragraph.", "Second paragraph."})
+	if len(plain) != 2 {
+		t.Fatalf("plain context: %q", plain)
+	}
+}

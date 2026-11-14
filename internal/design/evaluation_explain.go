@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/gamidoc/backend/internal/ai"
@@ -40,7 +41,7 @@ type evalQuestionText struct {
 
 type evalContextAnswer struct {
 	Subtitle   string               `json:"subtitle" desc:"1-2 sentences: the system evaluated and the aim of the evaluation"`
-	Context    []string             `json:"context" desc:"2-3 paragraphs of flowing prose (never a list of fields or 'KEY: value' lines): the project, the design choices at stake and what the study wants to find out"`
+	Context    []string             `json:"context" desc:"ONLY the project context: 2-3 paragraphs of plain prose (no headings, no markdown, no lists, no 'KEY: value' lines) about the project, the design choices at stake and what the study wants to find out. Goals, questions and hypotheses go in their own fields"`
 	Goals      []evalGoalText       `json:"goals" desc:"one entry for EVERY goal listed, by id"`
 	Questions  []evalQuestionText   `json:"questions" desc:"one entry for every research question listed, by id; empty if none"`
 	Hypotheses []evalHypothesisText `json:"hypotheses" desc:"one entry for every hypothesis listed, by id; empty if none"`
@@ -195,9 +196,10 @@ func usable(text string) bool {
 // mergeEvaluationTexts puts the AI's explanations on the skeleton by id and returns how
 // many goals, methods and instruments got an explanation.
 func mergeEvaluationTexts(doc *EvalReportDoc, hypotheses []EvalHypothesis, first evalContextAnswer, second evalMethodsAnswer) int {
+	// Citation numbers written in the text are dropped: sources are listed by their refs.
 	set := func(target *string, text string) bool {
 		if usable(text) {
-			*target = strings.TrimSpace(text)
+			*target = strings.TrimSpace(contextCitation.ReplaceAllString(text, ""))
 			return true
 		}
 		return false
@@ -205,13 +207,7 @@ func mergeEvaluationTexts(doc *EvalReportDoc, hypotheses []EvalHypothesis, first
 	explained := 0
 
 	set(&doc.Subtitle, first.Subtitle)
-	var context []string
-	for _, paragraph := range first.Context {
-		if usable(paragraph) {
-			context = append(context, strings.TrimSpace(paragraph))
-		}
-	}
-	if len(context) > 0 {
+	if context := cleanContext(first.Context); len(context) > 0 {
 		doc.Context = context
 	}
 
@@ -327,4 +323,38 @@ func mergeEvaluationTexts(doc *EvalReportDoc, hypotheses []EvalHypothesis, first
 		doc.NextSteps = steps
 	}
 	return explained
+}
+
+// contextStop matches the headings of the other parts of the document, which some models
+// write inside the context ("## Goals", "### G1 …", "## Metodi").
+var contextStop = regexp.MustCompile(`(?i)goal|obiettiv|question|domand|hypothes|ipotes|method|metod|instrument|strument|coverage|complement|next step|prossim`)
+
+// contextCitation matches citation numbers written in the text ("[3]", "[2, 7]").
+var contextCitation = regexp.MustCompile(`\s*\[\d+(?:\s*,\s*\d+)*\]`)
+
+// cleanContext keeps only the project context: the model sometimes writes the whole
+// document as markdown in it. Headings are dropped, the subtitle part is skipped, it stops
+// at the first heading of another part, and keeps at most 4 paragraphs.
+func cleanContext(paragraphs []string) []string {
+	var context []string
+	skip := false
+	for _, paragraph := range paragraphs {
+		text := strings.TrimSpace(paragraph)
+		if strings.HasPrefix(text, "#") {
+			heading := strings.ToLower(strings.TrimLeft(text, "# "))
+			if contextStop.MatchString(heading) && len(context) > 0 {
+				break
+			}
+			skip = strings.Contains(heading, "subtitle") || strings.Contains(heading, "sottotitolo") || contextStop.MatchString(heading)
+			continue
+		}
+		if skip || !usable(text) {
+			continue
+		}
+		context = append(context, strings.TrimSpace(contextCitation.ReplaceAllString(text, "")))
+		if len(context) == 4 {
+			break
+		}
+	}
+	return context
 }
