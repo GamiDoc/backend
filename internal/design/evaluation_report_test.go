@@ -34,7 +34,7 @@ func TestEvaluationReportFallbackRenders(t *testing.T) {
 
 	doc := fallbackDocument(ReportFormatEvaluation, status).(*EvalReportDoc)
 	setDocumentTitle(doc, "GreenStep")
-	if len(doc.Goals) != 2 || len(doc.Methods) != 2 || len(doc.Instrs) != 1 || doc.Goals[0].Meaning == "" {
+	if len(doc.Goals) != 2 || len(doc.Methods) != 2 || len(doc.Instrs) != 2 || doc.Goals[0].Meaning == "" || len(doc.Instrs[1].Covers) != 1 || !strings.Contains(doc.Instrs[1].What, "Custom questionnaire") {
 		t.Fatalf("fallback: %+v", doc)
 	}
 	html, err := RenderDocumentHTML(doc, ReportFormatEvaluation, status, "DES-1", nil, false)

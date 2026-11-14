@@ -142,10 +142,18 @@ Number goals G1…, questions RQ1…, hypotheses H1… (across the document), me
 	return b.String()
 }
 
+// customQuestionnaire is a custom construct of step 3 ("Custom questionnaire").
+type customQuestionnaire struct {
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	Goals       []string `json:"goals"`
+}
+
 type evaluationData struct {
 	step1       wizard.Step1Data
 	methods     []string
 	instruments []string
+	customs     map[string]customQuestionnaire // by name
 	nextSteps   []string
 	notes       string
 }
@@ -159,9 +167,16 @@ func decodeEvaluation(status *wizard.Status) evaluationData {
 	var step2 wizard.Step2Data
 	_ = json.Unmarshal(status.Steps["2"], &step2)
 	data.methods = step2.SelectedMethods
-	var step3 wizard.Step3Data
+	var step3 struct {
+		SelectedInstruments []string              `json:"selectedInstruments"`
+		CustomConstructs    []customQuestionnaire `json:"customConstructs"`
+	}
 	_ = json.Unmarshal(status.Steps["3"], &step3)
 	data.instruments = step3.SelectedInstruments
+	data.customs = map[string]customQuestionnaire{}
+	for _, custom := range step3.CustomConstructs {
+		data.customs[custom.Name] = custom
+	}
 	var step4 wizard.Step4Data
 	_ = json.Unmarshal(status.Steps["4"], &step4)
 	data.nextSteps = step4.NextSteps
@@ -219,6 +234,8 @@ func evaluationDataText(status *wizard.Status) string {
 	for _, name := range data.instruments {
 		if instrument, ok := c.Instrument(name); ok {
 			fmt.Fprintf(&b, "- %s (%s): %s Covers: %s.\n", instrument.Name, instrument.Type, instrument.Description, strings.Join(instrument.CoversGoals, ", "))
+		} else if custom, ok := data.customs[name]; ok {
+			fmt.Fprintf(&b, "- %s (custom questionnaire written for this study): %s Covers: %s.\n", custom.Name, custom.Description, strings.Join(custom.Goals, ", "))
 		} else {
 			fmt.Fprintf(&b, "- %s\n", name)
 		}
@@ -289,6 +306,13 @@ func fallbackEvaluation(status Status) *EvalReportDoc {
 				}
 			}
 			for _, goal := range found.CoversGoals {
+				if goalID, ok := goalIDs[goal]; ok {
+					instrument.Covers = append(instrument.Covers, goalID)
+				}
+			}
+		} else if custom, ok := data.customs[name]; ok {
+			instrument.What = "Custom questionnaire written for this study. " + custom.Description
+			for _, goal := range custom.Goals {
 				if goalID, ok := goalIDs[goal]; ok {
 					instrument.Covers = append(instrument.Covers, goalID)
 				}

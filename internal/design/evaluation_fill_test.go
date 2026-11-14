@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gamidoc/backend/internal/project"
+	"github.com/gamidoc/backend/internal/recommendation"
 	"github.com/gamidoc/backend/internal/wizard"
 )
 
@@ -30,6 +31,7 @@ const testEvaluationAnswer = `{
   "research": {"objective": "Check usability and motivation.", "questions": ["Can students log a trip unaided?", " "], "hypotheses": ["UMUX-Lite of at least 68"], "reason": "Usability first, then motivation."},
   "methods": [{"name": "Surveys & Questionnaires", "reason": "Validated scales."}, {"name": "Diary Study", "reason": "Behaviour over weeks."}],
   "instruments": [{"name": "Task based protocol", "reason": "Structured tasks."}, {"name": "Unknown scale", "reason": "dropped"}],
+  "customInstruments": [{"name": "Perceived leaderboard pressure", "description": "How much the department ranking makes students feel pushed.", "goals": ["motivation spectrum"], "reason": "No chosen instrument covers it."}],
   "nextSteps": ["Run a pilot with 2 students."]
 }`
 
@@ -57,7 +59,12 @@ func TestEvaluationAnswerToSteps(t *testing.T) {
 			t.Fatalf("step %d invalid: %v", number+1, err)
 		}
 	}
-	if len(notes["1"]) == 0 || len(notes["2"]) != 2 || len(notes["3"]) != 1 {
+	var step3 wizard.Step3Data
+	_ = json.Unmarshal(steps[2], &step3)
+	if strings.Join(step3.SelectedInstruments, "|") != "Task based protocol|Perceived leaderboard pressure" || !strings.Contains(string(steps[2]), `"goals":["Motivation Spectrum"]`) {
+		t.Fatalf("step 3: %s", steps[2])
+	}
+	if len(notes["1"]) == 0 || len(notes["2"]) != 2 || len(notes["3"]) != 2 {
 		t.Fatalf("notes: %+v", notes)
 	}
 }
@@ -82,9 +89,9 @@ func (m *memoryWizards) UpdateWizard(ctx context.Context, id string, status wiza
 
 func TestEvaluationFillRunSavesStepsAndNotes(t *testing.T) {
 	store := &memoryWizards{project: project.Project{ID: "p1", Name: "GreenStep", Wizard: wizard.NewInitialStatus()}}
-	assistant := &scriptedAssistant{answers: map[string]string{"evaluation_fill": testEvaluationAnswer}}
+	assistant := &scriptedAssistant{answers: map[string]string{"evaluation_fill_setup": testEvaluationAnswer, "evaluation_fill_selection": testEvaluationAnswer}}
 	f := &evaluationFiller{assistant: assistant, store: store, wizard: wizard.NewService(), logger: slog.Default(),
-		timeout: time.Minute, running: map[string]runningJob{}}
+		timeout: time.Minute, running: map[string]runningJob{}, recommender: fakeRecommender{}}
 
 	job := wizard.AIFill{JobID: "j1", State: wizard.AIFillRunning, StartedAt: time.Now()}
 	status := store.project.Wizard
@@ -100,14 +107,19 @@ func TestEvaluationFillRunSavesStepsAndNotes(t *testing.T) {
 	if !got.IsComplete || got.CurrentStep != 4 {
 		t.Fatalf("wizard not complete: step %d complete %v", got.CurrentStep, got.IsComplete)
 	}
-	if !strings.Contains(assistant.requests[0].User, "Evaluation catalog") {
-		t.Fatal("prompt without the catalog")
+	if len(assistant.requests) != 2 || !strings.Contains(assistant.requests[0].User, "Evaluation catalog") {
+		t.Fatalf("expected two calls with the catalog, got %d", len(assistant.requests))
+	}
+	second := assistant.requests[1].User
+	if !strings.Contains(second, "Recommended by GamiDoc") || !strings.Contains(second, "Methods: Surveys & Questionnaires") ||
+		!strings.Contains(second, "Instruments: UMUX-Lite") || !strings.Contains(second, "Goals: Usability & Efficiency") {
+		t.Fatalf("second prompt without set-up or recommendations:\n%s", second)
 	}
 }
 
 func TestEvaluationFillRunKeepsStepsOnFailure(t *testing.T) {
 	store := &memoryWizards{project: project.Project{ID: "p1", Wizard: wizard.NewInitialStatus()}}
-	assistant := &scriptedAssistant{answers: map[string]string{"evaluation_fill": `{"goals":[],"methods":[]}`}}
+	assistant := &scriptedAssistant{answers: map[string]string{"evaluation_fill_setup": `{"goals":[]}`, "evaluation_fill_selection": `{"methods":[]}`}}
 	f := &evaluationFiller{assistant: assistant, store: store, wizard: wizard.NewService(), logger: slog.Default(),
 		timeout: time.Minute, running: map[string]runningJob{}}
 	job := wizard.AIFill{JobID: "j1", State: wizard.AIFillRunning}
@@ -151,11 +163,24 @@ func TestEvaluationAnswerDefaultsStageAndSample(t *testing.T) {
 	}
 	defaults := 0
 	for _, note := range notes["1"] {
-		if strings.HasPrefix(note.Reason, "Default choice") {
+		if note.Assumed {
 			defaults++
 		}
 	}
 	if defaults != 2 {
 		t.Fatalf("expected 2 default notes, got %d", defaults)
 	}
+}
+
+// fakeRecommender recommends methods for step 2 and, once methods are chosen, instruments.
+type fakeRecommender struct{}
+
+func (fakeRecommender) Recommend(status wizard.Status, forStep int) (recommendation.Result, error) {
+	if forStep == 2 {
+		return recommendation.Result{ForStep: 2, Recommendations: []recommendation.Recommendation{{Name: "Surveys & Questionnaires"}}}, nil
+	}
+	if _, ok := status.Steps["2"]; !ok {
+		return recommendation.Result{}, nil
+	}
+	return recommendation.Result{ForStep: 3, Recommendations: []recommendation.Recommendation{{Name: "UMUX-Lite"}, {Name: "UMUX-Lite"}}}, nil
 }

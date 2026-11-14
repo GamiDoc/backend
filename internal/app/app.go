@@ -170,7 +170,7 @@ func New(cfg config.Config) (*App, error) {
 		projectRepository,
 		postgres.NewDesignStateRepository(pg),
 	).WithLogger(logger).WithPrefillTimeout(cfg.AIPrefillTimeout).WithPrefillMode(cfg.AIPrefillMode).
-		WithEvaluationStore(projectRepository)
+		WithEvaluationStore(projectRepository, recommendationService)
 
 	application := &App{
 		config: cfg,

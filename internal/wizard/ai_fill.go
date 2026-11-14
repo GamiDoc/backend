@@ -30,4 +30,7 @@ type AINote struct {
 	Field  string `json:"field"`
 	Value  string `json:"value,omitempty"`
 	Reason string `json:"reason"`
+	// Assumed: a common starting point chosen without enough information in the design;
+	// the interface asks the user to check it.
+	Assumed bool `json:"assumed,omitempty"`
 }
