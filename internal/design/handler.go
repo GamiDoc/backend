@@ -38,6 +38,7 @@ type Handler struct {
 	locks         *ownerLocks
 	prefill       *prefillRunner
 	documents     *reportRunner
+	evaluation    *evaluationFiller // nil until WithEvaluationStore
 }
 
 func NewHandler(
@@ -116,6 +117,7 @@ func (h *Handler) ProjectRoutes() chi.Router {
 	r.Get("/reports", h.forProject(h.listReports))
 	r.Delete("/reports/{reportId}", h.forProject(h.deleteReport))
 	r.Patch("/reports/{reportId}", h.forProject(h.renameReport))
+	r.Post("/evaluation/ai-fill", h.forProject(h.fillEvaluation))
 	r.Post("/import-session", h.forProject(h.importSession))
 	return r
 }
