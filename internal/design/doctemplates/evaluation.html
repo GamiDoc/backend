@@ -44,15 +44,18 @@
     </div>
 </section>
 
-{{if $doc.Context}}
+{{if or $doc.Context $doc.ContextFacts}}
 <section class="page-break">
     <h2 class="section-title"><span class="num auto"></span>The project and what we want to find out</h2>
     {{range $doc.Context}}<p class="serif">{{.}}</p>{{end}}
+    {{if $doc.ContextFacts}}
+    <table class="spec">{{range $doc.ContextFacts}}<tr><td><b>{{.Label}}</b></td><td>{{.Value}}</td></tr>{{end}}</table>
+    {{end}}
 </section>
 {{end}}
 
 {{if $doc.Goals}}
-<section{{if not $doc.Context}} class="page-break"{{end}}>
+<section{{if not (or $doc.Context $doc.ContextFacts)}} class="page-break"{{end}}>
     <h2 class="section-title"><span class="num auto"></span>The goals and what they mean</h2>
     {{range $doc.Goals}}
     <div class="eval-card">

@@ -64,3 +64,18 @@ func TestEvaluationPromptHasDataAndReferences(t *testing.T) {
 		}
 	}
 }
+
+func TestSplitFieldLines(t *testing.T) {
+	prose, facts := splitFieldLines([]string{
+		"APP_NAME: Spark",
+		"DOMAIN: Health\nGOAL: Keep memory trained.",
+		"Obiettivo: mantenere allenata la memoria delle persone anziane con una sessione breve ogni giorno.",
+		"The study checks whether the daily session is easy to complete.",
+	})
+	if len(facts) != 3 || facts[0].Label != "App name" || facts[1].Value != "Health" {
+		t.Fatalf("facts: %+v", facts)
+	}
+	if len(prose) != 2 || !strings.HasPrefix(prose[0], "Obiettivo:") {
+		t.Fatalf("prose: %q", prose)
+	}
+}

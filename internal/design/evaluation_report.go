@@ -3,6 +3,7 @@ package design
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/gamidoc/backend/internal/evaluation/catalog"
@@ -70,15 +71,17 @@ type EvalInstrument struct {
 }
 
 type EvalReportDoc struct {
-	Title     string           `json:"title" desc:"the project name"`
-	Subtitle  string           `json:"subtitle" desc:"1-2 sentences: the system evaluated and the aim of the evaluation"`
-	Context   []string         `json:"context" desc:"2-3 paragraphs: the project, the design choices at stake and what the study wants to find out"`
-	Goals     []EvalGoal       `json:"goals"`
-	Questions []EvalQuestion   `json:"questions" desc:"one per research question entered; empty if none"`
-	Methods   []EvalMethod     `json:"methods"`
-	Instrs    []EvalInstrument `json:"instruments"`
-	Coverage  []string         `json:"coverage" desc:"1-2 paragraphs: how the choices complement each other (each goal seen from more than one angle) and what is left out or fragile"`
-	NextSteps []string         `json:"nextSteps" desc:"the next steps, as entered (rephrased only to be clear)"`
+	Title    string   `json:"title" desc:"the project name"`
+	Subtitle string   `json:"subtitle" desc:"1-2 sentences: the system evaluated and the aim of the evaluation"`
+	Context  []string `json:"context" desc:"2-3 paragraphs of flowing prose (never a list of fields or 'KEY: value' lines): the project, the design choices at stake and what the study wants to find out"`
+	// ContextFacts: "KEY: value" lines the model wrote in Context, shown as a table.
+	ContextFacts []ReportFact     `json:"-"`
+	Goals        []EvalGoal       `json:"goals"`
+	Questions    []EvalQuestion   `json:"questions" desc:"one per research question entered; empty if none"`
+	Methods      []EvalMethod     `json:"methods"`
+	Instrs       []EvalInstrument `json:"instruments"`
+	Coverage     []string         `json:"coverage" desc:"1-2 paragraphs: how the choices complement each other (each goal seen from more than one angle) and what is left out or fragile"`
+	NextSteps    []string         `json:"nextSteps" desc:"the next steps, as entered (rephrased only to be clear)"`
 }
 
 // Evaluation references: sources of the methods and instruments of the catalog. Only
@@ -329,7 +332,7 @@ func evaluationContents(doc *EvalReportDoc) []string {
 		name    string
 		present bool
 	}{
-		{"The project and what we want to find out", len(doc.Context) > 0},
+		{"The project and what we want to find out", len(doc.Context)+len(doc.ContextFacts) > 0},
 		{"The goals and what they mean", len(doc.Goals) > 0},
 		{"Questions, hypotheses and the reasoning behind them", len(doc.Questions) > 0},
 		{"The methods, explained", len(doc.Methods) > 0},
@@ -432,4 +435,51 @@ func evaluationCoverFacts(doc *EvalReportDoc, status *wizard.Status, documentID,
 	add("Study duration", data.step1.Time)
 	add("Scope", fmt.Sprintf("%d goals · %d methods · %d instruments", len(doc.Goals), len(doc.Methods), len(doc.Instrs)))
 	return facts
+}
+
+// fieldLine matches a "KEY: value" line ("APP_NAME: Spark", "Development stage: …").
+var fieldLine = regexp.MustCompile(`^\s*([A-Za-z][A-Za-z_ /]{1,40}):\s+(\S.*)$`)
+
+// splitFieldLines separates prose paragraphs from "KEY: value" lines, which some models
+// write instead of paragraphs; the lines become label/value facts ("APP_NAME" → "App name").
+// An entry is taken as fields when every line is "key: value" and either the keys are in
+// capitals (APP_NAME) or there are several lines; otherwise it stays prose.
+func splitFieldLines(paragraphs []string) ([]string, []ReportFact) {
+	var prose []string
+	var facts []ReportFact
+	for _, paragraph := range paragraphs {
+		text := strings.TrimSpace(paragraph)
+		if text == "" {
+			continue
+		}
+		lines := strings.Split(text, "\n")
+		var found []ReportFact
+		capitals := true
+		for _, line := range lines {
+			match := fieldLine.FindStringSubmatch(line)
+			if match == nil {
+				found = nil
+				break
+			}
+			if strings.ToUpper(match[1]) != match[1] {
+				capitals = false
+			}
+			found = append(found, ReportFact{Label: fieldLabel(match[1]), Value: strings.TrimSpace(match[2])})
+		}
+		if found == nil || (!capitals && len(found) < 2) {
+			prose = append(prose, text)
+			continue
+		}
+		facts = append(facts, found...)
+	}
+	return prose, facts
+}
+
+// fieldLabel turns "APP_NAME" or "app name" into "App name".
+func fieldLabel(key string) string {
+	label := strings.ToLower(strings.TrimSpace(strings.ReplaceAll(key, "_", " ")))
+	if label == "" {
+		return key
+	}
+	return strings.ToUpper(label[:1]) + label[1:]
 }

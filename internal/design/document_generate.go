@@ -329,6 +329,7 @@ func tidyDocument(document any) {
 	switch doc := document.(type) {
 	case *EvalReportDoc:
 		fixTitle(&doc.Title, &doc.Subtitle)
+		doc.Context, doc.ContextFacts = splitFieldLines(doc.Context)
 	case *ReportDoc:
 		fixTitle(&doc.Title, &doc.Subtitle)
 		tidyLoops(&doc.Loops)
