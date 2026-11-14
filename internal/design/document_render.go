@@ -148,7 +148,10 @@ func RenderDocumentHTML(document any, format string, status Status, documentID s
 		cited = evaluationCited(doc)
 		view.Contents = evaluationContents(doc)
 		view.CoverFacts = evaluationCoverFacts(doc, status.Evaluation, documentID, view.Date)
-		view.Note = strings.Replace(view.Note, "the GamiDoc Design System", "GamiDoc (UX evaluation and design)", 1)
+		view.Note = "Written with AI from the UX evaluation and the design entered in GamiDoc. Review it before use."
+		if !withAI {
+			view.Note = "Built from the UX evaluation entered in GamiDoc: every choice with its description from the GamiDoc catalog."
+		}
 	default:
 		return "", ErrInvalidReportVersion
 	}
@@ -186,7 +189,7 @@ func RenderDocumentHTML(document any, format string, status Status, documentID s
 	switch format {
 	case ReportFormatGDD:
 		name = "gdd"
-	case ReportFormatEvaluation:
+	case ReportFormatEvaluation, ReportFormatEvaluationPlan:
 		name = "evaluation"
 	}
 	if err := tpl.ExecuteTemplate(&out, name, view); err != nil {

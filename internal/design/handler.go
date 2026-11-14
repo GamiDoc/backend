@@ -350,7 +350,7 @@ func (h *Handler) generatePDF(w http.ResponseWriter, r *http.Request, o owner) {
 		input.Format = ReportFormatReport
 	}
 	if !ValidReportFormat(input.Format) {
-		response.WriteError(w, http.StatusBadRequest, "INVALID_REPORT_FORMAT", "Format must be \"report\", \"gdd\" or \"evaluation\"", nil)
+		response.WriteError(w, http.StatusBadRequest, "INVALID_REPORT_FORMAT", "Format must be \"report\", \"gdd\", \"evaluation\" or \"evaluation-plan\"", nil)
 		return
 	}
 
@@ -365,7 +365,7 @@ func (h *Handler) generatePDF(w http.ResponseWriter, r *http.Request, o owner) {
 
 	// The UX evaluation report needs the project's complete evaluation wizard, not the design.
 	var evaluation *wizard.Status
-	if input.Format == ReportFormatEvaluation {
+	if IsEvaluationFormat(input.Format) {
 		if o.kind != "projects" {
 			response.WriteError(w, http.StatusBadRequest, "INVALID_REPORT_FORMAT", "The evaluation report is available for projects only", nil)
 			return

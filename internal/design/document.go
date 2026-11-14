@@ -23,7 +23,7 @@ const (
 )
 
 func ValidReportFormat(format string) bool {
-	return format == ReportFormatReport || format == ReportFormatGDD || format == ReportFormatEvaluation
+	return format == ReportFormatReport || format == ReportFormatGDD || IsEvaluationFormat(format)
 }
 
 // ReportFormatTitle is the human name of a format (buttons, history, PDF header).
@@ -35,6 +35,8 @@ func ReportFormatTitle(format string) string {
 		return "Game Design Document"
 	case ReportFormatEvaluation:
 		return "UX evaluation report"
+	case ReportFormatEvaluationPlan:
+		return "UX evaluation plan"
 	case ReportVersionStandard:
 		return "Standard report"
 	case ReportVersionEnhanced:

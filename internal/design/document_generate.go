@@ -202,6 +202,9 @@ func referenceCatalogueText() string {
 // GenerateDocument asks the AI for the document in the given format (one request).
 // The result is either *ReportDoc or *GDDDoc.
 func GenerateDocument(ctx context.Context, assistant ai.Assistant, format string, status Status) (any, error) {
+	if format == ReportFormatEvaluation {
+		return generateEvaluationDocument(ctx, assistant, status)
+	}
 	var target any
 	var schema jsonSchema
 	switch format {
@@ -209,8 +212,6 @@ func GenerateDocument(ctx context.Context, assistant ai.Assistant, format string
 		target, schema = &ReportDoc{}, docSchema(ReportDoc{})
 	case ReportFormatGDD:
 		target, schema = &GDDDoc{}, docSchema(GDDDoc{})
-	case ReportFormatEvaluation:
-		target, schema = &EvalReportDoc{}, docSchema(EvalReportDoc{})
 	default:
 		return nil, ErrInvalidReportVersion
 	}
@@ -223,9 +224,6 @@ func GenerateDocument(ctx context.Context, assistant ai.Assistant, format string
 	user := designDataText(status) + "\n" + referenceCatalogueText() + "\n" + formatInstructions(format)
 	if format == ReportFormatReport {
 		user += "\n" + requiredSectionsText(status)
-	}
-	if format == ReportFormatEvaluation {
-		system, user = evaluationSystemPrompt, evaluationUserText(status)
 	}
 	if language := documentLanguage(status); language != "" {
 		// Free models drift to English (the option names are English): the language goes at
@@ -252,11 +250,6 @@ func GenerateDocument(ctx context.Context, assistant ai.Assistant, format string
 	tidyDocument(target)
 	if report, ok := target.(*ReportDoc); ok {
 		addMissingSections(report, status)
-	}
-	if evaluation, ok := target.(*EvalReportDoc); ok {
-		if err := alignEvaluation(evaluation, status); err != nil {
-			return nil, err
-		}
 	}
 	return target, nil
 }
@@ -418,7 +411,7 @@ func documentIsEmpty(document any) bool {
 // fallbackDocument builds the document from the entered data only, when no AI is
 // available or the AI fails: facts and choices, without explanations.
 func fallbackDocument(format string, status Status) any {
-	if format == ReportFormatEvaluation {
+	if IsEvaluationFormat(format) {
 		return fallbackEvaluation(status)
 	}
 	title := "Design project"

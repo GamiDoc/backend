@@ -51,7 +51,8 @@ func (r *ReportService) Generate(ctx context.Context, kind string, id string, st
 
 	var document any
 	withAI := false
-	if ai.SupportsJSON(r.assistant) {
+	// The evaluation plan is built from the data only, without the AI.
+	if ai.SupportsJSON(r.assistant) && format != ReportFormatEvaluationPlan {
 		var thin *ReportDoc
 		// A thin report (blocks without explanations) is asked again once.
 		for attempt := 1; attempt <= 2 && document == nil; attempt++ {
@@ -83,7 +84,7 @@ func (r *ReportService) Generate(ctx context.Context, kind string, id string, st
 	setDocumentTitle(document, title)
 
 	documentID := documentIDFor(id)
-	if format == ReportFormatEvaluation {
+	if IsEvaluationFormat(format) {
 		documentID = strings.Replace(documentID, "DES-", "PLAN-", 1)
 	}
 	images := map[int][]RenderImage{}

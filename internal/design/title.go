@@ -35,6 +35,8 @@ func DocumentFileName(title string, format string) string {
 		return docname.FileName(title, docname.GameDesignDocument)
 	case ReportFormatEvaluation:
 		return docname.FileName(title, docname.EvaluationReport)
+	case ReportFormatEvaluationPlan:
+		return docname.FileName(title, docname.EvaluationPlan)
 	}
 	return docname.FileName(title, docname.DesignReport)
 }
