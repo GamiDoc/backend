@@ -285,6 +285,9 @@ func tidyDocument(document any) {
 		for i := range doc.Sections {
 			for j := range doc.Sections[i].Blocks {
 				block := &doc.Sections[i].Blocks[j]
+				if identifierTerm.MatchString(block.Term) {
+					block.Term = "" // an internal key (e.g. "performance_session"), not a field name
+				}
 				block.Why, block.Refs = extractCitations(block.Why, block.Refs)
 				block.WatchOut, block.Refs = extractCitations(block.WatchOut, block.Refs)
 			}
@@ -301,6 +304,9 @@ func tidyDocument(document any) {
 		fixTitle(&doc.Title, &doc.Subtitle)
 	}
 }
+
+// identifierTerm matches the internal keys the model sometimes writes as the field name.
+var identifierTerm = regexp.MustCompile(`^[a-z0-9]+(_[a-z0-9]+)*$`)
 
 // formatName matches the names of a document type the model likes to put in the title, in
 // English and Italian ("Game Design Document", "GDD", "Documento finale di design", …).

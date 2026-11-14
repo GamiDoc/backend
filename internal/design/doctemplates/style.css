@@ -108,6 +108,9 @@ td { border-bottom: 1px solid var(--line); padding: 4px 6px; vertical-align: top
 tr { break-inside: avoid; }
 table.facts td:first-child { color: var(--muted); width: 32%; }
 table.facts td { border-bottom: none; padding: 2px 6px 2px 0; }
+/* Facts of a report section: same look as the GDD tables (lines, bold labels) */
+table.spec { border-top: 1.3px solid var(--ink); }
+table.spec td:first-child { width: 28%; }
 
 /* Feedback cards (report) and system cards (GDD) */
 .fb { border: 1px solid var(--line); border-radius: 5px; padding: 8px 11px; margin: 8px 0; break-inside: avoid; }

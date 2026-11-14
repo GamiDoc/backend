@@ -73,7 +73,7 @@
     <h2 class="section-title"><span class="num auto"></span>{{sectionTitle $s.Number}}</h2>
     {{if $s.InShort}}<div class="in-short"><b>In short.</b> {{$s.InShort}}</div>{{end}}
     {{if $s.Facts}}
-    <table class="facts">{{range $s.Facts}}<tr><td>{{.Label}}</td><td>{{.Value}}</td></tr>{{end}}</table>
+    <table class="spec">{{range $s.Facts}}<tr><td><b>{{.Label}}</b></td><td>{{.Value}}</td></tr>{{end}}</table>
     {{end}}
     {{range $s.Blocks}}
     <div>
