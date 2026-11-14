@@ -79,6 +79,9 @@ func (r *ReportService) Generate(ctx context.Context, kind string, id string, st
 	setDocumentTitle(document, title)
 
 	documentID := documentIDFor(id)
+	if format == ReportFormatEvaluation {
+		documentID = strings.Replace(documentID, "DES-", "PLAN-", 1)
+	}
 	images := map[int][]RenderImage{}
 	for number := 1; number <= SectionCount; number++ {
 		if list, _ := r.sectionImages(ctx, status.Section(number).Content); len(list) > 0 {

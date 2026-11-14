@@ -30,8 +30,11 @@ func DesignTitle(status Status, projectName string) string {
 
 // DocumentFileName is "<Title>_<document type>.pdf", e.g. "GreenStep_design-report.pdf".
 func DocumentFileName(title string, format string) string {
-	if format == ReportFormatGDD {
+	switch format {
+	case ReportFormatGDD:
 		return docname.FileName(title, docname.GameDesignDocument)
+	case ReportFormatEvaluation:
+		return docname.FileName(title, docname.EvaluationReport)
 	}
 	return docname.FileName(title, docname.DesignReport)
 }
@@ -42,6 +45,8 @@ func setDocumentTitle(document any, title string) {
 	case *ReportDoc:
 		doc.Title = title
 	case *GDDDoc:
+		doc.Title = title
+	case *EvalReportDoc:
 		doc.Title = title
 	}
 }

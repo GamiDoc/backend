@@ -5,6 +5,8 @@ import (
 	"errors"
 	"strconv"
 	"time"
+
+	"github.com/gamidoc/backend/internal/wizard"
 )
 
 // SectionCount is the number of design sections (Flow 2.0). They are traversed
@@ -75,6 +77,9 @@ type Status struct {
 	Prefill *PrefillState `json:"prefill,omitempty"`
 	// ReportJob: the last generation of a final document (see report_job.go).
 	ReportJob *ReportJobState `json:"reportJob,omitempty"`
+	// Evaluation: the project's evaluation wizard, set only on the copy of the status given
+	// to a UX evaluation report job (never stored).
+	Evaluation *wizard.Status `json:"-"`
 }
 
 func NewInitialStatus() Status {

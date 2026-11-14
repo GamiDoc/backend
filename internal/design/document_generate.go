@@ -43,7 +43,7 @@ var referenceCatalogue = []DocReference{
 }
 
 func referenceByID(id int) (DocReference, bool) {
-	for _, reference := range referenceCatalogue {
+	for _, reference := range append(append([]DocReference{}, referenceCatalogue...), evaluationReferences...) {
 		if reference.ID == id {
 			return reference, true
 		}
@@ -209,6 +209,8 @@ func GenerateDocument(ctx context.Context, assistant ai.Assistant, format string
 		target, schema = &ReportDoc{}, docSchema(ReportDoc{})
 	case ReportFormatGDD:
 		target, schema = &GDDDoc{}, docSchema(GDDDoc{})
+	case ReportFormatEvaluation:
+		target, schema = &EvalReportDoc{}, docSchema(EvalReportDoc{})
 	default:
 		return nil, ErrInvalidReportVersion
 	}
@@ -221,6 +223,9 @@ func GenerateDocument(ctx context.Context, assistant ai.Assistant, format string
 	user := designDataText(status) + "\n" + referenceCatalogueText() + "\n" + formatInstructions(format)
 	if format == ReportFormatReport {
 		user += "\n" + requiredSectionsText(status)
+	}
+	if format == ReportFormatEvaluation {
+		system, user = evaluationSystemPrompt, evaluationUserText(status)
 	}
 	if language := documentLanguage(status); language != "" {
 		// Free models drift to English (the option names are English): the language goes at
@@ -322,6 +327,8 @@ func reportCompleteness(doc *ReportDoc) float64 {
 // the wrong section, loop labels that only repeat "core loop".
 func tidyDocument(document any) {
 	switch doc := document.(type) {
+	case *EvalReportDoc:
+		fixTitle(&doc.Title, &doc.Subtitle)
 	case *ReportDoc:
 		fixTitle(&doc.Title, &doc.Subtitle)
 		tidyLoops(&doc.Loops)
@@ -394,6 +401,8 @@ func documentIsEmpty(document any) bool {
 		return len(doc.Sections) == 0 && doc.Glance.ForWhom == ""
 	case *GDDDoc:
 		return len(doc.Systems) == 0 && doc.HighConcept == ""
+	case *EvalReportDoc:
+		return len(doc.Methods) == 0 && len(doc.Instrs) == 0
 	}
 	return true
 }
@@ -403,6 +412,9 @@ func documentIsEmpty(document any) bool {
 // fallbackDocument builds the document from the entered data only, when no AI is
 // available or the AI fails: facts and choices, without explanations.
 func fallbackDocument(format string, status Status) any {
+	if format == ReportFormatEvaluation {
+		return fallbackEvaluation(status)
+	}
 	title := "Design project"
 	subtitle := strings.TrimSpace(status.Spark)
 	if len([]rune(subtitle)) > 220 {

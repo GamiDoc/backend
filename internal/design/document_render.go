@@ -29,6 +29,7 @@ var docTemplates = template.Must(template.New("docs").Funcs(template.FuncMap{
 	"sectionTitle": func(int) string { return "" },
 	"chips":        func(values []string) []string { return splitValues(values, true) },
 	"longValues":   func(values []string) []string { return splitValues(values, false) },
+	"join":         func(values []string) string { return strings.Join(values, ", ") },
 }).ParseFS(docTemplateFiles, "doctemplates/*.html"))
 
 var docCSS = func() template.CSS {
@@ -58,6 +59,8 @@ type docView struct {
 	References  []DocReference
 	Images      map[int][]docImage
 	AllImages   []docImage
+	// CoverFacts: label/value rows on the cover (UX evaluation report).
+	CoverFacts []ReportFact
 }
 
 const aiNote = "Written with AI from the data entered in the GamiDoc Design System. Review it before use."
@@ -141,12 +144,17 @@ func RenderDocumentHTML(document any, format string, status Status, documentID s
 				view.Contents = append(view.Contents, entry.name)
 			}
 		}
+	case *EvalReportDoc:
+		cited = evaluationCited(doc)
+		view.Contents = evaluationContents(doc)
+		view.CoverFacts = evaluationCoverFacts(doc, status.Evaluation, documentID, view.Date)
+		view.Note = strings.Replace(view.Note, "the GamiDoc Design System", "GamiDoc (UX evaluation and design)", 1)
 	default:
 		return "", ErrInvalidReportVersion
 	}
 	references, numbers := citedReferences(cited)
 	view.References = references
-	if _, isReport := document.(*ReportDoc); isReport && len(references) > 0 {
+	if _, isGDD := document.(*GDDDoc); !isGDD && len(references) > 0 {
 		view.Contents = append(view.Contents, "References")
 	}
 	// The footer names the document, not the project: a long title would wrap over the page
@@ -175,8 +183,11 @@ func RenderDocumentHTML(document any, format string, status Status, documentID s
 
 	var out bytes.Buffer
 	name := "report"
-	if format == ReportFormatGDD {
+	switch format {
+	case ReportFormatGDD:
 		name = "gdd"
+	case ReportFormatEvaluation:
+		name = "evaluation"
 	}
 	if err := tpl.ExecuteTemplate(&out, name, view); err != nil {
 		return "", err
@@ -311,6 +322,8 @@ func RenderDocumentPlainPDF(document any, format string, status Status, document
 				w.pair(row.Metric, row.Target+" — "+row.How)
 			}
 		}
+	case *EvalReportDoc:
+		renderEvaluationPlain(w, doc, format, documentID)
 	default:
 		return nil, ErrInvalidReportVersion
 	}

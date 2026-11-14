@@ -16,6 +16,7 @@ import (
 	"github.com/gamidoc/backend/internal/http/response"
 	"github.com/gamidoc/backend/internal/project"
 	"github.com/gamidoc/backend/internal/session"
+	"github.com/gamidoc/backend/internal/wizard"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -349,7 +350,7 @@ func (h *Handler) generatePDF(w http.ResponseWriter, r *http.Request, o owner) {
 		input.Format = ReportFormatReport
 	}
 	if !ValidReportFormat(input.Format) {
-		response.WriteError(w, http.StatusBadRequest, "INVALID_REPORT_FORMAT", "Format must be \"report\" or \"gdd\"", nil)
+		response.WriteError(w, http.StatusBadRequest, "INVALID_REPORT_FORMAT", "Format must be \"report\", \"gdd\" or \"evaluation\"", nil)
 		return
 	}
 
@@ -362,7 +363,24 @@ func (h *Handler) generatePDF(w http.ResponseWriter, r *http.Request, o owner) {
 		return
 	}
 
-	if _, err := h.service.Dashboard(status); err != nil {
+	// The UX evaluation report needs the project's complete evaluation wizard, not the design.
+	var evaluation *wizard.Status
+	if input.Format == ReportFormatEvaluation {
+		if o.kind != "projects" {
+			response.WriteError(w, http.StatusBadRequest, "INVALID_REPORT_FORMAT", "The evaluation report is available for projects only", nil)
+			return
+		}
+		found, err := h.projects.FindByID(r.Context(), o.id)
+		if err != nil {
+			response.WriteError(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "Internal server error", nil)
+			return
+		}
+		if wizard.ValidateComplete(found.Wizard) != nil {
+			response.WriteError(w, http.StatusConflict, "EVALUATION_INCOMPLETE", "Complete the four evaluation steps first", nil)
+			return
+		}
+		evaluation = &found.Wizard
+	} else if _, err := h.service.Dashboard(status); err != nil {
 		response.WriteError(w, http.StatusForbidden, "DASHBOARD_LOCKED", "Complete a full first pass with at least one filled section first", nil)
 		return
 	}
@@ -377,6 +395,7 @@ func (h *Handler) generatePDF(w http.ResponseWriter, r *http.Request, o owner) {
 	// The document is named after the title set in the overview, else the project name.
 	jobStatus := status
 	jobStatus.Title = DesignTitle(status, h.projectName(r.Context(), o))
+	jobStatus.Evaluation = evaluation
 	go h.documents.run(ctx, o, *job, jobStatus)
 
 	response.WriteJSON(w, http.StatusAccepted, map[string]any{

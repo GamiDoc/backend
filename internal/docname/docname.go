@@ -19,6 +19,7 @@ const (
 	DesignReport       = "design-report"
 	GameDesignDocument = "game-design-document"
 	EvaluationPlan     = "evaluation-plan"
+	EvaluationReport   = "evaluation-report"
 )
 
 // FileName is "<Title>_<docType>.pdf", e.g. "GreenStep_design-report.pdf": ASCII letters,

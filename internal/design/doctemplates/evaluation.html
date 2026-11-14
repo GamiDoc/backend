@@ -1,0 +1,138 @@
+{{define "evaluation"}}<!doctype html>
+<html><head><meta charset="utf-8"><title>{{.Doc.Title}} · {{.FormatTitle}}</title>
+<style>{{.CSS}}
+@page { @bottom-left { content: {{.FooterCSS}}; font: 7.5pt "IBM Plex Sans", "Segoe UI", Helvetica, Arial, sans-serif; color: #8a8f98; } }
+@page :first { @bottom-left { content: ""; } @bottom-right { content: ""; } }
+.cover-kicker { font-size: 8pt; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+.cover-facts { width: auto; min-width: 60%; margin: 14mm 0 0 13mm; font-size: 9pt; border-collapse: collapse; }
+.cover-facts td { border-bottom: 1px solid var(--line); padding: 3px 14px 3px 0; }
+.cover-facts td:first-child { color: var(--muted); width: 38mm; }
+.cover-howto { margin: 10mm 0 0 13mm; padding: 8px 11px; background: #f3f5f8; border-radius: 4px; font-size: 8.5pt; line-height: 1.5; }
+.eval-card { border: 1px solid var(--line); border-radius: 5px; padding: 9px 12px; margin: 10px 0; break-inside: avoid; }
+.eval-card-head { display: flex; gap: 8px; align-items: baseline; font-weight: 700; margin-bottom: 4px; }
+.eval-id { color: var(--blue); }
+.eval-tags { font-size: 8pt; color: var(--muted); margin-bottom: 6px; }
+.eval-tags b { color: var(--ink); font-weight: 600; }
+.hypothesis { border-left: 2px solid var(--blue); padding: 2px 0 2px 8px; margin: 6px 0; }
+</style></head>
+<body>
+{{$doc := .Doc}}
+
+<!-- Cover: document type, title and summary, plan details, how the document is organised, contents -->
+<section class="cover">
+    <div class="cover-top">
+        <span class="brand">GamiDoc</span>
+        <span class="cover-type">{{.FormatTitle}}</span>
+    </div>
+    <div class="cover-main">
+        <div class="cover-heading">
+            <div class="cover-kicker">UX evaluation plan</div>
+            <h1 class="cover-title">{{$doc.Title}}</h1>
+            {{if $doc.Subtitle}}<p class="cover-subtitle">{{$doc.Subtitle}}</p>{{end}}
+        </div>
+        {{if .CoverFacts}}
+        <table class="cover-facts">
+            {{range .CoverFacts}}<tr><td>{{.Label}}</td><td>{{.Value}}</td></tr>{{end}}
+        </table>
+        {{end}}
+        <div class="cover-howto"><b>How it is organised.</b> Every goal, method and instrument is explained with the same outline: what it is, why it was chosen for this project, what it measures, how to read the results, its limits and its sources. Ids such as G1, RQ1, H1, M1 and I1 link the parts; numbers in square brackets refer to the references at the end.</div>
+    </div>
+    <div class="cover-bottom">
+        <div class="contents-title">Contents</div>
+        <ol class="contents">{{range .Contents}}<li>{{.}}</li>{{end}}</ol>
+        <p class="cover-note">{{.Note}}</p>
+    </div>
+</section>
+
+{{if $doc.Context}}
+<section class="page-break">
+    <h2 class="section-title"><span class="num auto"></span>The project and what we want to find out</h2>
+    {{range $doc.Context}}<p class="serif">{{.}}</p>{{end}}
+</section>
+{{end}}
+
+{{if $doc.Goals}}
+<section{{if not $doc.Context}} class="page-break"{{end}}>
+    <h2 class="section-title"><span class="num auto"></span>The goals and what they mean</h2>
+    {{range $doc.Goals}}
+    <div class="eval-card">
+        <div class="eval-card-head"><span class="eval-id">{{.ID}}</span><span>{{.Name}}</span></div>
+        {{if .Category}}<div class="eval-tags">{{.Category}}</div>{{end}}
+        {{if .Meaning}}<p class="serif">{{.Meaning}}</p>{{end}}
+        {{if .WhyHere}}<div class="label">Why here</div><p class="serif">{{.WhyHere}}</p>{{end}}
+    </div>
+    {{end}}
+</section>
+{{end}}
+
+{{if $doc.Questions}}
+<section>
+    <h2 class="section-title"><span class="num auto"></span>Questions, hypotheses and the reasoning behind them</h2>
+    {{range $doc.Questions}}
+    <div class="eval-card">
+        <div class="eval-card-head"><span class="eval-id">{{.ID}}</span><span>{{.Question}}</span></div>
+        {{if .Exploratory}}<div class="eval-tags">Exploratory · no hypothesis</div>{{end}}
+        {{if .Reasoning}}<p class="serif">{{.Reasoning}}</p>{{end}}
+        {{range .Hypotheses}}
+        <div class="hypothesis"><b class="eval-id">{{.ID}}</b> {{.Text}}{{if .Rationale}}<br><span class="caption">{{.Rationale}}{{cite .Refs}}</span>{{end}}</div>
+        {{end}}
+    </div>
+    {{end}}
+</section>
+{{end}}
+
+{{if $doc.Methods}}
+<section class="page-break">
+    <h2 class="section-title"><span class="num auto"></span>The methods, explained</h2>
+    {{range $doc.Methods}}
+    <div class="eval-card">
+        <div class="eval-card-head"><span class="eval-id">{{.ID}}</span><span>{{.Name}}</span></div>
+        {{if .Goals}}<div class="eval-tags"><b>Goals:</b> {{join .Goals}}</div>{{end}}
+        {{if .What}}<div class="label">What it is</div><p class="serif">{{.What}}</p>{{end}}
+        {{if .WhyHere}}<div class="label">Why here</div><p class="serif">{{.WhyHere}}{{cite .Refs}}</p>{{end}}
+        {{if .Limits}}<div class="watch-out"><b>Limits.</b> {{.Limits}}</div>{{end}}
+    </div>
+    {{end}}
+</section>
+{{end}}
+
+{{if $doc.Instrs}}
+<section>
+    <h2 class="section-title"><span class="num auto"></span>The instruments, explained</h2>
+    {{range $doc.Instrs}}
+    <div class="eval-card">
+        <div class="eval-card-head"><span class="eval-id">{{.ID}}</span><span>{{.Name}}</span></div>
+        <div class="eval-tags">{{if .Methods}}<b>Method:</b> {{join .Methods}}{{end}}{{if .Covers}} · <b>Covers:</b> {{join .Covers}}{{end}}{{if .Partial}} · <b>In part:</b> {{join .Partial}}{{end}}</div>
+        {{if .What}}<div class="label">What it is</div><p class="serif">{{.What}}{{cite .Refs}}</p>{{end}}
+        {{if .WhyHere}}<div class="label">Why in this project</div><p class="serif">{{.WhyHere}}</p>{{end}}
+        {{if .Measures}}<div class="label">What it measures</div><p class="serif">{{.Measures}}</p>{{end}}
+        {{if .HowToRead}}<div class="label">How to read the results</div><p class="serif">{{.HowToRead}}</p>{{end}}
+        {{if .Limits}}<div class="watch-out"><b>Limits.</b> {{.Limits}}</div>{{end}}
+    </div>
+    {{end}}
+</section>
+{{end}}
+
+{{if $doc.Coverage}}
+<section>
+    <h2 class="section-title"><span class="num auto"></span>How the choices complement each other</h2>
+    {{range $doc.Coverage}}<p class="serif">{{.}}</p>{{end}}
+</section>
+{{end}}
+
+{{if $doc.NextSteps}}
+<section>
+    <h2 class="section-title"><span class="num auto"></span>Next steps</h2>
+    <ol class="serif">{{range $doc.NextSteps}}<li>{{.}}</li>{{end}}</ol>
+</section>
+{{end}}
+
+{{if .References}}
+<section>
+    <h2 class="section-title"><span class="num auto"></span>References</h2>
+    <p class="caption">Check every reference before use.</p>
+    <ol class="refs">{{range .References}}<li>{{.Text}}</li>{{end}}</ol>
+</section>
+{{end}}
+</body></html>
+{{end}}
