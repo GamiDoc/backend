@@ -253,6 +253,11 @@ func GenerateDocument(ctx context.Context, assistant ai.Assistant, format string
 	if report, ok := target.(*ReportDoc); ok {
 		addMissingSections(report, status)
 	}
+	if evaluation, ok := target.(*EvalReportDoc); ok {
+		if err := alignEvaluation(evaluation, status); err != nil {
+			return nil, err
+		}
+	}
 	return target, nil
 }
 

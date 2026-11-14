@@ -2,6 +2,7 @@ package design
 
 import (
 	"context"
+	"errors"
 	"github.com/gamidoc/backend/internal/docname"
 	"log/slog"
 	"strings"
@@ -57,6 +58,9 @@ func (r *ReportService) Generate(ctx context.Context, kind string, id string, st
 			generated, err := GenerateDocument(ctx, r.assistant, format, status)
 			if err != nil {
 				logger.Error("document generation failed", "attempt", attempt, "error", err)
+				if errors.Is(err, ErrInvalidDocument) {
+					continue // an off-topic answer: asked once more
+				}
 				break
 			}
 			if report, ok := generated.(*ReportDoc); ok {

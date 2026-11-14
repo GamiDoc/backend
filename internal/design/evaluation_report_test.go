@@ -1,7 +1,9 @@
 package design
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"strings"
 	"testing"
 
@@ -77,5 +79,44 @@ func TestSplitFieldLines(t *testing.T) {
 	}
 	if len(prose) != 2 || !strings.HasPrefix(prose[0], "Obiettivo:") {
 		t.Fatalf("prose: %q", prose)
+	}
+}
+
+func TestEvaluationReportRejectsPlaceholders(t *testing.T) {
+	status := sampleDesignStatus()
+	status.Evaluation = sampleEvaluationWizard(t)
+	assistant := &scriptedAssistant{answers: map[string]string{"design_document_evaluation": `{
+		"title":"x","subtitle":"","context":["I only have the setup."],
+		"goals":[{"id":"G1","name":"Usability & Efficiency","meaning":"placeholder: what the goal means","whyHere":""}],
+		"methods":[{"id":"M1","name":"placeholder","what":"placeholder"}],
+		"instruments":[{"id":"I1","name":"placeholder","what":"placeholder"}],"nextSteps":["placeholder"]}`}}
+	_, err := GenerateDocument(context.Background(), assistant, ReportFormatEvaluation, status)
+	if !errors.Is(err, ErrInvalidDocument) {
+		t.Fatalf("expected ErrInvalidDocument, got %v", err)
+	}
+}
+
+func TestEvaluationReportAlignsToTheWizard(t *testing.T) {
+	status := sampleDesignStatus()
+	status.Evaluation = sampleEvaluationWizard(t)
+	// The AI explains both goals and both methods but forgets the custom questionnaire.
+	assistant := &scriptedAssistant{answers: map[string]string{"design_document_evaluation": `{
+		"title":"GreenStep","subtitle":"Evaluation of GreenStep.","context":["GreenStep rewards active trips."],
+		"goals":[{"id":"G1","name":"Usability & Efficiency","meaning":"Ease of use.","whyHere":"Logging must be quick."},
+		         {"id":"G2","name":"Motivation Spectrum","meaning":"Quality of motivation.","whyHere":"Points may crowd out motivation."}],
+		"methods":[{"id":"M1","name":"Surveys & Questionnaires","what":"Scales.","whyHere":"Fast."},
+		           {"id":"M2","name":"Diary Study","what":"Daily notes.","whyHere":"Habits."}],
+		"instruments":[{"id":"I1","name":"Task based protocol","what":"Tasks.","whyHere":"Usability."}],
+		"nextSteps":["Pilot with 2 students."]}`}}
+	generated, err := GenerateDocument(context.Background(), assistant, ReportFormatEvaluation, status)
+	if err != nil {
+		t.Fatal(err)
+	}
+	doc := generated.(*EvalReportDoc)
+	if len(doc.Instrs) != 2 || doc.Instrs[1].Name != "Perceived leaderboard pressure" || doc.Instrs[1].ID != "I2" {
+		t.Fatalf("instruments: %+v", doc.Instrs)
+	}
+	if doc.Goals[1].WhyHere != "Points may crowd out motivation." {
+		t.Fatalf("AI text lost: %+v", doc.Goals)
 	}
 }

@@ -2,6 +2,7 @@ package design
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -127,7 +128,8 @@ Rules:
 - For instruments, describe items, scales and scoring only when you are sure of them; never invent numbers. Use well-established reference values only (e.g. SUS average 68).
 - Cite references ONLY by their id from the catalogue, and only where they really support the sentence. Never write citations in the text yourself.
 - Write clearly for a reader who did not take part in the planning. Short sentences, no filler.
-- Write in the language of the data (the language of the free-text fields and of the design).`
+- Write in the language of the data (the language of the free-text fields and of the design).
+- All the data you need is in the message. Write the finished document now: never ask for more data, never answer with a template, an outline or placeholders, never talk about yourself or the task.`
 
 // evaluationUserText describes the evaluation (and the design, when there is one) for the AI.
 func evaluationUserText(status Status) string {
@@ -482,4 +484,119 @@ func fieldLabel(key string) string {
 		return key
 	}
 	return strings.ToUpper(label[:1]) + label[1:]
+}
+
+// ErrInvalidDocument: the AI answered off-topic (a template, placeholders, other choices
+// than the ones entered); the document is asked again, then built from the data.
+var ErrInvalidDocument = errors.New("the AI returned an invalid document")
+
+// alignEvaluation keeps the AI's document on the choices entered in the wizard: goals,
+// methods and instruments follow the wizard (an entry the AI left out is added with the
+// catalog description). An answer made of placeholders, or that misses most of the
+// choices, is rejected.
+func alignEvaluation(doc *EvalReportDoc, status Status) error {
+	if containsPlaceholder(doc) {
+		return fmt.Errorf("%w: placeholders", ErrInvalidDocument)
+	}
+	fallback := fallbackEvaluation(status)
+	matched, total := 0, 0
+
+	goals := make([]EvalGoal, 0, len(fallback.Goals))
+	used := map[string]bool{}
+	for _, want := range fallback.Goals {
+		total++
+		if found, ok := findByName(len(doc.Goals), func(i int) string { return doc.Goals[i].Name }, want.Name); ok {
+			matched++
+			goals = append(goals, doc.Goals[found])
+			used[doc.Goals[found].ID] = true
+			continue
+		}
+		goals = append(goals, want)
+	}
+	doc.Goals = renumberMissing(goals, used, "G", func(g *EvalGoal) *string { return &g.ID })
+
+	methods := make([]EvalMethod, 0, len(fallback.Methods))
+	used = map[string]bool{}
+	for _, want := range fallback.Methods {
+		total++
+		if found, ok := findByName(len(doc.Methods), func(i int) string { return doc.Methods[i].Name }, want.Name); ok {
+			matched++
+			methods = append(methods, doc.Methods[found])
+			used[doc.Methods[found].ID] = true
+			continue
+		}
+		methods = append(methods, want)
+	}
+	doc.Methods = renumberMissing(methods, used, "M", func(m *EvalMethod) *string { return &m.ID })
+
+	instruments := make([]EvalInstrument, 0, len(fallback.Instrs))
+	used = map[string]bool{}
+	for _, want := range fallback.Instrs {
+		total++
+		if found, ok := findByName(len(doc.Instrs), func(i int) string { return doc.Instrs[i].Name }, want.Name); ok {
+			matched++
+			instruments = append(instruments, doc.Instrs[found])
+			used[doc.Instrs[found].ID] = true
+			continue
+		}
+		instruments = append(instruments, want)
+	}
+	doc.Instrs = renumberMissing(instruments, used, "I", func(i *EvalInstrument) *string { return &i.ID })
+
+	if total > 0 && matched*2 < total {
+		return fmt.Errorf("%w: %d of %d choices", ErrInvalidDocument, matched, total)
+	}
+	if len(doc.NextSteps) == 0 {
+		doc.NextSteps = fallback.NextSteps
+	}
+	return nil
+}
+
+func findByName(count int, name func(int) string, want string) (int, bool) {
+	for i := 0; i < count; i++ {
+		if _, ok := catalog.Match([]string{want}, name(i)); ok {
+			return i, true
+		}
+	}
+	return 0, false
+}
+
+// renumberMissing gives the entries taken from the data (not from the AI) an id not used
+// by the AI's entries, so the cross-references of the AI's text stay valid.
+func renumberMissing[T any](items []T, used map[string]bool, prefix string, id func(*T) *string) []T {
+	next := 1
+	for i := range items {
+		current := id(&items[i])
+		if used[*current] {
+			continue
+		}
+		for used[fmt.Sprintf("%s%d", prefix, next)] {
+			next++
+		}
+		*current = fmt.Sprintf("%s%d", prefix, next)
+		used[*current] = true
+	}
+	return items
+}
+
+// containsPlaceholder reports a template answer ("placeholder", "TBD", "lorem ipsum").
+func containsPlaceholder(doc *EvalReportDoc) bool {
+	texts := append([]string{doc.Subtitle}, doc.Context...)
+	for _, goal := range doc.Goals {
+		texts = append(texts, goal.Name, goal.Meaning, goal.WhyHere)
+	}
+	for _, method := range doc.Methods {
+		texts = append(texts, method.Name, method.What, method.WhyHere)
+	}
+	for _, instrument := range doc.Instrs {
+		texts = append(texts, instrument.Name, instrument.What, instrument.WhyHere)
+	}
+	texts = append(texts, doc.NextSteps...)
+	for _, text := range texts {
+		lower := strings.ToLower(text)
+		if strings.Contains(lower, "placeholder") || strings.Contains(lower, "lorem ipsum") || strings.TrimSpace(lower) == "tbd" {
+			return true
+		}
+	}
+	return false
 }
