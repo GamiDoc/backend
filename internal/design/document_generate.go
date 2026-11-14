@@ -242,7 +242,31 @@ func GenerateDocument(ctx context.Context, assistant ai.Assistant, format string
 		return nil, fmt.Errorf("the AI returned an empty document")
 	}
 	tidyDocument(target)
+	if report, ok := target.(*ReportDoc); ok {
+		addMissingSections(report, status)
+	}
 	return target, nil
+}
+
+// addMissingSections: the model sometimes leaves out a whole design section (often the
+// last one, Technical requirements). A filled section it skipped is added with the data
+// entered, in section order, so the report never silently drops a part of the design.
+func addMissingSections(doc *ReportDoc, status Status) {
+	present := map[int]bool{}
+	for _, section := range doc.Sections {
+		present[section.Number] = true
+	}
+	data := fallbackDocument(ReportFormatReport, status).(*ReportDoc)
+	added := false
+	for _, section := range data.Sections {
+		if !present[section.Number] {
+			doc.Sections = append(doc.Sections, section)
+			added = true
+		}
+	}
+	if added {
+		sort.SliceStable(doc.Sections, func(i, j int) bool { return doc.Sections[i].Number < doc.Sections[j].Number })
+	}
 }
 
 // documentLanguage is the language of the design: from the Spark analysis when available.

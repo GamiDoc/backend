@@ -94,7 +94,8 @@ func TestGenerateDocumentWithAI(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if doc := report.(*ReportDoc); doc.Title != "GreenStep" || len(doc.Sections) != 1 {
+	if doc := report.(*ReportDoc); doc.Title != "GreenStep" || len(doc.Sections) != 3 || doc.Sections[1].Number != 2 || len(doc.Sections[1].Blocks) != 1 {
+		// the AI wrote section 2; sections 1 and 4, filled but left out, are added with their data
 		t.Fatalf("unexpected report %+v", doc)
 	}
 	prompt := assistant.requests[0].User
