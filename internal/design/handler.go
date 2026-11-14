@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/gamidoc/backend/internal/docname"
 	"io"
 	"log/slog"
 	"net/http"
@@ -113,6 +114,8 @@ func (h *Handler) ProjectRoutes() chi.Router {
 	r := chi.NewRouter()
 	h.mountShared(r, h.forProject)
 	r.Get("/reports", h.forProject(h.listReports))
+	r.Delete("/reports/{reportId}", h.forProject(h.deleteReport))
+	r.Patch("/reports/{reportId}", h.forProject(h.renameReport))
 	r.Post("/import-session", h.forProject(h.importSession))
 	return r
 }
@@ -380,13 +383,75 @@ func (h *Handler) generatePDF(w http.ResponseWriter, r *http.Request, o owner) {
 	})
 }
 
+// renameReport changes the file name of a generated document ({"name": "..."}).
+func (h *Handler) renameReport(w http.ResponseWriter, r *http.Request, o owner) {
+	var input struct {
+		Name string `json:"name"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		response.WriteError(w, http.StatusBadRequest, "INVALID_INPUT", "Invalid request body", nil)
+		return
+	}
+	reportID := chi.URLParam(r, "reportId")
+	unlock := h.lock(o)
+	defer unlock()
+
+	renamed, err := h.reports.Rename(r.Context(), o.id, reportID, input.Name)
+	switch {
+	case errors.Is(err, docname.ErrInvalidName):
+		response.WriteError(w, http.StatusBadRequest, "INVALID_NAME", "Use letters or digits in the name", nil)
+		return
+	case errors.Is(err, ErrReportNotFound):
+		response.WriteError(w, http.StatusNotFound, "REPORT_NOT_FOUND", "Report not found", nil)
+		return
+	case errors.Is(err, ErrReportFileMissing):
+		response.WriteError(w, http.StatusConflict, "PDF_NOT_FOUND", "The PDF file is no longer available", nil)
+		return
+	case err != nil:
+		response.WriteError(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "Internal server error", nil)
+		return
+	}
+
+	// The last generation may point to this document: follow the new file.
+	if status, err := o.states.Get(r.Context(), o.id); err == nil && status.ReportJob != nil &&
+		status.ReportJob.Report != nil && status.ReportJob.Report.ID == reportID {
+		status.ReportJob.Report.URL = renamed.URL
+		_ = o.states.Save(r.Context(), o.id, status)
+	}
+	response.WriteJSON(w, http.StatusOK, renamed)
+}
+
+// deleteReport removes a generated document of the project (record and PDF file).
+func (h *Handler) deleteReport(w http.ResponseWriter, r *http.Request, o owner) {
+	reportID := chi.URLParam(r, "reportId")
+	unlock := h.lock(o)
+	defer unlock()
+
+	if err := h.reports.Delete(r.Context(), o.id, reportID); err != nil {
+		if errors.Is(err, ErrReportNotFound) {
+			response.WriteError(w, http.StatusNotFound, "REPORT_NOT_FOUND", "Report not found", nil)
+			return
+		}
+		response.WriteError(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "Internal server error", nil)
+		return
+	}
+
+	// The last generation may point to the deleted document: forget its link.
+	if status, err := o.states.Get(r.Context(), o.id); err == nil && status.ReportJob != nil &&
+		status.ReportJob.Report != nil && status.ReportJob.Report.ID == reportID {
+		status.ReportJob.Report = nil
+		_ = o.states.Save(r.Context(), o.id, status)
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func (h *Handler) listReports(w http.ResponseWriter, r *http.Request, o owner) {
 	reports, err := h.reports.List(r.Context(), o.id)
 	if err != nil {
 		response.WriteError(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "Internal server error", nil)
 		return
 	}
-	reports = h.reports.MarkMissing(r.Context(), reports)
+	reports = h.reports.WithFileNames(h.reports.MarkMissing(r.Context(), reports))
 
 	response.WriteJSON(w, http.StatusOK, map[string]any{
 		"reports": reports,

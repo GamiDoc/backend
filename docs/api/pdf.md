@@ -24,6 +24,14 @@ Response shape:
 }
 ```
 
+## `PATCH /api/v1/projects/{projectId}/pdf`
+
+Body `{ "name": "My plan" }`: renames the evaluation plan PDF (the download name). Response `200 { "fileName": "My-plan.pdf" }`; `400 INVALID_NAME`, `404 PDF_NOT_FOUND`.
+
+## `DELETE /api/v1/projects/{projectId}/pdf`
+
+Deletes the evaluation plan PDF (file and `pdfUrl`). Response `204`; `404 PDF_NOT_FOUND` when there is none.
+
 ## `POST /api/v1/sessions/{sessionId}/generate-pdf`
 
 | Field | Value |

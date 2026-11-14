@@ -2,6 +2,8 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	"github.com/gamidoc/backend/internal/design"
 )
@@ -35,6 +37,51 @@ func (r *DesignReportRepository) Create(ctx context.Context, report design.Repor
 	}
 
 	return created, nil
+}
+
+func (r *DesignReportRepository) Delete(ctx context.Context, projectID string, reportID string) (design.Report, error) {
+	row := r.db.sql.QueryRowContext(
+		ctx,
+		`
+		DELETE FROM design_reports
+		WHERE id = $1 AND project_id = $2
+		RETURNING id, project_id, version, url, created_at
+		`,
+		reportID,
+		projectID,
+	)
+
+	var deleted design.Report
+	if err := row.Scan(&deleted.ID, &deleted.ProjectID, &deleted.Version, &deleted.URL, &deleted.CreatedAt); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return design.Report{}, design.ErrReportNotFound
+		}
+		return design.Report{}, err
+	}
+	return deleted, nil
+}
+
+func (r *DesignReportRepository) UpdateURL(ctx context.Context, projectID string, reportID string, url string) (design.Report, error) {
+	row := r.db.sql.QueryRowContext(
+		ctx,
+		`
+		UPDATE design_reports SET url = $3
+		WHERE id = $1 AND project_id = $2
+		RETURNING id, project_id, version, url, created_at
+		`,
+		reportID,
+		projectID,
+		url,
+	)
+
+	var updated design.Report
+	if err := row.Scan(&updated.ID, &updated.ProjectID, &updated.Version, &updated.URL, &updated.CreatedAt); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return design.Report{}, design.ErrReportNotFound
+		}
+		return design.Report{}, err
+	}
+	return updated, nil
 }
 
 func (r *DesignReportRepository) ListByProjectID(ctx context.Context, projectID string) ([]design.Report, error) {

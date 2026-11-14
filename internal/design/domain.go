@@ -27,6 +27,8 @@ var ErrInvalidSectionData = errors.New("invalid section data")
 var ErrSectionLocked = errors.New("section locked")
 var ErrDashboardLocked = errors.New("dashboard locked")
 var ErrInvalidReportVersion = errors.New("invalid report version")
+var ErrReportNotFound = errors.New("report not found")
+var ErrReportFileMissing = errors.New("report file missing")
 
 var sectionNames = map[int]string{
 	1: "Context",
@@ -143,4 +145,7 @@ type Report struct {
 	// Missing: the file is no longer in the object store (e.g. lost with the local disk
 	// of an earlier deploy). Set when listing, never stored.
 	Missing bool `json:"missing,omitempty"`
+	// FileName: name of the PDF file ("" for files stored before documents had names).
+	// Set when listing, never stored.
+	FileName string `json:"fileName,omitempty"`
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/mail"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -257,6 +258,66 @@ func (s *Service) DownloadProjectPDF(ctx context.Context, userID, projectID stri
 	}
 	data, err := s.store.Read(ctx, key)
 	return data, docname.FromKey(key, docname.FileName(item.Name, docname.EvaluationPlan)), err
+}
+
+// RenameProjectPDF moves the project's evaluation plan to a new file name and returns
+// the new file name.
+func (s *Service) RenameProjectPDF(ctx context.Context, userID, projectID, name string) (string, error) {
+	fileName, err := docname.Custom(name)
+	if err != nil {
+		return "", err
+	}
+	item, err := s.projects.FindByID(ctx, projectID)
+	if err != nil {
+		return "", err
+	}
+	if item.UserID != userID {
+		return "", project.ErrForbiddenProject
+	}
+	if item.PDFURL == nil {
+		return "", ErrPDFNotFound
+	}
+	oldKey, ok := s.store.KeyFromURL(*item.PDFURL)
+	if !ok {
+		return "", ErrPDFNotFound
+	}
+	if path.Base(oldKey) == fileName {
+		return fileName, nil
+	}
+	data, err := s.store.Read(ctx, oldKey)
+	if err != nil {
+		return "", ErrPDFNotFound
+	}
+	newKey := fmt.Sprintf("projects/%s/%d/%s", projectID, time.Now().UnixNano(), fileName)
+	url, err := s.store.Save(ctx, newKey, data)
+	if err != nil {
+		return "", err
+	}
+	if _, err := s.projects.UpdatePDFURL(ctx, projectID, url); err != nil {
+		_ = s.store.Delete(ctx, newKey)
+		return "", err
+	}
+	_ = s.store.Delete(ctx, oldKey)
+	return fileName, nil
+}
+
+// DeleteProjectPDF removes the project's evaluation plan (file and link).
+func (s *Service) DeleteProjectPDF(ctx context.Context, userID, projectID string) error {
+	item, err := s.projects.FindByID(ctx, projectID)
+	if err != nil {
+		return err
+	}
+	if item.UserID != userID {
+		return project.ErrForbiddenProject
+	}
+	if item.PDFURL == nil {
+		return ErrPDFNotFound
+	}
+	if key, ok := s.store.KeyFromURL(*item.PDFURL); ok {
+		_ = s.store.Delete(ctx, key) // a file already gone must not block the deletion
+	}
+	_, err = s.projects.UpdatePDFURL(ctx, projectID, "")
+	return err
 }
 
 // DownloadSessionPDF returns the session's evaluation plan and its download file name.

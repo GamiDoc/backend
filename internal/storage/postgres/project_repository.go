@@ -201,7 +201,7 @@ func (r *ProjectRepository) UpdatePDFURL(ctx context.Context, projectID string, 
 		ctx,
 		`
 		UPDATE projects
-		SET pdf_url = $2, updated_at = NOW()
+		SET pdf_url = NULLIF($2, ''), updated_at = NOW()
 		WHERE id = $1
 		RETURNING id, user_id, name, description, wizard_data, pdf_url, created_at, updated_at
 		`,

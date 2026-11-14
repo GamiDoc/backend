@@ -2,6 +2,7 @@ package design
 
 import (
 	"context"
+	"github.com/gamidoc/backend/internal/docname"
 	"log/slog"
 	"strings"
 	"time"
@@ -163,6 +164,89 @@ func (r *ReportService) MarkMissing(ctx context.Context, reports []Report) []Rep
 
 func (r *ReportService) List(ctx context.Context, projectID string) ([]Report, error) {
 	return r.repo.ListByProjectID(ctx, projectID)
+}
+
+// Rename moves the PDF of a report to a new file name (the download name) and returns the
+// updated report.
+func (r *ReportService) Rename(ctx context.Context, projectID string, reportID string, name string) (Report, error) {
+	fileName, err := docname.Custom(name)
+	if err != nil {
+		return Report{}, err
+	}
+	if r.repo == nil {
+		return Report{}, ErrReportNotFound
+	}
+	reports, err := r.repo.ListByProjectID(ctx, projectID)
+	if err != nil {
+		return Report{}, err
+	}
+	var current *Report
+	for i := range reports {
+		if reports[i].ID == reportID {
+			current = &reports[i]
+		}
+	}
+	if current == nil {
+		return Report{}, ErrReportNotFound
+	}
+	oldKey, ok := r.store.KeyFromURL(current.URL)
+	if !ok {
+		return Report{}, ErrReportFileMissing
+	}
+	newKey := "design/projects/" + projectID + "/" + reportID + "/" + fileName
+	if newKey == oldKey {
+		return r.withFileName(*current), nil
+	}
+	data, err := r.store.Read(ctx, oldKey)
+	if err != nil {
+		return Report{}, ErrReportFileMissing
+	}
+	url, err := r.store.Save(ctx, newKey, data)
+	if err != nil {
+		return Report{}, err
+	}
+	updated, err := r.repo.UpdateURL(ctx, projectID, reportID, url)
+	if err != nil {
+		_ = r.store.Delete(ctx, newKey)
+		return Report{}, err
+	}
+	if err := r.store.Delete(ctx, oldKey); err != nil {
+		r.logger.Warn("renamed report: old file not removed", "report", reportID, "error", err)
+	}
+	return r.withFileName(updated), nil
+}
+
+// WithFileNames sets the file name of each report (see Report.FileName).
+func (r *ReportService) WithFileNames(reports []Report) []Report {
+	named := make([]Report, len(reports))
+	for i, report := range reports {
+		named[i] = r.withFileName(report)
+	}
+	return named
+}
+
+func (r *ReportService) withFileName(report Report) Report {
+	if key, ok := r.store.KeyFromURL(report.URL); ok {
+		report.FileName = docname.FromKey(key, "")
+	}
+	return report
+}
+
+// Delete removes a report of a project and its PDF file.
+func (r *ReportService) Delete(ctx context.Context, projectID string, reportID string) error {
+	if r.repo == nil {
+		return ErrReportNotFound
+	}
+	deleted, err := r.repo.Delete(ctx, projectID, reportID)
+	if err != nil {
+		return err
+	}
+	if key, ok := r.store.KeyFromURL(deleted.URL); ok {
+		if err := r.store.Delete(ctx, key); err != nil {
+			r.logger.Warn("deleted report: file not removed", "report", reportID, "error", err)
+		}
+	}
+	return nil
 }
 
 func (r *ReportService) Persist(ctx context.Context, projectID string, reports []Report) error {

@@ -119,6 +119,70 @@ func (h *Handler) SessionGenerate(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// ProjectRenamePDF changes the file name of the project's evaluation plan ({"name": "..."}).
+func (h *Handler) ProjectRenamePDF(w http.ResponseWriter, r *http.Request) {
+	userID := appmiddleware.GetAuthUserID(r.Context())
+	if userID == "" {
+		response.WriteError(w, http.StatusUnauthorized, "UNAUTHORIZED", "Unauthorized", nil)
+		return
+	}
+	projectID := chi.URLParam(r, "projectId")
+	var input struct {
+		Name string `json:"name"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil || projectID == "" {
+		response.WriteError(w, http.StatusBadRequest, "INVALID_INPUT", "Invalid request body", nil)
+		return
+	}
+
+	fileName, err := h.service.RenameProjectPDF(r.Context(), userID, projectID, input.Name)
+	if err != nil {
+		switch {
+		case errors.Is(err, docname.ErrInvalidName):
+			response.WriteError(w, http.StatusBadRequest, "INVALID_NAME", "Use letters or digits in the name", nil)
+		case errors.Is(err, project.ErrProjectNotFound):
+			response.WriteError(w, http.StatusNotFound, "PROJECT_NOT_FOUND", "Project not found", nil)
+		case errors.Is(err, project.ErrForbiddenProject):
+			response.WriteError(w, http.StatusForbidden, "FORBIDDEN", "Project does not belong to user", nil)
+		case errors.Is(err, ErrPDFNotFound):
+			response.WriteError(w, http.StatusNotFound, "PDF_NOT_FOUND", "PDF not found", nil)
+		default:
+			response.WriteError(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "Internal server error", nil)
+		}
+		return
+	}
+	response.WriteJSON(w, http.StatusOK, map[string]string{"fileName": fileName})
+}
+
+// ProjectDeletePDF removes the project's evaluation plan.
+func (h *Handler) ProjectDeletePDF(w http.ResponseWriter, r *http.Request) {
+	userID := appmiddleware.GetAuthUserID(r.Context())
+	if userID == "" {
+		response.WriteError(w, http.StatusUnauthorized, "UNAUTHORIZED", "Unauthorized", nil)
+		return
+	}
+	projectID := chi.URLParam(r, "projectId")
+	if projectID == "" {
+		response.WriteError(w, http.StatusBadRequest, "INVALID_PROJECT_ID", "Invalid project id", nil)
+		return
+	}
+
+	if err := h.service.DeleteProjectPDF(r.Context(), userID, projectID); err != nil {
+		switch {
+		case errors.Is(err, project.ErrProjectNotFound):
+			response.WriteError(w, http.StatusNotFound, "PROJECT_NOT_FOUND", "Project not found", nil)
+		case errors.Is(err, project.ErrForbiddenProject):
+			response.WriteError(w, http.StatusForbidden, "FORBIDDEN", "Project does not belong to user", nil)
+		case errors.Is(err, ErrPDFNotFound):
+			response.WriteError(w, http.StatusNotFound, "PDF_NOT_FOUND", "PDF not found", nil)
+		default:
+			response.WriteError(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "Internal server error", nil)
+		}
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func (h *Handler) ProjectDownload(w http.ResponseWriter, r *http.Request) {
 	userID := appmiddleware.GetAuthUserID(r.Context())
 	if userID == "" {

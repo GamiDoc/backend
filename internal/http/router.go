@@ -146,6 +146,8 @@ func NewRouter(deps Dependencies) http.Handler {
 			r.With(appmiddleware.RequireAuth(deps.TokenManager, deps.TokenBlacklist)).Post("/projects/{projectId}/generate-pdf", deps.PDFHandler.ProjectGenerate)
 			r.Post("/sessions/{sessionId}/generate-pdf", deps.PDFHandler.SessionGenerate)
 			r.With(appmiddleware.RequireAuth(deps.TokenManager, deps.TokenBlacklist)).Get("/projects/{projectId}/download-pdf", deps.PDFHandler.ProjectDownload)
+			r.With(appmiddleware.RequireAuth(deps.TokenManager, deps.TokenBlacklist)).Delete("/projects/{projectId}/pdf", deps.PDFHandler.ProjectDeletePDF)
+			r.With(appmiddleware.RequireAuth(deps.TokenManager, deps.TokenBlacklist)).Patch("/projects/{projectId}/pdf", deps.PDFHandler.ProjectRenamePDF)
 			r.Get("/sessions/{sessionId}/download-pdf", deps.PDFHandler.SessionDownload)
 		}
 

@@ -79,7 +79,7 @@ evaluation plan is named `<project name>_evaluation-plan.pdf`.
 | Body | `{ "format": "report" \| "gdd" }` (default `report`) |
 | Success | `202` `{ "designStatus", "reportJob": { "jobId", "format", "state": "running", "startedAt" } }` |
 | Errors | `400 INVALID_INPUT`, `400 INVALID_REPORT_FORMAT`, `403 DASHBOARD_LOCKED`, `500 INTERNAL_SERVER_ERROR` |
-| Notes | Starts the generation of one final document **in the background** (one AI request, 1–3 minutes). Poll `GET .../design` while `reportJob.state` is `running`; when `done`, `reportJob.report` holds `{ reportId, version, url, createdAt }` (`version` = the format). A new request replaces the previous job. Project reports are recorded in `design_reports`; session reports are kept in the session design state |
+| Notes | Starts the generation of one final document **in the background** (one AI request, 2–4 minutes). Poll `GET .../design` while `reportJob.state` is `running`; when `done`, `reportJob.report` holds `{ reportId, version, url, createdAt }` (`version` = the format). A new request replaces the previous job. Project reports are recorded in `design_reports`; session reports are kept in the session design state |
 
 ### Final documents
 
@@ -129,7 +129,24 @@ Documents are HTML (`internal/design/doctemplates`) printed by Chromium: Gotenbe
 | Field | Value |
 | --- | --- |
 | Success | `200` `{ "reports": [...], "total" }` |
-| Notes | Project scope only; newest first |
+| Notes | Project scope only; newest first. Each report has `fileName` (the PDF file name, empty for files stored before documents had names) and `missing` when the file is gone |
+
+## `PATCH /api/v1/projects/{projectId}/design/reports/{reportId}`
+
+| Field | Value |
+| --- | --- |
+| Body | `{ "name": "My report" }` |
+| Success | `200` the report with its new `url` and `fileName` (`My-report.pdf`) |
+| Errors | `400 INVALID_NAME`, `404 REPORT_NOT_FOUND`, `409 PDF_NOT_FOUND` (file no longer stored) |
+| Notes | Renames the PDF file (it becomes the download name): letters, digits, `_` and `-` are kept, the rest becomes `-` |
+
+## `DELETE /api/v1/projects/{projectId}/design/reports/{reportId}`
+
+| Field | Value |
+| --- | --- |
+| Success | `204` |
+| Errors | `404 REPORT_NOT_FOUND` |
+| Notes | Deletes the report record and its PDF file |
 
 ## `POST /api/v1/projects/{projectId}/design/import-session`
 
