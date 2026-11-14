@@ -1,0 +1,762 @@
+{
+  "goals": [
+    {
+      "name": "Usability & Efficiency",
+      "category": "Pragmatic UX",
+      "description": "How well a system helps users achieve goals quickly, clearly, and without mistakes. In gamification, efficiency ensures that playful features (points, badges, challenges) add value rather than confusion. Recommended instruments: AttrakDiff, UEQ, meCUE."
+    },
+    {
+      "name": "Guidance & Feedback",
+      "category": "Pragmatic UX",
+      "description": "The quality of information the system provides to help users understand what is happening and how well they are performing. In gamification, feedback mechanics such as progress bars and scores are central — timely, specific, and meaningful feedback drives learning. Recommended instruments: SUS, UMUX, meCUE."
+    },
+    {
+      "name": "Novelty / Curiosity",
+      "category": "Hedonic UX",
+      "description": ""
+    },
+    {
+      "name": "Aesthetic & Attractiveness",
+      "category": "Hedonic UX",
+      "description": "The visual and sensory appeal of a product. A visually polished system signals craftsmanship and care, increasing user confidence and enjoyment of the experience. Recommended instruments: AttrakDiff, VisAWI, UEQ."
+    },
+    {
+      "name": "Affective Experience",
+      "category": "Emotional Experience",
+      "description": "The emotional states arising during interaction: joy, excitement, and pride on the positive side; frustration, anxiety, and boredom on the negative. Reward systems and feedback loops should be calibrated to optimize the emotional balance. Recommended instruments: SAM, PANAS, GEQ."
+    },
+    {
+      "name": "Tension / Pressure",
+      "category": "Emotional Experience",
+      "description": "The psychological stress or urgency users feel. Moderate tension increases excitement and engagement, but excessive pressure leads to disengagement. Challenge mechanics and time limits must be carefully calibrated. Recommended instruments: GEQ, NASA-TLX, SAM."
+    },
+    {
+      "name": "Competence / Mastery",
+      "category": "Psychological Needs",
+      "description": "The feeling of being effective and skilled. Progressive difficulty, skill-based challenges, and clear performance feedback support competence. Badges, levels, and leaderboards reinforce mastery when designed thoughtfully. Recommended instruments: PENS, IMI, BNS."
+    },
+    {
+      "name": "Autonomy / Perceived Choice",
+      "category": "Psychological Needs",
+      "description": "The sense of control and self-direction. Providing real choices — branching paths, customizable goals, flexible progressions — deepens personal investment and avoids the feeling of being coerced. Recommended instruments: PENS, IMI, BNS."
+    },
+    {
+      "name": "Social Connection / Relatedness",
+      "category": "Psychological Needs",
+      "description": "The sense of belonging and community. Social mechanics like guilds, leaderboards, collaborative challenges, and social sharing amplify motivation and long-term engagement. Designing for positive social dynamics while avoiding toxic competition is key. Recommended instruments: PENS, Social Presence Scale, GEQ."
+    },
+    {
+      "name": "Motivation Spectrum",
+      "category": "Motivational Dynamics",
+      "description": "Ranges from purely external motivation (earning points for rewards) to fully internal motivation (playing because it is genuinely enjoyable and meaningful). Gameful design aims to move users toward more autonomous forms. Over-reliance on extrinsic rewards can undermine intrinsic motivation — known as the overjustification effect. Recommended instruments: IMI, SMS, BREQ."
+    },
+    {
+      "name": "Behavioral Impact",
+      "category": "Motivational Dynamics",
+      "description": "Measures how gamification affects actual user actions and habits over time. Behavioral metrics capture whether the system genuinely changes behavior — completion rates, return visits, goal achievement — beyond self-reported attitudes. Recommended instruments: BREQ, IMI, Goal Attainment Scale."
+    },
+    {
+      "name": "Progress / Accomplishment",
+      "category": "Cognitive Engagement",
+      "description": "The sense of advancement as users move through a system. XP bars, levels, streaks, and achievement unlocks are among the most effective drivers of continued engagement — provided the progress feels earned and meaningful, not arbitrary. Recommended instruments: FSS-2, GEQ, EGameFlow."
+    },
+    {
+      "name": "Engagement",
+      "category": "Cognitive Engagement",
+      "description": "The depth and quality of involvement — going beyond mere usage to genuine absorption, interest, and investment. Multi-layered challenges, meaningful choices, and social dynamics combine to create systems that hold attention and build lasting habits. Recommended instruments: UES, GEQ, O'Brien & Toms Scale."
+    },
+    {
+      "name": "Immersion / Flow / Focused Attention",
+      "category": "Cognitive Engagement",
+      "description": "Flow is a state of optimal experience in which a person is fully immersed, losing track of time and self-consciousness. It requires balance between challenge and skill. Adaptive difficulty, clear goals, and immediate feedback all contribute to flow-inducing experiences. Recommended instruments: FSS-2, EGameFlow, GEQ."
+    },
+    {
+      "name": "Personal Meaning & Relevance",
+      "category": "Eudaimonic Experience",
+      "description": "How well an experience aligns with users' personal goals and values. When users see an activity as meaningful, they are far more likely to sustain engagement over time. Recommended instruments: miniPXI, MEEGA+, IMI."
+    },
+    {
+      "name": "Purpose & Values Alignment",
+      "category": "Eudaimonic Experience",
+      "description": "The degree to which an experience supports users' broader life goals. When a gamified system aligns with what users care about — self-improvement, learning, helping others — it transitions from entertainment to genuine enrichment. Recommended instruments: miniPXI, SDT Scale, GEQ."
+    },
+    {
+      "name": "Self-Transcendence",
+      "category": "Eudaimonic Experience",
+      "description": "Experiences that extend beyond personal gain — contributing to something larger, connecting with others, or achieving a sense of legacy. Cooperative challenges and prosocial mechanics can trigger these transcendent experiences. Recommended instruments: PERMA Scale, miniPXI, Character Strengths Survey."
+    }
+  ],
+  "stages": [
+    {
+      "name": "Concept / idea",
+      "description": "Early exploration phase. Expert reviews, personas, and interviews are ideal for validating assumptions before any resource is committed to building."
+    },
+    {
+      "name": "Low-fidelity prototype",
+      "description": "Paper sketches or simple wireframes. Think-aloud sessions and focus groups can surface usability issues at very low cost."
+    },
+    {
+      "name": "High-fidelity prototype",
+      "description": "Interactive, near-final interfaces. Structured usability tests and validated questionnaires become applicable for the first time."
+    },
+    {
+      "name": "Deployed system",
+      "description": "Live product with real users. Longitudinal methods like diary studies, surveys, and behavioral analytics capture actual usage patterns and satisfaction over time."
+    }
+  ],
+  "participants": [
+    "< 10",
+    "10-30",
+    "30-100",
+    "100+"
+  ],
+  "accessibility": [
+    "Easy",
+    "Moderate",
+    "Difficult"
+  ],
+  "time": [
+    "1 week",
+    "1-2 weeks",
+    "1 month",
+    "3+ months"
+  ],
+  "extraConstraints": [
+    "Technical limitation",
+    "Sensitive population"
+  ],
+  "methods": [
+    {
+      "id": "think-aloud",
+      "name": "Think-aloud testing",
+      "description": "Users verbalize thoughts while interacting with the system to surface usability issues in real time.",
+      "type": "Qualitative",
+      "stages": [
+        "Low-fidelity prototype",
+        "High-fidelity prototype"
+      ],
+      "goals": [
+        "Usability & Efficiency",
+        "Guidance & Feedback"
+      ]
+    },
+    {
+      "id": "surveys",
+      "name": "Surveys & Questionnaires",
+      "description": "Collect structured user feedback through standardized questionnaires measuring attitudes, satisfaction, and engagement.",
+      "type": "Quantitative",
+      "stages": [
+        "High-fidelity prototype",
+        "Deployed system"
+      ],
+      "goals": [
+        "Usability & Efficiency",
+        "Engagement",
+        "Motivation Spectrum",
+        "Affective Experience"
+      ]
+    },
+    {
+      "id": "heuristic-evaluation",
+      "name": "Heuristic evaluation",
+      "description": "Experts inspect the interface against established usability principles to identify design problems.",
+      "type": "Expert",
+      "stages": [
+        "Concept / idea",
+        "Low-fidelity prototype",
+        "High-fidelity prototype"
+      ],
+      "goals": [
+        "Usability & Efficiency",
+        "Guidance & Feedback",
+        "Aesthetic & Attractiveness"
+      ]
+    },
+    {
+      "id": "expert-review",
+      "name": "Expert review",
+      "description": "A focused expert inspection of the proposed experience and interaction flow at concept level.",
+      "type": "Expert",
+      "stages": [
+        "Concept / idea",
+        "Low-fidelity prototype"
+      ],
+      "goals": [
+        "Engagement",
+        "Guidance & Feedback",
+        "Aesthetic & Attractiveness"
+      ]
+    },
+    {
+      "id": "interview",
+      "name": "Interview",
+      "description": "A structured or semi-structured conversation with users to explore their experiences, emotions, and opinions in depth.",
+      "type": "Qualitative",
+      "stages": [
+        "Concept / idea",
+        "Low-fidelity prototype",
+        "High-fidelity prototype",
+        "Deployed system"
+      ],
+      "goals": [
+        "Engagement",
+        "Affective Experience",
+        "Motivation Spectrum",
+        "Personal Meaning & Relevance",
+        "Social Connection / Relatedness"
+      ]
+    },
+    {
+      "id": "observation",
+      "name": "Observation",
+      "description": "Watching users interact with the system in their natural context, without intervention, to capture authentic behaviors.",
+      "type": "Qualitative",
+      "stages": [
+        "Low-fidelity prototype",
+        "High-fidelity prototype",
+        "Deployed system"
+      ],
+      "goals": [
+        "Behavioral Impact",
+        "Usability & Efficiency",
+        "Engagement"
+      ]
+    },
+    {
+      "id": "focus-group",
+      "name": "Focus Group",
+      "description": "A moderated group discussion (typically 6–10 users) to explore shared perceptions, social dynamics, and community experiences.",
+      "type": "Qualitative",
+      "stages": [
+        "Concept / idea",
+        "Low-fidelity prototype",
+        "High-fidelity prototype"
+      ],
+      "goals": [
+        "Social Connection / Relatedness",
+        "Engagement",
+        "Personal Meaning & Relevance"
+      ]
+    },
+    {
+      "id": "diary-study",
+      "name": "Diary Study",
+      "description": "Participants self-report their experiences, behaviors, and motivations over an extended period to capture longitudinal patterns.",
+      "type": "Mixed",
+      "stages": [
+        "High-fidelity prototype",
+        "Deployed system"
+      ],
+      "goals": [
+        "Behavioral Impact",
+        "Motivation Spectrum",
+        "Engagement",
+        "Personal Meaning & Relevance"
+      ]
+    },
+    {
+      "id": "experience-report",
+      "name": "Experience Report",
+      "description": "Accounts written or recorded by users after interacting with the system, reflecting on their overall experience.",
+      "type": "Qualitative",
+      "stages": [
+        "High-fidelity prototype",
+        "Deployed system"
+      ],
+      "goals": [
+        "Affective Experience",
+        "Personal Meaning & Relevance",
+        "Purpose & Values Alignment"
+      ]
+    }
+  ],
+  "instruments": [
+    {
+      "id": "task-based-protocol",
+      "name": "Task based protocol",
+      "description": "Guide user through specific tasks to identify usability issues in a structured way.",
+      "type": "Observational",
+      "attributes": [
+        "Low participant burden",
+        "Recommended for quick, focused usability evaluations"
+      ],
+      "stages": [
+        "Low-fidelity prototype",
+        "High-fidelity prototype"
+      ],
+      "constraints": [
+        "Limited time",
+        "Small Samples"
+      ],
+      "forMethodIds": [
+        "think-aloud",
+        "heuristic-evaluation"
+      ],
+      "coversGoals": [
+        "Usability & Efficiency",
+        "Guidance & Feedback"
+      ]
+    },
+    {
+      "id": "think-aloud-script",
+      "name": "Think-Aloud script",
+      "description": "Facilitator script instructing users to think aloud and guiding session flow.",
+      "type": "Observational",
+      "attributes": [
+        "Low participant burden",
+        "Suited for in-depth, exploratory sessions"
+      ],
+      "stages": [
+        "Low-fidelity prototype",
+        "High-fidelity prototype"
+      ],
+      "constraints": [],
+      "forMethodIds": [
+        "think-aloud"
+      ],
+      "coversGoals": [
+        "Usability & Efficiency",
+        "Guidance & Feedback",
+        "Affective Experience"
+      ]
+    },
+    {
+      "id": "observation-grid",
+      "name": "Observation Grid",
+      "description": "Structured note-taking sheet for recording observed usability issues and user behaviours.",
+      "type": "Observational",
+      "attributes": [
+        "Low participant burden",
+        "Good for qualitative insights"
+      ],
+      "stages": [
+        "Concept / idea",
+        "Low-fidelity prototype"
+      ],
+      "constraints": [],
+      "forMethodIds": [
+        "think-aloud",
+        "heuristic-evaluation"
+      ],
+      "coversGoals": [
+        "Usability & Efficiency",
+        "Behavioral Impact"
+      ]
+    },
+    {
+      "id": "heuristic-checklist",
+      "name": "Heuristic Checklist",
+      "description": "A checklist derived from recognised usability and game UX heuristics for systematic expert inspection.",
+      "type": "Expert review",
+      "attributes": [
+        "No participants needed",
+        "Expert review only"
+      ],
+      "stages": [
+        "Concept / idea",
+        "Low-fidelity prototype"
+      ],
+      "constraints": [],
+      "forMethodIds": [
+        "heuristic-evaluation",
+        "expert-review"
+      ],
+      "coversGoals": [
+        "Usability & Efficiency",
+        "Guidance & Feedback",
+        "Aesthetic & Attractiveness"
+      ]
+    },
+    {
+      "id": "umux-lite",
+      "name": "UMUX-Lite",
+      "description": "Measure perceived usability with 2 items — fast and validated for any context.",
+      "type": "Self-report",
+      "attributes": [
+        "Minimal response burden",
+        "Suited for time-constrained or small-sample evaluations"
+      ],
+      "stages": [
+        "Low-fidelity prototype",
+        "High-fidelity prototype"
+      ],
+      "constraints": [
+        "Limited time"
+      ],
+      "forMethodIds": [
+        "surveys"
+      ],
+      "coversGoals": [
+        "Usability & Efficiency"
+      ]
+    },
+    {
+      "id": "sus",
+      "name": "SUS",
+      "description": "10-item System Usability Scale — the most widely used standardised usability questionnaire.",
+      "type": "Self-report",
+      "attributes": [
+        "Requires more participant time",
+        "Better suited for comprehensive evaluations with normative benchmarking"
+      ],
+      "stages": [
+        "High-fidelity prototype",
+        "Deployed system"
+      ],
+      "constraints": [],
+      "forMethodIds": [
+        "surveys"
+      ],
+      "coversGoals": [
+        "Usability & Efficiency",
+        "Guidance & Feedback"
+      ]
+    },
+    {
+      "id": "attrakdiff",
+      "name": "AttrakDiff",
+      "description": "Semantic differential scale measuring pragmatic qualities, hedonic qualities, and overall attractiveness.",
+      "type": "Self-report",
+      "attributes": [
+        "Covers both usability and aesthetic dimensions",
+        "Widely used in UX research"
+      ],
+      "stages": [
+        "High-fidelity prototype",
+        "Deployed system"
+      ],
+      "constraints": [],
+      "forMethodIds": [
+        "surveys"
+      ],
+      "coversGoals": [
+        "Usability & Efficiency",
+        "Aesthetic & Attractiveness",
+        "Novelty / Curiosity"
+      ]
+    },
+    {
+      "id": "ueq",
+      "name": "UEQ",
+      "description": "User Experience Questionnaire — measures attractiveness, perspicuity, efficiency, dependability, stimulation, and novelty.",
+      "type": "Self-report",
+      "attributes": [
+        "Multi-dimensional coverage",
+        "Benchmark database available"
+      ],
+      "stages": [
+        "High-fidelity prototype",
+        "Deployed system"
+      ],
+      "constraints": [],
+      "forMethodIds": [
+        "surveys"
+      ],
+      "coversGoals": [
+        "Usability & Efficiency",
+        "Aesthetic & Attractiveness",
+        "Novelty / Curiosity"
+      ]
+    },
+    {
+      "id": "mecue",
+      "name": "meCUE",
+      "description": "Modular Evaluation of Key Components of User Experience — covers usefulness, usability, visual aesthetics, and emotions.",
+      "type": "Self-report",
+      "attributes": [
+        "Modular design — use only relevant subscales",
+        "Covers both instrumental and non-instrumental qualities"
+      ],
+      "stages": [
+        "High-fidelity prototype",
+        "Deployed system"
+      ],
+      "constraints": [],
+      "forMethodIds": [
+        "surveys"
+      ],
+      "coversGoals": [
+        "Usability & Efficiency",
+        "Aesthetic & Attractiveness",
+        "Affective Experience"
+      ]
+    },
+    {
+      "id": "geq",
+      "name": "GEQ",
+      "description": "Game Experience Questionnaire — measures immersion, flow, competence, tension, challenge, and positive/negative affect.",
+      "type": "Self-report",
+      "attributes": [
+        "Purpose-built for game and gamification contexts",
+        "Multiple subscales available"
+      ],
+      "stages": [
+        "High-fidelity prototype",
+        "Deployed system"
+      ],
+      "constraints": [],
+      "forMethodIds": [
+        "surveys"
+      ],
+      "coversGoals": [
+        "Immersion / Flow / Focused Attention",
+        "Engagement",
+        "Tension / Pressure",
+        "Competence / Mastery",
+        "Affective Experience",
+        "Novelty / Curiosity"
+      ]
+    },
+    {
+      "id": "sam",
+      "name": "SAM",
+      "description": "Self-Assessment Manikin — a non-verbal pictorial scale measuring valence, arousal, and dominance.",
+      "type": "Self-report",
+      "attributes": [
+        "Language-independent",
+        "Very fast to administer (< 1 min)"
+      ],
+      "stages": [
+        "Low-fidelity prototype",
+        "High-fidelity prototype",
+        "Deployed system"
+      ],
+      "constraints": [
+        "Limited time"
+      ],
+      "forMethodIds": [
+        "surveys"
+      ],
+      "coversGoals": [
+        "Affective Experience",
+        "Tension / Pressure"
+      ]
+    },
+    {
+      "id": "panas",
+      "name": "PANAS",
+      "description": "Positive and Negative Affect Schedule — measures the intensity of positive and negative emotional states.",
+      "type": "Self-report",
+      "attributes": [
+        "Validated cross-culturally",
+        "Sensitive to both pre/post interaction changes"
+      ],
+      "stages": [
+        "High-fidelity prototype",
+        "Deployed system"
+      ],
+      "constraints": [],
+      "forMethodIds": [
+        "surveys"
+      ],
+      "coversGoals": [
+        "Affective Experience"
+      ]
+    },
+    {
+      "id": "nasa-tlx",
+      "name": "NASA-TLX",
+      "description": "NASA Task Load Index — multidimensional workload scale measuring mental demand, physical demand, and frustration.",
+      "type": "Self-report",
+      "attributes": [
+        "Industry standard for cognitive load",
+        "Identifies sources of perceived pressure"
+      ],
+      "stages": [
+        "High-fidelity prototype",
+        "Deployed system"
+      ],
+      "constraints": [],
+      "forMethodIds": [
+        "surveys"
+      ],
+      "coversGoals": [
+        "Tension / Pressure"
+      ]
+    },
+    {
+      "id": "pens",
+      "name": "PENS",
+      "description": "Player Experience of Need Satisfaction — measures competence, autonomy, and relatedness satisfaction in play contexts.",
+      "type": "Self-report",
+      "attributes": [
+        "Grounded in Self-Determination Theory",
+        "Purpose-built for games and gamification"
+      ],
+      "stages": [
+        "High-fidelity prototype",
+        "Deployed system"
+      ],
+      "constraints": [],
+      "forMethodIds": [
+        "surveys"
+      ],
+      "coversGoals": [
+        "Competence / Mastery",
+        "Autonomy / Perceived Choice",
+        "Social Connection / Relatedness"
+      ]
+    },
+    {
+      "id": "imi",
+      "name": "IMI",
+      "description": "Intrinsic Motivation Inventory — measures interest/enjoyment, perceived competence, autonomy, relatedness, and effort.",
+      "type": "Self-report",
+      "attributes": [
+        "Modular subscales",
+        "Covers the full intrinsic-extrinsic motivation spectrum"
+      ],
+      "stages": [
+        "High-fidelity prototype",
+        "Deployed system"
+      ],
+      "constraints": [],
+      "forMethodIds": [
+        "surveys"
+      ],
+      "coversGoals": [
+        "Motivation Spectrum",
+        "Competence / Mastery",
+        "Autonomy / Perceived Choice",
+        "Behavioral Impact"
+      ]
+    },
+    {
+      "id": "bns",
+      "name": "BNS",
+      "description": "Basic Need Satisfaction Scale — measures the degree to which autonomy, competence, and relatedness needs are met.",
+      "type": "Self-report",
+      "attributes": [
+        "SDT-grounded",
+        "Applicable across multiple motivation contexts"
+      ],
+      "stages": [
+        "High-fidelity prototype",
+        "Deployed system"
+      ],
+      "constraints": [],
+      "forMethodIds": [
+        "surveys"
+      ],
+      "coversGoals": [
+        "Autonomy / Perceived Choice",
+        "Competence / Mastery",
+        "Social Connection / Relatedness"
+      ]
+    },
+    {
+      "id": "fss2",
+      "name": "FSS-2",
+      "description": "Flow State Scale — measures the nine dimensions of flow as described by Csikszentmihalyi.",
+      "type": "Self-report",
+      "attributes": [
+        "Gold standard for flow measurement",
+        "Covers all nine flow dimensions"
+      ],
+      "stages": [
+        "High-fidelity prototype",
+        "Deployed system"
+      ],
+      "constraints": [],
+      "forMethodIds": [
+        "surveys"
+      ],
+      "coversGoals": [
+        "Immersion / Flow / Focused Attention",
+        "Engagement"
+      ]
+    },
+    {
+      "id": "egameflow",
+      "name": "EGameFlow",
+      "description": "E-Learning Game Flow Scale — measures flow in educational game contexts across concentration, goal clarity, and feedback.",
+      "type": "Self-report",
+      "attributes": [
+        "Adapted for game-based learning",
+        "Includes goal clarity and challenge-skill balance subscales"
+      ],
+      "stages": [
+        "High-fidelity prototype",
+        "Deployed system"
+      ],
+      "constraints": [],
+      "forMethodIds": [
+        "surveys"
+      ],
+      "coversGoals": [
+        "Immersion / Flow / Focused Attention",
+        "Engagement",
+        "Personal Meaning & Relevance"
+      ]
+    },
+    {
+      "id": "ues",
+      "name": "UES",
+      "description": "User Engagement Scale — measures focused attention, felt involvement, aesthetic appeal, and reward dimensions of engagement.",
+      "type": "Self-report",
+      "attributes": [
+        "Most comprehensive validated engagement scale",
+        "Short form (UES-SF) available"
+      ],
+      "stages": [
+        "High-fidelity prototype",
+        "Deployed system"
+      ],
+      "constraints": [],
+      "forMethodIds": [
+        "surveys"
+      ],
+      "coversGoals": [
+        "Engagement",
+        "Immersion / Flow / Focused Attention"
+      ]
+    },
+    {
+      "id": "minipxi",
+      "name": "miniPXI",
+      "description": "Mini Player Experience Inventory — a brief scale measuring meaning, purpose, and transcendence in game experiences.",
+      "type": "Self-report",
+      "attributes": [
+        "Very short (12 items)",
+        "Covers eudaimonic dimensions rarely addressed by other scales"
+      ],
+      "stages": [
+        "High-fidelity prototype",
+        "Deployed system"
+      ],
+      "constraints": [],
+      "forMethodIds": [
+        "surveys"
+      ],
+      "coversGoals": [
+        "Personal Meaning & Relevance",
+        "Purpose & Values Alignment",
+        "Self-Transcendence",
+        "Immersion / Flow / Focused Attention"
+      ]
+    },
+    {
+      "id": "meega",
+      "name": "MEEGA+",
+      "description": "Model for Evaluation of Educational Games — measures usability, fun, and learning experience in educational game contexts.",
+      "type": "Self-report",
+      "attributes": [
+        "Designed for educational gamification",
+        "Covers both UX quality and learning outcomes"
+      ],
+      "stages": [
+        "High-fidelity prototype",
+        "Deployed system"
+      ],
+      "constraints": [],
+      "forMethodIds": [
+        "surveys"
+      ],
+      "coversGoals": [
+        "Usability & Efficiency",
+        "Personal Meaning & Relevance",
+        "Engagement"
+      ]
+    }
+  ]
+}
