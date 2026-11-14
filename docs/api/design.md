@@ -79,7 +79,7 @@ evaluation plan is named `<project name>_evaluation-plan.pdf`.
 | Body | `{ "format": "report" \| "gdd" }` (default `report`) |
 | Success | `202` `{ "designStatus", "reportJob": { "jobId", "format", "state": "running", "startedAt" } }` |
 | Errors | `400 INVALID_INPUT`, `400 INVALID_REPORT_FORMAT`, `403 DASHBOARD_LOCKED`, `500 INTERNAL_SERVER_ERROR` |
-| Notes | Starts the generation of one final document **in the background** (one AI request, 2–4 minutes). Poll `GET .../design` while `reportJob.state` is `running`; when `done`, `reportJob.report` holds `{ reportId, version, url, createdAt }` (`version` = the format). A new request replaces the previous job. Project reports are recorded in `design_reports`; session reports are kept in the session design state |
+| Notes | Starts the generation of one final document **in the background** (one AI request, 2–4 minutes). `format`: `report`, `gdd`, or `evaluation` (projects only: the reasoned UX evaluation report, from the complete evaluation wizard and the design; `409 EVALUATION_INCOMPLETE` otherwise). Poll `GET .../design` while `reportJob.state` is `running`; when `done`, `reportJob.report` holds `{ reportId, version, url, createdAt }` (`version` = the format). A new request replaces the previous job. Project reports are recorded in `design_reports`; session reports are kept in the session design state |
 
 ### Final documents
 
@@ -147,6 +147,14 @@ Documents are HTML (`internal/design/doctemplates`) printed by Chromium: Gotenbe
 | Success | `204` |
 | Errors | `404 REPORT_NOT_FOUND` |
 | Notes | Deletes the report record and its PDF file |
+
+## `POST /api/v1/projects/{projectId}/design/evaluation/ai-fill`
+
+| Field | Value |
+| --- | --- |
+| Success | `202` `{ "wizardStatus" }` with `aiFill.state = "running"` |
+| Errors | `409 DESIGN_NOT_READY` (no first pass of the design), `409 AI_FILL_RUNNING`, `503 AI_UNAVAILABLE` |
+| Notes | The AI reads the design and fills in the four steps of the UX evaluation wizard, picking only options of the evaluation catalog (`internal/evaluation/catalog`, exported from the frontend with `npm run export-evaluation-catalog`). It runs in the background: poll `GET /projects/{projectId}` and read `wizardStatus.aiFill` (`jobId`, `state` running \| done \| failed, `startedAt`, `finishedAt`, `summary`, `notes`). `notes` maps the step ("1"–"3") to `[{ field, value, reason }]`, shown next to the choices. The steps are saved only when the job succeeds. |
 
 ## `POST /api/v1/projects/{projectId}/design/import-session`
 
