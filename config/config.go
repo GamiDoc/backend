@@ -142,7 +142,7 @@ func Load() Config {
 		AIResponseFormat:               getEnv("AI_RESPONSE_FORMAT", "json_schema"),
 		AIPrefillTimeout:               parseDurationWithFallback(getEnv("AI_PREFILL_TIMEOUT", "20m"), 20*time.Minute),
 		AIFallbackModels:               getEnvCSV("AI_FALLBACK_MODELS", nil),
-		AIMaxTokens:                    int(getEnvInt64("AI_MAX_TOKENS", 32000)),
+		AIMaxTokens:                    int(getEnvInt64("AI_MAX_TOKENS", 64000)),
 		AIPrefillMode:                  strings.ToLower(strings.TrimSpace(getEnv("AI_PREFILL_MODE", "sections"))),
 	}
 }
