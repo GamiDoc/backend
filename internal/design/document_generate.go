@@ -219,6 +219,9 @@ func GenerateDocument(ctx context.Context, assistant ai.Assistant, format string
 
 	system := documentSystemPrompt
 	user := designDataText(status) + "\n" + referenceCatalogueText() + "\n" + formatInstructions(format)
+	if format == ReportFormatReport {
+		user += "\n" + requiredSectionsText(status)
+	}
 	if language := documentLanguage(status); language != "" {
 		// Free models drift to English (the option names are English): the language goes at
 		// the top of both messages and again at the end.
@@ -248,7 +251,23 @@ func GenerateDocument(ctx context.Context, assistant ai.Assistant, format string
 	return target, nil
 }
 
-// addMissingSections: the model sometimes leaves out a whole design section (often the
+// requiredSectionsText lists the design sections with content: the model tends to stop
+// before the last one (Technical requirements).
+func requiredSectionsText(status Status) string {
+	var numbers []string
+	for number := 1; number <= SectionCount; number++ {
+		if len(orderedEntries(status.Section(number).Content)) > 0 {
+			numbers = append(numbers, strconv.Itoa(number))
+		}
+	}
+	if len(numbers) == 0 {
+		return ""
+	}
+	return "SECTIONS: the data has content in sections " + strings.Join(numbers, ", ") +
+		". Write one entry in \"sections\" for EACH of them, with its blocks, up to and including the last one: none may be left out."
+}
+
+// addMissingSections:the model sometimes leaves out a whole design section (often the
 // last one, Technical requirements). A filled section it skipped is added with the data
 // entered, in section order, so the report never silently drops a part of the design.
 func addMissingSections(doc *ReportDoc, status Status) {
