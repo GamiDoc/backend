@@ -20,3 +20,21 @@ func TestCatalogLoadsAndMatches(t *testing.T) {
 		t.Fatal("empty text")
 	}
 }
+
+func TestMatchLoose(t *testing.T) {
+	c := Get()
+	cases := map[string]string{
+		"10-30 participants": "10-30",
+		"Less than 10":       "< 10",
+		"100 or more":        "100+",
+		"30–100":             "30-100",
+	}
+	for text, want := range cases {
+		if got, ok := MatchLoose(c.Participants, text); !ok || got != want {
+			t.Errorf("MatchLoose(%q) = %q, %v; want %q", text, got, ok, want)
+		}
+	}
+	if _, ok := MatchLoose(c.Participants, "many"); ok {
+		t.Error("unexpected match")
+	}
+}

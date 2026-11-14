@@ -104,6 +104,22 @@ func Match(list []string, name string) (string, bool) {
 	return "", false
 }
 
+// MatchLoose is Match, then the option whose name is contained in the given text (the
+// longest one): "10-30 participants" → "10-30", "Less than 10" → "< 10".
+func MatchLoose(list []string, text string) (string, bool) {
+	if option, ok := Match(list, text); ok {
+		return option, true
+	}
+	wanted := key(text)
+	best := ""
+	for _, option := range list {
+		if k := key(option); k != "" && strings.Contains(wanted, k) && len(k) > len(key(best)) {
+			best = option
+		}
+	}
+	return best, best != ""
+}
+
 func (c Catalog) GoalNames() []string {
 	names := make([]string, len(c.Goals))
 	for i, goal := range c.Goals {

@@ -122,3 +122,40 @@ func TestEvaluationFillRunKeepsStepsOnFailure(t *testing.T) {
 		t.Fatalf("expected failure without steps: %+v %d", got.AIFill, len(got.Steps))
 	}
 }
+
+func TestEvaluationFillSchemaHasCatalogEnums(t *testing.T) {
+	encoded, err := json.Marshal(evaluationFillSchema())
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{`"High-fidelity prototype"`, `"Think-aloud testing"`, `"UMUX-Lite"`, `"10-30"`} {
+		if !strings.Contains(string(encoded), want) {
+			t.Errorf("schema without %s", want)
+		}
+	}
+}
+
+func TestEvaluationAnswerDefaultsStageAndSample(t *testing.T) {
+	var answer evalFillAnswer
+	if err := json.Unmarshal([]byte(testEvaluationAnswer), &answer); err != nil {
+		t.Fatal(err)
+	}
+	answer.Stage.Value = "it is a working beta"
+	answer.Participants.Value = "about twenty"
+	steps, notes, err := answer.toSteps("GreenStep")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if wizard.ValidateStep(1, steps[0]) != nil {
+		t.Fatal("step 1 invalid")
+	}
+	defaults := 0
+	for _, note := range notes["1"] {
+		if strings.HasPrefix(note.Reason, "Default choice") {
+			defaults++
+		}
+	}
+	if defaults != 2 {
+		t.Fatalf("expected 2 default notes, got %d", defaults)
+	}
+}

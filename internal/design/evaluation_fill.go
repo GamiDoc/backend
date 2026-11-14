@@ -219,7 +219,7 @@ Fill in the evaluation the way an expert would for THIS design:
 - Write the reasons, questions, hypotheses and next steps in the language of the design data; keep the catalog names in English as listed.`
 
 func (f *evaluationFiller) ask(ctx context.Context, design Status) (evalFillAnswer, error) {
-	schema, err := json.Marshal(docSchema(evalFillAnswer{}))
+	schema, err := json.Marshal(evaluationFillSchema())
 	if err != nil {
 		return evalFillAnswer{}, err
 	}
@@ -246,6 +246,30 @@ func (f *evaluationFiller) ask(ctx context.Context, design Status) (evalFillAnsw
 	return answer, nil
 }
 
+// evaluationFillSchema is the answer schema with the catalog options as enums, so a model
+// with structured outputs can only pick valid options.
+func evaluationFillSchema() jsonSchema {
+	c := catalog.Get()
+	schema := docSchema(evalFillAnswer{})
+	properties := schema["properties"].(jsonSchema)
+	setEnum := func(field, sub string, options []string, array bool) {
+		target := properties[field].(jsonSchema)
+		if array {
+			target = target["items"].(jsonSchema)
+		}
+		target["properties"].(jsonSchema)[sub].(jsonSchema)["enum"] = options
+	}
+	setEnum("goals", "name", c.GoalNames(), true)
+	setEnum("stage", "value", c.StageNames(), false)
+	setEnum("participants", "value", c.Participants, false)
+	setEnum("access", "value", c.Accessibility, false)
+	setEnum("duration", "value", c.Time, false)
+	setEnum("otherConstraints", "name", c.ExtraConstraints, true)
+	setEnum("methods", "name", c.MethodNames(), true)
+	setEnum("instruments", "name", c.InstrumentNames(), true)
+	return schema
+}
+
 // defaultNextSteps are used when the AI gives none (same as the wizard's defaults).
 var defaultNextSteps = []string{
 	"Conduct a pilot test to identify potential issues and refine instructions.",
@@ -267,7 +291,7 @@ func (a evalFillAnswer) toSteps(projectName string) ([4]json.RawMessage, map[str
 		var picked []string
 		seen := map[string]bool{}
 		for _, choice := range choices {
-			name, ok := catalog.Match(options, choice.Name)
+			name, ok := catalog.MatchLoose(options, choice.Name)
 			if !ok || seen[name] {
 				continue
 			}
@@ -278,7 +302,7 @@ func (a evalFillAnswer) toSteps(projectName string) ([4]json.RawMessage, map[str
 		return picked
 	}
 	pickOne := func(step, field string, value evalValue, options []string) string {
-		name, ok := catalog.Match(options, value.Value)
+		name, ok := catalog.MatchLoose(options, value.Value)
 		if !ok {
 			return ""
 		}
@@ -295,13 +319,20 @@ func (a evalFillAnswer) toSteps(projectName string) ([4]json.RawMessage, map[str
 	methods := pickAll("2", "selectedMethods", a.Methods, c.MethodNames())
 	instruments := pickAll("3", "selectedInstruments", a.Instruments, c.InstrumentNames())
 
+	// Required by the wizard: a missing stage or sample gets a default the user is told to check.
+	if stage == "" {
+		stage = "High-fidelity prototype"
+		note("1", "developmentStage", stage, "Default choice: the design does not say how far the system is built. Check it.")
+	}
+	if participants == "" {
+		participants = "10-30"
+		note("1", "participants", participants, "Default choice: the design does not say how many people can take part. Check it.")
+	}
 	switch {
 	case len(goals) == 0:
-		return [4]json.RawMessage{}, nil, errors.New("no valid evaluation goal")
-	case stage == "" || participants == "":
-		return [4]json.RawMessage{}, nil, errors.New("no valid stage or sample size")
+		return [4]json.RawMessage{}, nil, fmt.Errorf("no valid evaluation goal in %q", choiceNames(a.Goals))
 	case len(methods) == 0 || len(instruments) == 0:
-		return [4]json.RawMessage{}, nil, errors.New("no valid method or instrument")
+		return [4]json.RawMessage{}, nil, fmt.Errorf("no valid method or instrument in %q / %q", choiceNames(a.Methods), choiceNames(a.Instruments))
 	}
 
 	questions := nonEmptyItems(a.Research.Questions)
@@ -360,4 +391,12 @@ func emptyIfNil(list []string) []string {
 		return []string{}
 	}
 	return list
+}
+
+func choiceNames(choices []evalChoice) []string {
+	names := make([]string, len(choices))
+	for i, choice := range choices {
+		names[i] = choice.Name
+	}
+	return names
 }
