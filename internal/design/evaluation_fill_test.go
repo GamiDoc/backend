@@ -184,3 +184,48 @@ func (fakeRecommender) Recommend(status wizard.Status, forStep int) (recommendat
 	}
 	return recommendation.Result{ForStep: 3, Recommendations: []recommendation.Recommendation{{Name: "UMUX-Lite"}, {Name: "UMUX-Lite"}}}, nil
 }
+
+func TestEvaluationFillCapsGoalsAndQuestionnaires(t *testing.T) {
+	var answer evalFillAnswer
+	if err := json.Unmarshal([]byte(testEvaluationAnswer), &answer); err != nil {
+		t.Fatal(err)
+	}
+	answer.Goals = nil
+	for _, name := range []string{"Usability & Efficiency", "Guidance & Feedback", "Affective Experience", "Tension / Pressure", "Competence / Mastery", "Autonomy / Perceived Choice", "Motivation Spectrum"} {
+		answer.Goals = append(answer.Goals, evalChoice{Name: name, Reason: "It matters for this design."})
+	}
+	answer.Instruments = nil
+	for _, name := range []string{"SUS", "Observation Grid", "PENS", "SAM", "IMI", "miniPXI"} {
+		answer.Instruments = append(answer.Instruments, evalChoice{Name: name, Reason: "It fits this study well."})
+	}
+	answer.OtherConstraints = []evalChoice{{Name: "Sensitive population", Reason: "Older people."}}
+	answer.CustomInstruments = append(answer.CustomInstruments, evalCustomInstrument{Name: "Second custom", Description: "x", Reason: "y"})
+
+	steps, notes, err := answer.toSteps("GreenStep")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var step1 wizard.Step1Data
+	var step3 wizard.Step3Data
+	_ = json.Unmarshal(steps[0], &step1)
+	_ = json.Unmarshal(steps[2], &step3)
+	if len(step1.EvaluationGoals) != 5 {
+		t.Fatalf("goals: %v", step1.EvaluationGoals)
+	}
+	// 3 questionnaires (SUS, PENS, SAM) + the observation grid + 1 custom
+	if got := strings.Join(step3.SelectedInstruments, "|"); got != "SUS|Observation Grid|PENS|SAM|Perceived leaderboard pressure" {
+		t.Fatalf("instruments: %s", got)
+	}
+	for _, note := range notes["3"] {
+		if note.Value == "IMI" || note.Value == "Second custom" {
+			t.Fatalf("note of a dropped instrument: %+v", note)
+		}
+	}
+}
+
+func TestStripNumbering(t *testing.T) {
+	got := stripNumbering([]string{"H1. Usability is good.", "RQ2: Does it work?", "Plain text."})
+	if got[0] != "Usability is good." || got[1] != "Does it work?" || got[2] != "Plain text." {
+		t.Fatalf("got %q", got)
+	}
+}

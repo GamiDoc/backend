@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -217,16 +218,16 @@ type evalResearch struct {
 type evalFillAnswer struct {
 	Summary           string                 `json:"summary" desc:"2-3 sentences addressed to the user: what this evaluation will find out about their system and how. Constructive; never about missing information, the tool or its options"`
 	Description       string                 `json:"description" desc:"1-2 sentences describing the gamified system to evaluate, for the 'Project description' field"`
-	Goals             []evalChoice           `json:"goals" desc:"the evaluation goals that matter for this design (usually 3-5), exact names from the catalog; include the goals that test the design's riskiest choices"`
+	Goals             []evalChoice           `json:"goals" desc:"3-5 evaluation goals, most important first, exact names from the catalog: the ones that test the design's riskiest choices, not every goal that applies"`
 	Stage             evalValue              `json:"stage" desc:"the development stage, inferred from the design (default 'High-fidelity prototype' when unclear)"`
 	Participants      evalValue              `json:"participants" desc:"the sample size option"`
 	Access            evalValue              `json:"access" desc:"how easy it is to reach the target users"`
 	Duration          evalValue              `json:"duration" desc:"the study duration option; long enough to see the behaviour the design wants to change"`
 	OtherConstraints  []evalChoice           `json:"otherConstraints" desc:"other constraints from the catalog that apply (e.g. Sensitive population for minors or patients); empty if none"`
 	Research          evalResearch           `json:"research"`
-	Methods           []evalChoice           `json:"methods" desc:"every method the study needs (usually 2-4), from the whole catalog, that together cover the goals and fit the stage, sample and duration"`
-	Instruments       []evalChoice           `json:"instruments" desc:"every instrument the study needs, from the whole catalog, for the chosen methods, so that every chosen goal is covered"`
-	CustomInstruments []evalCustomInstrument `json:"customInstruments" desc:"custom questionnaires (one construct each), ONLY for chosen goals that no chosen catalog instrument covers; empty otherwise"`
+	Methods           []evalChoice           `json:"methods" desc:"the methods the study needs (usually 2-3), most important first, from the whole catalog, that together cover the goals and fit the stage, sample and duration"`
+	Instruments       []evalChoice           `json:"instruments" desc:"the fewest instruments that cover the goals, most important first: prefer a questionnaire that covers several goals, and let observation or interviews cover the rest; at most 2-3 standardized questionnaires (fewer and shorter for sensitive or older people, or short studies)"`
+	CustomInstruments []evalCustomInstrument `json:"customInstruments" desc:"at most one custom questionnaire, ONLY for a chosen goal that no chosen method or instrument covers at all; usually empty"`
 	NextSteps         []string               `json:"nextSteps" desc:"3-5 concrete next steps to prepare and run the study"`
 }
 
@@ -235,7 +236,10 @@ You receive the design (made in GamiDoc's Design System) and the catalog of the 
 Fill in the evaluation the way an expert would for THIS design. Always produce a complete, usable evaluation:
 - Pick options ONLY from the catalog, writing their names exactly as listed.
 - Choose goals that test what the design is betting on: its motivational strategy, its riskiest mechanics (e.g. competition, extrinsic rewards), the behaviour it wants to change.
-- Choose methods that fit the development stage, the sample and the time; choose instruments that belong to the chosen methods and together cover every chosen goal. When a chosen goal is not covered by any catalog instrument, add a custom questionnaire for it (a construct to measure, as in the wizard's "Custom questionnaire").
+- Choose 3-5 goals: the ones that test what the design is betting on, not every goal that applies.
+- Choose methods that fit the development stage, the sample and the time, and the fewest instruments that cover the chosen goals. A goal can be covered by a qualitative method (observation, interview) without its own questionnaire; prefer one questionnaire that covers several goals (e.g. PENS for competence, autonomy and relatedness).
+- Keep the burden on participants low: usually at most 2-3 standardized questionnaires in the whole study, and fewer and shorter ones (e.g. UMUX-Lite rather than SUS) for older people, minors, patients or other sensitive groups, short studies or hard-to-reach participants. Say in the reasons why the burden is acceptable.
+- Add a custom questionnaire (a construct to measure, as in the wizard's "Custom questionnaire") only when a chosen goal is not covered at all by the chosen methods and instruments.
 - Ground every reason in the design data and name the design choices it relates to. When the design gives little detail, make the most sensible choice for this kind of system and its domain and say so briefly and constructively (e.g. "a common choice for an education app; adjust it to your study").
 - You are talking to the person who made the design. Never refuse, never say the evaluation cannot be completed, never call your choices placeholders, never criticise the design's level of detail, and never mention GamiDoc, its catalog, missing options, missing descriptions or any limit of the tool.
 - Never invent facts about the project.
@@ -284,8 +288,9 @@ func (f *evaluationFiller) ask(ctx context.Context, design Status) (evalFillAnsw
 
 NOW: choose the methods, instruments and next steps.
 - Consider the recommended methods and instruments first: keep the ones that fit this design and set-up.
-- Add others from the whole catalog when a chosen goal or the design needs them (several methods and instruments can be chosen).
-- Add a custom questionnaire only for a chosen goal that no chosen instrument covers.` + languageRule
+- Add others from the whole catalog only when a chosen goal or the design needs them.
+- Use the fewest instruments that cover the goals and keep the burden on participants low (usually at most 2-3 standardized questionnaires; fewer and shorter for sensitive or older people). Put the most important first.
+- Add a custom questionnaire only for a chosen goal that nothing chosen covers.` + languageRule
 	if err := f.call(ctx, "evaluation_fill_selection", system, selection, evaluationSelectionFields, &answer); err != nil {
 		return evalFillAnswer{}, err
 	}
@@ -483,6 +488,12 @@ func (a evalFillAnswer) toSteps(projectName string) ([4]json.RawMessage, map[str
 	others := pickAll("1", "extraConstraints", a.OtherConstraints, c.ExtraConstraints)
 	methods := pickAll("2", "selectedMethods", a.Methods, c.MethodNames())
 	instruments := pickAll("3", "selectedInstruments", a.Instruments, c.InstrumentNames())
+	// Safety caps if the model ignores the burden rules: the first ones (most important) stay.
+	goals = keepFirst(goals, maxEvaluationGoals)
+	instruments = capQuestionnaires(instruments, maxQuestionnaires(a))
+	if len(a.CustomInstruments) > 1 {
+		a.CustomInstruments = a.CustomInstruments[:1]
+	}
 	customs := []map[string]any{}
 	for _, custom := range a.CustomInstruments {
 		name := strings.TrimSpace(custom.Name)
@@ -520,8 +531,9 @@ func (a evalFillAnswer) toSteps(projectName string) ([4]json.RawMessage, map[str
 		return [4]json.RawMessage{}, nil, fmt.Errorf("no valid method or instrument in %q / %q", choiceNames(a.Methods), choiceNames(a.Instruments))
 	}
 
-	questions := nonEmptyItems(a.Research.Questions)
-	hypotheses := nonEmptyItems(a.Research.Hypotheses)
+	// The wizard numbers questions and hypotheses itself: "RQ1." / "H1." prefixes go.
+	questions := stripNumbering(nonEmptyItems(a.Research.Questions))
+	hypotheses := stripNumbering(nonEmptyItems(a.Research.Hypotheses))
 	research := len(questions) > 0
 	if research {
 		note("1", "research", "", a.Research.Reason)
@@ -533,7 +545,7 @@ func (a evalFillAnswer) toSteps(projectName string) ([4]json.RawMessage, map[str
 
 	step1 := map[string]any{
 		"projectName":       projectName,
-		"projectType":       strings.TrimSpace(a.Description),
+		"projectType":       firstSentences(strings.TrimSpace(a.Description), 45),
 		"evaluationGoals":   goals,
 		"participants":      participants,
 		"developmentStage":  stage,
@@ -558,7 +570,7 @@ func (a evalFillAnswer) toSteps(projectName string) ([4]json.RawMessage, map[str
 		}
 		steps[i] = encoded
 	}
-	return steps, notes, nil
+	return steps, dropUnchosenNotes(notes, goals, instruments), nil
 }
 
 func nonEmptyItems(list []string) []string {
@@ -593,4 +605,67 @@ func containsFold(list []string, name string) bool {
 		}
 	}
 	return false
+}
+
+// maxEvaluationGoals bounds the goals the AI fill keeps.
+const maxEvaluationGoals = 5
+
+// maxQuestionnaires is the number of standardized questionnaires the AI fill keeps: a
+// safety net only (the prompt asks for fewer and shorter ones with sensitive groups, and a
+// light pictorial scale can be the right third choice there).
+func maxQuestionnaires(a evalFillAnswer) int {
+	return 3
+}
+
+func keepFirst(list []string, max int) []string {
+	if len(list) > max {
+		return list[:max]
+	}
+	return list
+}
+
+// capQuestionnaires keeps the first max self-report questionnaires of the catalog and every
+// other instrument (protocols, grids, checklists).
+func capQuestionnaires(instruments []string, max int) []string {
+	c := catalog.Get()
+	var kept []string
+	questionnaires := 0
+	for _, name := range instruments {
+		if instrument, ok := c.Instrument(name); ok && strings.EqualFold(instrument.Type, "Self-report") {
+			if questionnaires >= max {
+				continue
+			}
+			questionnaires++
+		}
+		kept = append(kept, name)
+	}
+	return kept
+}
+
+// dropUnchosenNotes removes the notes of goals and instruments the caps left out.
+func dropUnchosenNotes(notes map[string][]wizard.AINote, goals, instruments []string) map[string][]wizard.AINote {
+	chosen := map[string]bool{}
+	for _, name := range append(append([]string{}, goals...), instruments...) {
+		chosen[name] = true
+	}
+	for step, list := range notes {
+		var kept []wizard.AINote
+		for _, note := range list {
+			if (note.Field == "evaluationGoals" || note.Field == "selectedInstruments") && !chosen[note.Value] {
+				continue
+			}
+			kept = append(kept, note)
+		}
+		notes[step] = kept
+	}
+	return notes
+}
+
+var itemNumbering = regexp.MustCompile(`^(?i)(?:RQ|H|Q)\s*\d+\s*[.:)\-–—]\s*`)
+
+func stripNumbering(items []string) []string {
+	for i, item := range items {
+		items[i] = strings.TrimSpace(itemNumbering.ReplaceAllString(item, ""))
+	}
+	return items
 }
