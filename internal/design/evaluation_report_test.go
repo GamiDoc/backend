@@ -90,8 +90,9 @@ func TestEvaluationReportRejectsPlaceholders(t *testing.T) {
 	status := sampleDesignStatus()
 	status.Evaluation = sampleEvaluationWizard(t)
 	assistant := &scriptedAssistant{answers: map[string]string{
-		"evaluation_report_context": `{"subtitle":"","context":["I only have the setup."],"goals":[{"id":"G1","meaning":"placeholder","whyHere":"placeholder"}],"questions":[],"hypotheses":[]}`,
-		"evaluation_report_methods": `{"methods":[],"instruments":[],"coverage":[],"nextSteps":["placeholder"]}`,
+		"evaluation_report_goals":     `{"subtitle":"","context":"I only have the setup.","G1":{"meaning":"placeholder","whyHere":"placeholder"}}`,
+		"evaluation_report_questions": `{}`,
+		"evaluation_report_methods":   `{"methods":[],"instruments":[],"coverage":[],"nextSteps":["placeholder"]}`,
 	}}
 	_, err := GenerateDocument(context.Background(), assistant, ReportFormatEvaluation, status)
 	if !errors.Is(err, ErrInvalidDocument) {
@@ -104,20 +105,20 @@ func TestEvaluationReportExplainsTheSkeletonByID(t *testing.T) {
 	status.Evaluation = sampleEvaluationWizard(t)
 	// Two goals, two methods, two instruments (one custom); the AI forgets the custom one.
 	assistant := &scriptedAssistant{answers: map[string]string{
-		"evaluation_report_context": `{"subtitle":"Evaluation of GreenStep.","context":["GreenStep rewards active trips."],
-			"goals":[{"id":"G1","meaning":"Ease of use.","whyHere":"Logging must be quick."},{"id":"g2","meaning":"Quality of motivation.","whyHere":"Points may crowd out motivation."}],
-			"questions":[{"id":"RQ1","reasoning":"Usability first.","exploratory":false,"hypotheses":["H1"]}],
-			"hypotheses":[{"id":"H1","rationale":"68 is the SUS average.","refs":[102]}]}`,
-		"evaluation_report_methods": `{"methods":[{"id":"M1","what":"Scales.","whyHere":"Fast.","limits":"Self-report."},{"id":"M2","what":"Daily notes.","whyHere":"Habits.","limits":"Drop-out."}],
-			"instruments":[{"id":"I1","what":"Tasks.","whyHere":"Usability.","measures":"Completion.","howToRead":"Share of tasks done.","limits":"Lab."}],
-			"coverage":["Each goal is seen twice."],"nextSteps":["Pilot with 2 students."]}`,
+		"evaluation_report_goals": `{"subtitle":"Evaluation of GreenStep.","context":"GreenStep rewards active trips [4].",
+			"G1":{"meaning":"How easily people use it.","whyHere":"Logging a trip must be quick."},"G2":{"meaning":"The quality of their motivation.","whyHere":"Points may crowd out motivation here."}}`,
+		"evaluation_report_questions": `{"RQ1":{"reasoning":"Usability comes first here.","exploratory":false,"hypotheses":["H1"]},
+			"H1":{"rationale":"68 is the SUS average score.","refs":[102]}}`,
+		"evaluation_report_methods": `{"M1":{"what":"Standard validated scales here.","whyHere":"Fast to complete for everyone.","limits":"It relies on self-report."},"M2":{"what":"Short daily notes at home.","whyHere":"Habits form over the weeks.","limits":"People drop out over time."},
+			"I1":{"what":"A set of realistic tasks.","whyHere":"It shows usability problems.","measures":"Whether tasks get completed.","howToRead":"The share of tasks done alone.","limits":"It runs in a lab."},
+			"coverage":"Each goal is seen from two angles.","nextSteps":["Run a pilot with 2 students."]}`,
 	}}
 	generated, err := GenerateDocument(context.Background(), assistant, ReportFormatEvaluation, status)
 	if err != nil {
 		t.Fatal(err)
 	}
 	doc := generated.(*EvalReportDoc)
-	if doc.Goals[1].WhyHere != "Points may crowd out motivation." || doc.Methods[1].WhyHere != "Habits." {
+	if doc.Goals[1].WhyHere != "Points may crowd out motivation here." || doc.Methods[1].WhyHere != "Habits form over the weeks." {
 		t.Fatalf("AI text not merged: %+v %+v", doc.Goals, doc.Methods)
 	}
 	if len(doc.Instrs) != 2 || doc.Instrs[1].Name != "Perceived leaderboard pressure" || !strings.Contains(doc.Instrs[1].What, "Custom questionnaire") {
@@ -126,8 +127,11 @@ func TestEvaluationReportExplainsTheSkeletonByID(t *testing.T) {
 	if len(doc.Questions) != 1 || len(doc.Questions[0].Hypotheses) != 1 || doc.Questions[0].Hypotheses[0].Rationale == "" {
 		t.Fatalf("questions: %+v", doc.Questions)
 	}
-	if !strings.Contains(assistant.requests[1].User, "I2 Perceived leaderboard pressure") {
+	if !strings.Contains(assistant.requests[2].User, "I2 Perceived leaderboard pressure") || !strings.Contains(string(assistant.requests[2].Schema), `"I2"`) {
 		t.Fatal("second call without the custom questionnaire")
+	}
+	if len(doc.Context) != 1 || doc.Context[0] != "GreenStep rewards active trips." {
+		t.Fatalf("context: %q", doc.Context)
 	}
 }
 
@@ -159,8 +163,31 @@ func TestCleanContextKeepsOnlyTheContext(t *testing.T) {
 	if len(got) != 2 || got[0] != "Progress test is an education concept." {
 		t.Fatalf("context: %q", got)
 	}
-	plain := cleanContext([]string{"First paragraph.", "Second paragraph."})
+	plain := cleanContext([]string{"The first paragraph here.", "The second paragraph here."})
 	if len(plain) != 2 {
 		t.Fatalf("plain context: %q", plain)
+	}
+}
+
+func TestCleanContextAcceptsAContextHeadingWithGoals(t *testing.T) {
+	got := cleanContext([]string{"## Context and goals of the study", "prova helps volunteers classify photos.", "## Goals", "G1 …"})
+	if len(got) != 1 || got[0] != "prova helps volunteers classify photos." {
+		t.Fatalf("context: %q", got)
+	}
+}
+
+func TestRepeatsName(t *testing.T) {
+	if !repeatsName("Guidance & Feedback [Pragmatic UX]", "Guidance & Feedback", "Pragmatic UX") {
+		t.Error("echo not detected")
+	}
+	if repeatsName("How clearly the system tells users what happened and what to do next.", "Guidance & Feedback", "Pragmatic UX") {
+		t.Error("real meaning rejected")
+	}
+}
+
+func TestStripNamePrefix(t *testing.T) {
+	got := stripNamePrefix("Usability & Efficiency [Pragmatic UX]: verificare che MyProject sia usabile.", "Usability & Efficiency", "Pragmatic UX")
+	if got != "Verificare che MyProject sia usabile." {
+		t.Fatalf("got %q", got)
 	}
 }

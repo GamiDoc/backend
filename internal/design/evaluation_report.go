@@ -140,6 +140,7 @@ Rules:
 - Cite references ONLY by their id from the catalogue, and only where they really support the sentence. Never write citations in the text yourself.
 - Write clearly for a reader who did not take part in the planning. Short sentences, no filler.
 - Write in the language of the data (the language of the free-text fields and of the design).
+- The "Spark" in the data is the designer's first description of the project, not its name: never write the word Spark. Call the system by the project name given (or "your project").
 - All the data you need is in the message. Write the finished document now: never ask for more data, never answer with a template, an outline or placeholders, never talk about yourself or the task.`
 
 // customQuestionnaire is a custom construct of step 3 ("Custom questionnaire").
@@ -258,8 +259,11 @@ func fallbackEvaluation(status Status) *EvalReportDoc {
 	data := decodeEvaluation(status.Evaluation)
 	c := catalog.Get()
 	doc := &EvalReportDoc{Subtitle: strings.TrimSpace(data.step1.ProjectType), NextSteps: data.nextSteps}
-	if objective := strings.TrimSpace(data.step1.ResearchObjective); objective != "" {
-		doc.Context = []string{objective}
+	if description := strings.TrimSpace(data.step1.ProjectType); len(strings.Fields(description)) >= 4 {
+		doc.Context = append(doc.Context, description)
+	}
+	if objective := strings.TrimSpace(data.step1.ResearchObjective); len(strings.Fields(objective)) >= 4 {
+		doc.Context = append(doc.Context, objective)
 	}
 	goalIDs := map[string]string{}
 	for i, name := range data.step1.EvaluationGoals {

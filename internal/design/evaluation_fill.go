@@ -127,6 +127,7 @@ func (h *Handler) fillEvaluation(w http.ResponseWriter, r *http.Request, o owner
 		response.WriteError(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "Internal server error", nil)
 		return
 	}
+	design.Title = DesignTitle(design, found.Name) // the name the AI must use
 	go f.run(ctx, o.id, found.Name, *job, design)
 
 	response.WriteJSON(w, http.StatusAccepted, map[string]any{"wizardStatus": saved.Wizard})
@@ -238,6 +239,7 @@ Fill in the evaluation the way an expert would for THIS design. Always produce a
 - Ground every reason in the design data and name the design choices it relates to. When the design gives little detail, make the most sensible choice for this kind of system and its domain and say so briefly and constructively (e.g. "a common choice for an education app; adjust it to your study").
 - You are talking to the person who made the design. Never refuse, never say the evaluation cannot be completed, never call your choices placeholders, never criticise the design's level of detail, and never mention GamiDoc, its catalog, missing options, missing descriptions or any limit of the tool.
 - Never invent facts about the project.
+- The "Spark" in the data is the designer's first description of the project, not its name: never write the word Spark. Call the system by the project name given (or "your project").
 - Write the summary, reasons, questions, hypotheses, custom questionnaires and next steps in the language of the design data; keep the catalog names in English as listed.`
 
 // The fill takes two calls, like a person going through the wizard: first the set-up
@@ -256,6 +258,9 @@ func (f *evaluationFiller) ask(ctx context.Context, design Status) (evalFillAnsw
 		system = strings.TrimPrefix(languageRule, "\n\n") + "\n\n" + system
 	}
 	designText := designDataText(design)
+	if name := strings.TrimSpace(design.Title); name != "" {
+		designText = "PROJECT NAME: " + name + ". Always call the system by this name.\n\n" + designText
+	}
 	catalogText := "\n\n## Evaluation catalog\n" + catalog.Get().Text()
 
 	var answer evalFillAnswer
