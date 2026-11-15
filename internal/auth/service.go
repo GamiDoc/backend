@@ -16,12 +16,15 @@ var ErrInvalidEmail = errors.New("invalid email")
 var ErrInvalidPassword = errors.New("invalid password")
 var ErrEmailAlreadyExists = errors.New("email already exists")
 var ErrInvalidCredentials = errors.New("invalid credentials")
+var ErrEmailNotVerified = errors.New("email not verified")
 
 type Service struct {
 	users        user.Repository
 	tokens       *token.Manager
 	refreshStore *token.RefreshStore
 	blacklist    *token.Blacklist
+	// email is nil when accounts need no email verification (tests, older wiring).
+	email *emailFlows
 }
 
 type RegisterInput struct {
@@ -38,6 +41,9 @@ type AuthResult struct {
 	AccessToken  string    `json:"access_token"`
 	User         user.User `json:"user"`
 	RefreshToken string    `json:"-"` // sent via httpOnly cookie, not in JSON body
+	// VerificationRequired: the account was created but the user must open the link of
+	// the verification email before logging in (no tokens are issued).
+	VerificationRequired bool `json:"-"`
 }
 
 func NewService(users user.Repository, tokens *token.Manager, refreshStore *token.RefreshStore, blacklist *token.Blacklist) *Service {
@@ -57,8 +63,8 @@ func (s *Service) Register(ctx context.Context, input RegisterInput) (AuthResult
 		return AuthResult{}, ErrInvalidEmail
 	}
 
-	if len(password) < 8 {
-		return AuthResult{}, ErrInvalidPassword
+	if err := ValidatePassword(password); err != nil {
+		return AuthResult{}, err
 	}
 
 	_, err := s.users.FindByEmail(ctx, email)
@@ -83,6 +89,12 @@ func (s *Service) Register(ctx context.Context, input RegisterInput) (AuthResult
 		return AuthResult{}, err
 	}
 
+	if s.email != nil {
+		// The account works once the email is confirmed; a failed send can be retried
+		// with "resend the email".
+		s.email.sendVerification(ctx, createdUser)
+		return AuthResult{User: createdUser, VerificationRequired: true}, nil
+	}
 	return s.issueTokens(ctx, createdUser)
 }
 
@@ -101,6 +113,9 @@ func (s *Service) Login(ctx context.Context, input LoginInput) (AuthResult, erro
 	err = bcrypt.CompareHashAndPassword([]byte(foundUser.PasswordHash), []byte(password))
 	if err != nil {
 		return AuthResult{}, ErrInvalidCredentials
+	}
+	if s.email != nil && !foundUser.Verified() {
+		return AuthResult{}, ErrEmailNotVerified
 	}
 
 	return s.issueTokens(ctx, foundUser)

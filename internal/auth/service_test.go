@@ -56,6 +56,29 @@ func (r *fakeUserRepository) FindByID(ctx context.Context, id string) (user.User
 	return u, nil
 }
 
+func (r *fakeUserRepository) MarkEmailVerified(ctx context.Context, id string) error {
+	u, ok := r.usersByID[id]
+	if !ok {
+		return user.ErrUserNotFound
+	}
+	now := time.Now()
+	u.EmailVerifiedAt = &now
+	r.usersByID[id] = u
+	r.usersByEmail[u.Email] = u
+	return nil
+}
+
+func (r *fakeUserRepository) UpdatePassword(ctx context.Context, id string, passwordHash string) error {
+	u, ok := r.usersByID[id]
+	if !ok {
+		return user.ErrUserNotFound
+	}
+	u.PasswordHash = passwordHash
+	r.usersByID[id] = u
+	r.usersByEmail[u.Email] = u
+	return nil
+}
+
 func newTestService(t *testing.T) (*Service, *token.Manager) {
 	t.Helper()
 	mr := miniredis.RunT(t)
@@ -77,7 +100,7 @@ func TestRegister(t *testing.T) {
 
 	result, err := service.Register(context.Background(), RegisterInput{
 		Email:    "test@example.com",
-		Password: "password123",
+		Password: "Password123",
 	})
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -108,7 +131,7 @@ func TestRegisterReturnsFindByEmailError(t *testing.T) {
 
 	_, err := service.Register(context.Background(), RegisterInput{
 		Email:    "test@example.com",
-		Password: "password123",
+		Password: "Password123",
 	})
 	if !errors.Is(err, lookupErr) {
 		t.Fatalf("expected lookup error, got %v", err)
@@ -124,7 +147,7 @@ func TestLogin(t *testing.T) {
 
 	registered, err := service.Register(context.Background(), RegisterInput{
 		Email:    "test@example.com",
-		Password: "password123",
+		Password: "Password123",
 	})
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -132,7 +155,7 @@ func TestLogin(t *testing.T) {
 
 	result, err := service.Login(context.Background(), LoginInput{
 		Email:    "test@example.com",
-		Password: "password123",
+		Password: "Password123",
 	})
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -152,7 +175,7 @@ func TestRefreshRotation(t *testing.T) {
 
 	registered, err := service.Register(context.Background(), RegisterInput{
 		Email:    "test@example.com",
-		Password: "password123",
+		Password: "Password123",
 	})
 	if err != nil {
 		t.Fatalf("register: %v", err)
@@ -186,7 +209,7 @@ func TestLogoutBlacklistsAccess(t *testing.T) {
 
 	registered, err := service.Register(context.Background(), RegisterInput{
 		Email:    "test@example.com",
-		Password: "password123",
+		Password: "Password123",
 	})
 	if err != nil {
 		t.Fatalf("register: %v", err)

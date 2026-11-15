@@ -22,7 +22,7 @@ func (r *UserRepository) Create(ctx context.Context, input user.User) (user.User
 		`
 		INSERT INTO users (id, email, password_hash)
 		VALUES ($1, $2, $3)
-		RETURNING id, email, password_hash, created_at
+		RETURNING id, email, password_hash, created_at, email_verified_at
 		`,
 		input.ID,
 		input.Email,
@@ -30,7 +30,7 @@ func (r *UserRepository) Create(ctx context.Context, input user.User) (user.User
 	)
 
 	var created user.User
-	err := row.Scan(&created.ID, &created.Email, &created.PasswordHash, &created.CreatedAt)
+	err := row.Scan(&created.ID, &created.Email, &created.PasswordHash, &created.CreatedAt, &created.EmailVerifiedAt)
 	if err != nil {
 		return user.User{}, err
 	}
@@ -42,7 +42,7 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (user.Us
 	row := r.db.sql.QueryRowContext(
 		ctx,
 		`
-		SELECT id, email, password_hash, created_at
+		SELECT id, email, password_hash, created_at, email_verified_at
 		FROM users
 		WHERE email = $1
 		`,
@@ -50,7 +50,7 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (user.Us
 	)
 
 	var found user.User
-	err := row.Scan(&found.ID, &found.Email, &found.PasswordHash, &found.CreatedAt)
+	err := row.Scan(&found.ID, &found.Email, &found.PasswordHash, &found.CreatedAt, &found.EmailVerifiedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return user.User{}, user.ErrUserNotFound
@@ -65,7 +65,7 @@ func (r *UserRepository) FindByID(ctx context.Context, id string) (user.User, er
 	row := r.db.sql.QueryRowContext(
 		ctx,
 		`
-		SELECT id, email, password_hash, created_at
+		SELECT id, email, password_hash, created_at, email_verified_at
 		FROM users
 		WHERE id = $1
 		`,
@@ -73,7 +73,7 @@ func (r *UserRepository) FindByID(ctx context.Context, id string) (user.User, er
 	)
 
 	var found user.User
-	err := row.Scan(&found.ID, &found.Email, &found.PasswordHash, &found.CreatedAt)
+	err := row.Scan(&found.ID, &found.Email, &found.PasswordHash, &found.CreatedAt, &found.EmailVerifiedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return user.User{}, user.ErrUserNotFound
@@ -82,4 +82,32 @@ func (r *UserRepository) FindByID(ctx context.Context, id string) (user.User, er
 	}
 
 	return found, nil
+}
+
+func (r *UserRepository) MarkEmailVerified(ctx context.Context, id string) error {
+	result, err := r.db.sql.ExecContext(ctx,
+		`UPDATE users SET email_verified_at = COALESCE(email_verified_at, NOW()) WHERE id = $1`, id)
+	if err != nil {
+		return err
+	}
+	return requireRow(result)
+}
+
+func (r *UserRepository) UpdatePassword(ctx context.Context, id string, passwordHash string) error {
+	result, err := r.db.sql.ExecContext(ctx, `UPDATE users SET password_hash = $2 WHERE id = $1`, id, passwordHash)
+	if err != nil {
+		return err
+	}
+	return requireRow(result)
+}
+
+func requireRow(result sql.Result) error {
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return user.ErrUserNotFound
+	}
+	return nil
 }

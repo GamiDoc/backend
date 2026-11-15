@@ -56,6 +56,8 @@ func NewMailer(cfg config.Config) (mailer.Mailer, error) {
 			cfg.ResendBaseURL,
 			nil,
 		), nil
+	case "brevo":
+		return mailer.NewBrevoMailer(cfg.BrevoAPIKey, cfg.BrevoBaseURL, nil), nil
 	default:
 		return nil, fmt.Errorf("unsupported mailer provider: %s", cfg.MailerProvider)
 	}

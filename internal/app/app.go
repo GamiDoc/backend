@@ -116,6 +116,8 @@ func New(cfg config.Config) (*App, error) {
 		_ = redisClient.Close()
 		return nil, err
 	}
+	// Email verification and password reset (links to the web app).
+	authService.WithEmail(m, token.NewOneTimeStore(redisClient.Raw()), cfg.MailerFromEmail, cfg.MailerFromName, cfg.PublicFrontendURL())
 
 	pdfBuilder := pdf.NewBuilder()
 	pdfGenerator := pdf.NewFPDFGenerator()

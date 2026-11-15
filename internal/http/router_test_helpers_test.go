@@ -71,6 +71,29 @@ func (r *fakeUserRepository) FindByID(ctx context.Context, id string) (user.User
 	return u, nil
 }
 
+func (r *fakeUserRepository) MarkEmailVerified(ctx context.Context, id string) error {
+	u, ok := r.usersByID[id]
+	if !ok {
+		return user.ErrUserNotFound
+	}
+	now := time.Now()
+	u.EmailVerifiedAt = &now
+	r.usersByID[id] = u
+	r.usersByEmail[u.Email] = u
+	return nil
+}
+
+func (r *fakeUserRepository) UpdatePassword(ctx context.Context, id string, passwordHash string) error {
+	u, ok := r.usersByID[id]
+	if !ok {
+		return user.ErrUserNotFound
+	}
+	u.PasswordHash = passwordHash
+	r.usersByID[id] = u
+	r.usersByEmail[u.Email] = u
+	return nil
+}
+
 type fakeProjectRepository struct {
 	items []project.Project
 	byID  map[string]project.Project

@@ -14,7 +14,7 @@ func TestRegisterRoute(t *testing.T) {
 		AuthHandler:  testAuthHandler(),
 	})
 
-	body := `{"email":"test@example.com","password":"password123"}`
+	body := `{"email":"test@example.com","password":"Password123"}`
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	rec := httptest.NewRecorder()

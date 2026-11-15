@@ -58,6 +58,11 @@ type Config struct {
 	MailerFromName  string
 	ResendAPIKey    string
 	ResendBaseURL   string
+	BrevoAPIKey     string
+	BrevoBaseURL    string
+	// FrontendURL is the public address of the web app, used for the links in emails
+	// (email verification, password reset). Empty = the first CORS allowed origin.
+	FrontendURL string
 
 	PDFHTMLRendererURL     string
 	PDFHTMLRendererTimeout time.Duration
@@ -130,6 +135,9 @@ func Load() Config {
 		MailerFromName:                 getEnv("MAILER_FROM_NAME", "GamiDoc"),
 		ResendAPIKey:                   getEnv("RESEND_API_KEY", ""),
 		ResendBaseURL:                  getEnv("RESEND_BASE_URL", "https://api.resend.com"),
+		BrevoAPIKey:                    getEnv("BREVO_API_KEY", ""),
+		BrevoBaseURL:                   getEnv("BREVO_BASE_URL", "https://api.brevo.com/v3"),
+		FrontendURL:                    getEnv("FRONTEND_URL", ""),
 		PDFHTMLRendererURL:             getEnv("PDF_HTML_RENDERER_URL", ""),
 		PDFHTMLRendererTimeout:         parseDurationWithFallback(getEnv("PDF_HTML_RENDERER_TIMEOUT", "30s"), 30*time.Second),
 		PDFChromePath:                  getEnv("PDF_CHROME_PATH", ""),
@@ -357,6 +365,14 @@ func (c Config) ValidateMailer() error {
 			return errors.New("resend base url is required")
 		}
 		return nil
+	case "brevo":
+		if strings.TrimSpace(c.MailerFromEmail) == "" {
+			return errors.New("mailer from email is required")
+		}
+		if strings.TrimSpace(c.BrevoAPIKey) == "" {
+			return errors.New("brevo api key is required")
+		}
+		return nil
 	default:
 		return fmt.Errorf("unsupported mailer provider: %s", c.MailerProvider)
 	}
@@ -437,4 +453,18 @@ func getEnvCSV(key string, fallback []string) []string {
 	}
 
 	return result
+}
+
+// PublicFrontendURL is the web app address used in email links: FRONTEND_URL, else the
+// first CORS allowed origin, else the Vite dev server.
+func (c Config) PublicFrontendURL() string {
+	if url := strings.TrimRight(strings.TrimSpace(c.FrontendURL), "/"); url != "" {
+		return url
+	}
+	for _, origin := range c.CORSAllowedOrigins {
+		if origin = strings.TrimRight(strings.TrimSpace(origin), "/"); origin != "" && origin != "*" {
+			return origin
+		}
+	}
+	return "http://localhost:5173"
 }
