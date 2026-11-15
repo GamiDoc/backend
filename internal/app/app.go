@@ -116,8 +116,14 @@ func New(cfg config.Config) (*App, error) {
 		_ = redisClient.Close()
 		return nil, err
 	}
-	// Email verification and password reset (links to the web app).
-	authService.WithEmail(m, token.NewOneTimeStore(redisClient.Raw()), cfg.MailerFromEmail, cfg.MailerFromName, cfg.PublicFrontendURL())
+	// Email verification and password reset (links to the web app). They need a real mail
+	// provider: without one, production keeps working without verification, while in
+	// development the links are written to the log.
+	if cfg.MailerProviderNormalized() != "noop" || cfg.AppEnv == "development" {
+		authService.WithEmail(m, token.NewOneTimeStore(redisClient.Raw()), cfg.MailerFromEmail, cfg.MailerFromName, cfg.PublicFrontendURL())
+	} else {
+		logger.Warn("email verification and password reset are off: set MAILER_PROVIDER (e.g. brevo)")
+	}
 
 	pdfBuilder := pdf.NewBuilder()
 	pdfGenerator := pdf.NewFPDFGenerator()
