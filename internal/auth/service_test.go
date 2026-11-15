@@ -79,6 +79,16 @@ func (r *fakeUserRepository) UpdatePassword(ctx context.Context, id string, pass
 	return nil
 }
 
+func (r *fakeUserRepository) Delete(ctx context.Context, id string) error {
+	u, ok := r.usersByID[id]
+	if !ok {
+		return user.ErrUserNotFound
+	}
+	delete(r.usersByID, id)
+	delete(r.usersByEmail, u.Email)
+	return nil
+}
+
 func newTestService(t *testing.T) (*Service, *token.Manager) {
 	t.Helper()
 	mr := miniredis.RunT(t)

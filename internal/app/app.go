@@ -109,6 +109,7 @@ func New(cfg config.Config) (*App, error) {
 		return nil, err
 	}
 	projectService.WithPDFCleaner(store)
+	authService.WithFileCleanup(userRepository, store)
 
 	m, err := bootstrap.NewMailer(cfg)
 	if err != nil {

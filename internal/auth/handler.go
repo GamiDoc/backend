@@ -47,6 +47,7 @@ func (h *Handler) Routes() chi.Router {
 	r.Post("/reset-password/check", h.checkResetToken)
 	r.Post("/reset-password", h.resetPassword)
 	r.With(appmiddleware.RequireAuth(h.tokenManager, h.blacklist)).Get("/me", h.me)
+	r.With(appmiddleware.RequireAuth(h.tokenManager, h.blacklist)).Delete("/me", h.deleteAccount)
 
 	return r
 }
@@ -296,4 +297,48 @@ func (h *Handler) writeAuth(w http.ResponseWriter, result AuthResult) {
 		"access_token": result.AccessToken,
 		"user":         result.User,
 	})
+}
+
+type deleteAccountInput struct {
+	Password string `json:"password"`
+}
+
+// deleteAccount removes the logged-in user's account and everything in it, after
+// checking their password.
+func (h *Handler) deleteAccount(w http.ResponseWriter, r *http.Request) {
+	userID := appmiddleware.GetAuthUserID(r.Context())
+	if userID == "" {
+		response.WriteError(w, http.StatusUnauthorized, "UNAUTHORIZED", "Unauthorized", nil)
+		return
+	}
+	var input deleteAccountInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		response.WriteError(w, http.StatusBadRequest, "INVALID_INPUT", "Invalid request body", nil)
+		return
+	}
+	accessToken := ""
+	if header := r.Header.Get("Authorization"); header != "" {
+		if parts := strings.SplitN(header, " ", 2); len(parts) == 2 && parts[0] == "Bearer" {
+			accessToken = parts[1]
+		}
+	}
+	refreshToken := ""
+	if cookie, err := r.Cookie(refreshCookieName); err == nil {
+		refreshToken = cookie.Value
+	}
+
+	if err := h.service.DeleteAccount(r.Context(), userID, input.Password, accessToken, refreshToken); err != nil {
+		switch {
+		case errors.Is(err, ErrInvalidCredentials):
+			// 403, not 401: the client would take a 401 for an expired session.
+			response.WriteError(w, http.StatusForbidden, "WRONG_PASSWORD", "The password is not correct", map[string]any{"field": "password"})
+		case errors.Is(err, user.ErrUserNotFound):
+			response.WriteError(w, http.StatusUnauthorized, "UNAUTHORIZED", "Unauthorized", nil)
+		default:
+			response.WriteError(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "Internal server error", nil)
+		}
+		return
+	}
+	h.clearRefreshCookie(w)
+	response.WriteJSON(w, http.StatusOK, map[string]any{"status": "deleted"})
 }

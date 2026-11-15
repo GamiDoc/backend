@@ -13,4 +13,6 @@ type Repository interface {
 	FindByID(ctx context.Context, id string) (User, error)
 	MarkEmailVerified(ctx context.Context, id string) error
 	UpdatePassword(ctx context.Context, id string, passwordHash string) error
+	// Delete removes the user with their projects (and everything in them).
+	Delete(ctx context.Context, id string) error
 }

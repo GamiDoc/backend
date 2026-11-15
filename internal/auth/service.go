@@ -25,6 +25,9 @@ type Service struct {
 	blacklist    *token.Blacklist
 	// email is nil when accounts need no email verification (tests, older wiring).
 	email *emailFlows
+	// files and store: optional, to delete the stored files with the account.
+	files AccountFiles
+	store FileStore
 }
 
 type RegisterInput struct {

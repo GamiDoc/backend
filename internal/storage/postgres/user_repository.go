@@ -111,3 +111,55 @@ func requireRow(result sql.Result) error {
 	}
 	return nil
 }
+
+// Delete removes the user; projects, design states and reports go with them (ON DELETE
+// CASCADE) and the activity log keeps the events without the user id.
+func (r *UserRepository) Delete(ctx context.Context, id string) error {
+	tx, err := r.db.sql.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback() }()
+	if _, err := tx.ExecContext(ctx, `UPDATE activity_events SET user_id = NULL WHERE user_id = $1`, id); err != nil {
+		return err
+	}
+	result, err := tx.ExecContext(ctx, `DELETE FROM users WHERE id = $1`, id)
+	if err != nil {
+		return err
+	}
+	if err := requireRow(result); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+// StoredFiles returns what the user's projects reference in the object storage: the
+// URLs the server saved (evaluation PDFs, design documents) and, per project, the design
+// data (JSON written by the user, with the URLs of the uploaded images).
+func (r *UserRepository) StoredFiles(ctx context.Context, id string) ([]string, map[string]string, error) {
+	rows, err := r.db.sql.QueryContext(ctx, `
+		SELECT p.id::text, 'file', p.pdf_url FROM projects p WHERE p.user_id = $1 AND p.pdf_url IS NOT NULL
+		UNION ALL
+		SELECT p.id::text, 'file', dr.url FROM design_reports dr JOIN projects p ON p.id = dr.project_id WHERE p.user_id = $1
+		UNION ALL
+		SELECT p.id::text, 'design', ds.data FROM design_states ds JOIN projects p ON p.id = ds.project_id WHERE p.user_id = $1
+	`, id)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer rows.Close()
+	var files []string
+	designs := map[string]string{}
+	for rows.Next() {
+		var projectID, kind, value string
+		if err := rows.Scan(&projectID, &kind, &value); err != nil {
+			return nil, nil, err
+		}
+		if kind == "design" {
+			designs[projectID] = value
+		} else {
+			files = append(files, value)
+		}
+	}
+	return files, designs, rows.Err()
+}
